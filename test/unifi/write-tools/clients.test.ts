@@ -232,6 +232,31 @@ describe('unifi_authorize_guest / unifi_unauthorize_guest', () => {
     },
   );
 
+  describe('with the official client list failing', () => {
+    // A body without the page fields: the official read fails as endpoint-changed.
+    const down = { fixtures: { 'official-clients': { broken: true } } };
+
+    it.each(['unifi_authorize_guest', 'unifi_unauthorize_guest'])(
+      '%s refuses, saying the official API did not answer; nothing sent',
+      async (tool) => {
+        const { call, writes } = setup(down);
+        await expect(call(tool, { client: 'client-3' })).rejects.toThrow(
+          /client-3 has no official id: the official client list didn't answer .*guest actions are unavailable until it does/,
+        );
+        expect(writes).toEqual([]);
+      },
+    );
+
+    it('a legacy action still runs', async () => {
+      const { call, writes } = setup(down);
+      expect(await call('unifi_block_client', { client: 'client-3' })).toEqual({
+        changed: 'blocked',
+        client: 'client-3',
+      });
+      expect(writes).toHaveLength(1);
+    });
+  });
+
   it('a client that is not a guest is refused, nothing sent', async () => {
     const { call, writes } = setup();
     await expect(call('unifi_authorize_guest', { client: 'client-3' })).rejects.toThrow(

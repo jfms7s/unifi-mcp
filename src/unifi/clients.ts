@@ -1,3 +1,4 @@
+import { describeError } from '../http/errors.js';
 import type { KnownClient, LegacyApi } from './legacy.js';
 import type { OfficialApi } from './official.js';
 import { sameId } from './lookup.js';
@@ -24,20 +25,40 @@ export interface ClientRecord {
   station?: Station;
 }
 
-/** rest/user (everyone ever seen) + stat/sta (who is connected) + network names + official ids. */
+export interface LoadedClients {
+  records: ClientRecord[];
+  /**
+   * Set when the official client list failed: the records are legacy-only, with
+   * no `officialId`, so guest actions can't run until it answers again.
+   */
+  note?: string;
+}
+
+/**
+ * rest/user (everyone ever seen) + stat/sta (who is connected) + network names
+ * + official ids. A failing official list degrades to legacy-only records and
+ * a note rather than failing every client tool.
+ */
 export async function loadClients(
   { legacy, official }: { legacy: LegacyApi; official: OfficialApi },
   site: { id: string; ref: string },
-): Promise<ClientRecord[]> {
-  const [stations, networks, officialClients] = await Promise.all([
+): Promise<LoadedClients> {
+  const [stations, networks, officialResult] = await Promise.all([
     legacy.stations(site.ref),
     legacy.networkConf(site.ref),
-    official.listClients(site.id),
+    official.listClients(site.id).then(
+      (clients) => ({ clients }),
+      (error: unknown) => ({
+        clients: [],
+        note: `the official client list didn't answer (${describeError(error)}); guest actions are unavailable until it does`,
+      }),
+    ),
   ]);
+  const officialClients = officialResult.clients;
   const known = await legacy.knownClients(site.ref, stations);
   const byMac = new Map(stations.map((s) => [s.mac.toLowerCase(), s]));
   const networkName = new Map(networks.map((n) => [n._id, n.name]));
-  return known.map((k: KnownClient) => {
+  const records = known.map((k: KnownClient): ClientRecord => {
     const station = byMac.get(k.mac.toLowerCase());
     const match = officialClients.find((o) => sameId(o.macAddress, k.mac));
     return {
@@ -57,6 +78,7 @@ export async function loadClients(
       station,
     };
   });
+  return 'note' in officialResult ? { records, note: officialResult.note } : { records };
 }
 
 /** One compact row: no MAC, no radio detail. */

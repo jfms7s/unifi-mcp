@@ -248,7 +248,7 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
       handler: async (a) => {
         const site = await sites.resolve(a.site);
         const since = a.firstSeenSince === undefined ? undefined : parseTime(a.firstSeenSince, now());
-        const all = await loadClients(deps, site);
+        const { records: all, note } = await loadClients(deps, site);
         const showOffline = a.includeOffline || a.blocked === true;
         const keep = (c: ClientRecord) =>
           (showOffline || c.connected) &&
@@ -267,6 +267,7 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
           total: matched.length,
           clients: rows.map(clientRow),
           truncated,
+          note,
         });
       },
     }),
@@ -282,11 +283,11 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
       annotations: READ,
       handler: async ({ client, site: wanted }) => {
         const site = await sites.resolve(wanted);
-        const all = await loadClients(deps, site);
+        const { records: all, note } = await loadClients(deps, site);
         const match = findClient(all, client);
         if ('none' in match) throw new Error(`No client matches "${client}"`);
         if ('ambiguous' in match) return ambiguous(client, match.ambiguous, clientRow);
-        return clientDetail(match.found);
+        return compact({ ...clientDetail(match.found), note });
       },
     }),
     ...createWanTools(deps),

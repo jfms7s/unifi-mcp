@@ -408,6 +408,20 @@ describe('official client join', () => {
     expect(found).not.toHaveProperty('officialId');
   });
 
+  it('a failing official client list leaves legacy-only records and a note', async () => {
+    const { deps, call } = setup();
+    deps.official.listClients = async () => {
+      throw new Error('official API timed out');
+    };
+    const list = (await call('unifi_list_clients')) as { total: number; note: string };
+    expect(list.total).toBe(31);
+    expect(list.note).toMatch(/official client list didn't answer .*guest actions are unavailable/);
+    const found = (await call('unifi_get_client', { client: '02:00:00:00:00:05' })) as Row;
+    expect(found.name).toBe('client-1');
+    expect(found).not.toHaveProperty('officialId');
+    expect(found.note).toMatch(/guest actions are unavailable/);
+  });
+
   it('reads stat/sta once per call', async () => {
     const { deps, call } = setup();
     await call('unifi_list_clients');

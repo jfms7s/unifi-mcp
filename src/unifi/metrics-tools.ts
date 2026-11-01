@@ -144,7 +144,7 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
           }
         } else if (scope === 'client') {
           if (a.client === undefined) throw new Error('scope client needs a client');
-          const match = findClient(await loadClients(deps, site), a.client);
+          const match = findClient((await loadClients(deps, site)).records, a.client);
           if ('none' in match) throw new Error(`No client matches "${a.client}"`);
           if ('ambiguous' in match) {
             return ambiguous(a.client, match.ambiguous, (c) => ({ id: c.id, name: c.name, ip: c.ip }));
@@ -188,7 +188,7 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
         if (a.client === undefined) {
           rows = await legacy.siteDpi(site.ref);
         } else {
-          const match = findClient(await loadClients(deps, site), a.client);
+          const match = findClient((await loadClients(deps, site)).records, a.client);
           if ('none' in match) throw new Error(`No client matches "${a.client}"`);
           if ('ambiguous' in match) {
             return ambiguous(a.client, match.ambiguous, (c) => ({ id: c.id, name: c.name, ip: c.ip }));

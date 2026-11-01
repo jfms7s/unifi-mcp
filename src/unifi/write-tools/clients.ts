@@ -27,7 +27,7 @@ const asKnown = (c: ClientRecord): KnownClient => ({
 });
 
 type Resolved =
-  | { site: Site; record: ClientRecord; records: ClientRecord[] }
+  | { site: Site; record: ClientRecord; records: ClientRecord[]; officialNote?: string }
   | { candidates: ReturnType<typeof ambiguous> };
 
 async function resolveClient(
@@ -36,13 +36,13 @@ async function resolveClient(
   query: string,
 ): Promise<Resolved> {
   const site = await deps.sites.resolve(wanted);
-  const records = await loadClients(deps, site);
+  const { records, note } = await loadClients(deps, site);
   const match = findClient(records, query, { exactOnly: true });
   if ('none' in match) throw new Error(`No client matches "${query}"`);
   if ('ambiguous' in match) {
     return { candidates: ambiguous(query, match.ambiguous, clientRow, match.partial) };
   }
-  return { site, record: match.found, records };
+  return { site, record: match.found, records, officialNote: note };
 }
 
 /**
@@ -60,13 +60,14 @@ async function change(
     /** Unguarded changes (giving access back) pass false. */
     guard: boolean;
     run: (site: Site, c: ClientRecord) => Promise<object>;
-    check?: (c: ClientRecord) => void;
+    /** `officialNote` is set when the official client list failed (see loadClients). */
+    check?: (c: ClientRecord, officialNote: string | undefined) => void;
   },
 ): Promise<unknown> {
   const r = await resolveClient(deps, args.site, args.client);
   if ('candidates' in r) return r.candidates;
-  const { site, record, records } = r;
-  opts.check?.(record);
+  const { site, record, records, officialNote } = r;
+  opts.check?.(record, officialNote);
   const target: Target | undefined = opts.guard
     ? { kind: 'client', ipOrMac: record.mac }
     : undefined;
@@ -98,16 +99,23 @@ function stamgr(deps: WriteDeps, cmd: CmdBody['cmd'], changed: string) {
   };
 }
 
-/** Guest actions go by the official id, which only clients the official API lists have. */
-function needsOfficial(c: ClientRecord): string {
+/**
+ * Guest actions go by the official id, which only clients the official API
+ * lists have; when that list failed, the refusal says so instead of guessing.
+ */
+function needsOfficial(c: ClientRecord, officialNote?: string): string {
   if (c.officialId === undefined) {
-    throw new Error(`${displayName(c)} isn't known to the official API; it may be offline`);
+    throw new Error(
+      officialNote === undefined
+        ? `${displayName(c)} isn't known to the official API; it may be offline`
+        : `${displayName(c)} has no official id: ${officialNote}`,
+    );
   }
   return c.officialId;
 }
 
-function mustBeGuest(c: ClientRecord): void {
-  needsOfficial(c);
+function mustBeGuest(c: ClientRecord, officialNote?: string): void {
+  needsOfficial(c, officialNote);
   if (c.access !== undefined && c.access !== 'GUEST') {
     throw new Error(
       `${displayName(c)} is not a guest client (access ${c.access}); only guests can be authorized`,
