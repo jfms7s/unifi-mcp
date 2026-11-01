@@ -9,8 +9,18 @@ import { write, type WriteDeps } from './common.js';
 /** How many matching vouchers a bulk-delete preview lists. */
 const PREVIEW_ROWS = 50;
 
-/** A string literal in the official filter syntax: single quotes, a quote doubled. */
-const quoted = (s: string) => `'${s.replace(/'/g, "''")}'`;
+/** Names a bulk delete may filter on: nothing the filter syntax could read as syntax. */
+const SAFE_NAME = /^[A-Za-z0-9 _.-]+$/;
+
+/** A string literal in the official filter syntax; SAFE_NAME leaves nothing to escape. */
+function quoted(s: string): string {
+  if (!SAFE_NAME.test(s)) {
+    throw new Error(
+      `Voucher name "${s}" can only be matched if it has just letters, digits, spaces, - _ and .; delete those vouchers by ids instead`,
+    );
+  }
+  return `'${s}'`;
+}
 
 /** The official filter for a bulk delete; ids are validated GUIDs, so they go in bare. */
 export function voucherFilter(opts: { ids?: string[]; name?: string; expired?: boolean }): string {

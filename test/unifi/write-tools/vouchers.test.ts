@@ -99,14 +99,18 @@ describe('unifi_delete_vouchers (bulk)', () => {
   it('with confirm sends one DELETE with the filter', async () => {
     const { call, writes } = setup({ officialReply: { vouchersDeleted: 2 } });
     expect(
-      await call('unifi_delete_vouchers', { name: "bob's party", expired: true, confirm: true }),
+      await call('unifi_delete_vouchers', {
+        name: 'bob party-2_b.x',
+        expired: true,
+        confirm: true,
+      }),
     ).toEqual({ changed: 'deleted', vouchersDeleted: 2 });
     expect(writes).toEqual([
       {
         method: 'DELETE',
         path: `${OFFICIAL_SITE}/hotspot/vouchers`,
         body: undefined,
-        query: { filter: "and(name.eq('bob''s party'), expired.eq(true))" },
+        query: { filter: "and(name.eq('bob party-2_b.x'), expired.eq(true))" },
       },
     ]);
   });
@@ -116,6 +120,16 @@ describe('unifi_delete_vouchers (bulk)', () => {
     await expect(call('unifi_delete_vouchers', { confirm: true })).rejects.toThrow(
       /at least one of ids, name or expired/,
     );
+    expect(writes).toEqual([]);
+  });
+
+  it('refuses a name outside letters, digits, space, - _ . (no quote escaping to get wrong)', async () => {
+    const { call, writes } = setup();
+    for (const name of ["bob's party", "x'), or(id.isNotNull()", 'a*b', 'naïve\\']) {
+      await expect(call('unifi_delete_vouchers', { name, confirm: true }), name).rejects.toThrow(
+        /letters, digits, spaces, - _ and \./,
+      );
+    }
     expect(writes).toEqual([]);
   });
 

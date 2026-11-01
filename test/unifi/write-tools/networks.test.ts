@@ -204,6 +204,18 @@ describe('unifi_update_network', () => {
     expect(done.warning).toBe(`${WARNING} it changes pi-cluster, a protected network`);
   });
 
+  it('refuses to change management: delete and recreate instead', async () => {
+    const { call, writes } = withDetails();
+    await expect(
+      call('unifi_update_network', { network: 'IoT', management: 'UNMANAGED', confirm: true }),
+    ).rejects.toThrow(/delete and recreate the network to change its management/);
+    expect(writes).toEqual([]);
+    // Restating the current management is not a change.
+    expect(
+      await call('unifi_update_network', { network: 'IoT', management: 'GATEWAY', confirm: true }),
+    ).toEqual({ unchanged: true, network: 'IoT' });
+  });
+
   it('an unknown network fails before anything is sent', async () => {
     const { call, writes } = withDetails();
     await expect(call('unifi_update_network', { network: 'nope', enabled: false })).rejects.toThrow(

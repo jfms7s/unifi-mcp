@@ -3,12 +3,13 @@
 // partial into what GET returned and sends all of it back. The preview shows
 // only what changed, with secrets (WiFi passphrases) never shown.
 
+import { UnifiApiError } from '../../http/errors.js';
 import { touchesProtected, type ProtectedScope, type Target } from '../guard.js';
 
 export type Plain = Record<string, unknown>;
 
-/** A field change in a preview: before → after, or just "changed" for a secret. */
-export type Change = { before: unknown; after: unknown } | 'changed';
+/** A field change in a preview: before → after, or for a secret just "changed" or "removed". */
+export type Change = { before: unknown; after: unknown } | 'changed' | 'removed';
 
 export const REDACTED = '<redacted>';
 
@@ -89,8 +90,8 @@ export function diff(before: Plain, after: Plain, prefix = ''): Record<string, C
     }
     if (same(a, b)) continue;
     const [rb, ra] = [redact(b), redact(a)];
-    out[path] =
-      SECRET_KEY.test(key) || same(rb, ra) ? 'changed' : { before: rb ?? null, after: ra ?? null };
+    if (SECRET_KEY.test(key)) out[path] = a == null ? 'removed' : 'changed';
+    else out[path] = same(rb, ra) ? 'changed' : { before: rb ?? null, after: ra ?? null };
   }
   return out;
 }
@@ -113,14 +114,31 @@ export function wholeUpdate(
   return { body, changes: diff(base, body) };
 }
 
-/** Runs `fn`; an error whose message carries one of `secrets` is rethrown with them redacted. */
+const WITHHELD = 'details withheld because the request carried a passphrase';
+
+/**
+ * Runs `fn`, a write whose request carries `secrets`. If it fails, the
+ * console's detail is never passed on: it may echo a passphrase escaped
+ * (`ab\"cd`) or cut at the detail limit, where no search finds it. The error
+ * keeps its kind, status and the console's `api.err.*` code.
+ */
 export async function hidingSecrets<T>(secrets: string[], fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
   } catch (error) {
-    if (!(error instanceof Error) || !secrets.some((s) => error.message.includes(s))) throw error;
-    const message = secrets.reduce((m, s) => m.split(s).join(REDACTED), error.message);
-    throw new Error(message);
+    if (secrets.length === 0) throw error;
+    if (!(error instanceof UnifiApiError)) throw new Error(`The change failed; ${WITHHELD}`);
+    const code = /api\.err\.[A-Za-z0-9_.]+/.exec(error.detail)?.[0];
+    const safeCode = code && !secrets.some((s) => code.includes(s)) ? `, ${code}` : '';
+    const status = error.status === undefined ? '' : `HTTP ${error.status}`;
+    const why = [status, safeCode.slice(2)].filter(Boolean).join(', ');
+    throw new UnifiApiError({
+      kind: error.kind,
+      method: error.method,
+      path: error.path,
+      status: error.status,
+      detail: `the console rejected the change${why ? ` (${why})` : ''}; ${WITHHELD}`,
+    });
   }
 }
 

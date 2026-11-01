@@ -114,6 +114,12 @@ export function createNetworkWriteTools(deps: WriteDeps): ToolDefinition[] {
         const n = await findNetwork(deps, site, network);
         if ('ambiguous' in n) return n;
         const current = await deps.official.getNetwork(site.id, n.id);
+        // management picks the request variant: the console can't switch it in place.
+        if (patch.management !== undefined && patch.management !== current.management) {
+          throw new Error(
+            `delete and recreate the network to change its management (${String(current.management)} → ${patch.management})`,
+          );
+        }
         const { body, changes } = wholeUpdate(current, compact(patch as Plain), NETWORK_READ_ONLY);
         const fields = Object.keys(changes);
         if (fields.length === 0) return { unchanged: true, network: n.name };

@@ -447,6 +447,11 @@ export async function guarded<T>(
   args: {
     level: Guard;
     target?: Target;
+    /**
+     * Why the change may touch a protected network when no target can say so
+     * (facts the caller couldn't place); used only if the target finds nothing.
+     */
+    reason?: string;
     confirm?: true;
     preview: () => Promise<object>;
     run: () => Promise<T>;
@@ -456,7 +461,9 @@ export async function guarded<T>(
   links: DeviceLink[] = [],
 ): Promise<T | GuardPreview | { result: T; warning: string }> {
   const reason =
-    args.target === undefined ? undefined : touchesProtected(args.target, scope, clients, links);
+    (args.target === undefined
+      ? undefined
+      : touchesProtected(args.target, scope, clients, links)) ?? args.reason;
   const warning = reason === undefined ? undefined : `${CUT_OFF_WARNING} ${reason}`;
   const level: Guard = warning === undefined ? args.level : 'confirm';
 

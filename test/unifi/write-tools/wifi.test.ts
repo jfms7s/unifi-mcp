@@ -1,5 +1,6 @@
 import { HttpResponse, http } from 'msw';
 import { describe, expect, it } from 'vitest';
+import { UnifiApiError } from '../../../src/http/errors.js';
 import { liveFixture } from '../../fixtures/live.js';
 import { connect, expectRejectsLooseConfirm } from '../../helpers/sdk.js';
 import { BASE, useServer } from '../helpers.js';
@@ -172,6 +173,93 @@ describe('unifi_update_wifi', () => {
     expect(err).toBeInstanceOf(Error);
     expect((err as Error).message).toMatch(/400/);
     expect((err as Error).message).not.toContain(NEW_PASS);
+  });
+
+  it('withholds the console detail on a failed write carrying a passphrase, keeping status and code', async () => {
+    const tricky = 'ab"cd-secret-passphrase';
+    const cases = [
+      // The raw body is quoted JSON: the passphrase appears escaped (ab\"cd), not verbatim.
+      { errors: [{ field: 'passphrase', value: tricky }], code: 'api.err.InvalidPassphrase' },
+      // Truncated at the 200-character detail limit, mid-passphrase.
+      // The client keeps only `message` here, so there is no api.err code to pass on.
+      { message: `${'x'.repeat(190)}${NEW_PASS}`, code: 'HTTP 400)' },
+    ];
+    for (const body of cases) {
+      const { call } = setup();
+      server.use(
+        http.put(`${BASE}/proxy/network/integration/*`, () =>
+          HttpResponse.json(body, { status: 400 }),
+        ),
+      );
+      const err = (await call('unifi_update_wifi', {
+        wifi: 'ssid-2',
+        securityConfiguration: {
+          passphrase: 'value' in (body.errors?.[0] ?? {}) ? tricky : NEW_PASS,
+        },
+        confirm: true,
+      }).catch((e: unknown) => e)) as UnifiApiError;
+      expect(err).toBeInstanceOf(UnifiApiError);
+      expect(err.kind).toBe('status');
+      expect(err.status).toBe(400);
+      expect(err.message).toContain('details withheld because the request carried a passphrase');
+      expect(err.message).toContain(body.code);
+      for (const s of [tricky, 'ab\\"cd', NEW_PASS.slice(0, 10), OLD_PASS]) {
+        expect(err.message).not.toContain(s);
+        expect(err.detail).not.toContain(s);
+      }
+    }
+  });
+
+  it('refuses to change the broadcast type: delete and recreate instead', async () => {
+    const { call, writes } = setup();
+    await expect(
+      call('unifi_update_wifi', { wifi: 'ssid-2', type: 'IOT_OPTIMIZED', confirm: true }),
+    ).rejects.toThrow(/delete and recreate the broadcast to change its type/);
+    expect(writes).toEqual([]);
+  });
+
+  it('a passphrase that goes away shows as "removed"', async () => {
+    const { call } = setup();
+    const out = (await call('unifi_update_wifi', {
+      wifi: 'ssid-2',
+      securityConfiguration: { type: 'OPEN' },
+    })) as { preview: { changes: Record<string, unknown> } };
+    expect(out.preview.changes['securityConfiguration.passphrase']).toBe('removed');
+    noSecrets(out);
+  });
+
+  it('live shape: NATIVE with no networkId on a console whose default network is pi-cluster warns', async () => {
+    const nets = structuredClone(liveFixture('official-networks')) as {
+      data: Array<{ id: string; default: boolean }>;
+    };
+    for (const n of nets.data) n.default = n.id === PI_CLUSTER;
+    const { call } = setup({ fixtures: { 'official-networks': nets } });
+    const out = (await call('unifi_update_wifi', { wifi: 'ssid-1', hideName: true })) as Out;
+    expect(out.warning).toBe(`${WARNING} it changes pi-cluster, a protected network`);
+  });
+
+  it('a network reference it cannot resolve fails closed with a reason', async () => {
+    const nets = structuredClone(liveFixture('official-networks')) as {
+      data: Array<{ default: boolean }>;
+    };
+    for (const n of nets.data) n.default = false;
+    const unplaced = `${WARNING} can't place broadcast ssid-1's network, so it may serve a protected network`;
+    // NATIVE with no default network.
+    let out = (await setup({ fixtures: { 'official-networks': nets } }).call('unifi_update_wifi', {
+      wifi: 'ssid-1',
+      hideName: true,
+    })) as Out;
+    expect(out.warning).toBe(unplaced);
+    // SPECIFIC without a networkId, a missing reference, an unknown type.
+    const ssid1 = rows().find((r) => r.id === SSID_1)!;
+    for (const network of [{ type: 'SPECIFIC' }, undefined, { type: 'SOMETHING_NEW' }]) {
+      const d: Record<string, unknown> = { ...detail(ssid1), network };
+      if (network === undefined) delete d.network;
+      out = (await setup({
+        fixtures: { [`official-wifi-broadcasts-${SSID_1}`]: d },
+      }).call('unifi_delete_wifi', { wifi: 'ssid-1' })) as Out;
+      expect(out.warning, JSON.stringify(network)).toBe(unplaced);
+    }
   });
 
   it('a broadcast serving pi-cluster carries the lock-out warning', async () => {

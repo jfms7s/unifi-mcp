@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { defineTool, type ToolDefinition } from '../../mcp/types.js';
-import { guarded } from '../guard.js';
+import { guarded, type ProtectedScope, type Target } from '../guard.js';
 import { confirmInput, siteInput } from '../inputs.js';
 import { ambiguous, lookup, sameText } from '../lookup.js';
 import type { WifiBroadcast } from '../official.js';
@@ -93,19 +93,53 @@ async function findWifi(
 
 /**
  * Every network a broadcast puts clients on: its own network reference
- * (NATIVE, or none, is the default network) and each pre-shared key's.
+ * (NATIVE is the default network) and each pre-shared key's. A reference it
+ * can't resolve (missing, an unknown type, SPECIFIC without a networkId,
+ * NATIVE on a console with no default network) makes it `unplaced`: it may
+ * be a protected network, and the guard says so rather than read it as none.
  */
-function servedNetworks(broadcast: Plain, defaultNetworkId: string | undefined): string[] {
-  const idOf = (ref: unknown) => {
+function servedNetworks(
+  broadcast: Plain,
+  defaultNetworkId: string | undefined,
+): { ids: string[]; unplaced: boolean } {
+  const idOf = (ref: unknown): string | undefined => {
     const r = (ref ?? {}) as { type?: unknown; networkId?: unknown };
-    return r.type === 'SPECIFIC' && typeof r.networkId === 'string'
-      ? r.networkId
-      : defaultNetworkId;
+    if (r.type === 'SPECIFIC') return typeof r.networkId === 'string' ? r.networkId : undefined;
+    return r.type === 'NATIVE' ? defaultNetworkId : undefined;
   };
   const keys = (broadcast.securityConfiguration as { presharedKeys?: unknown } | undefined)
     ?.presharedKeys;
   const psk = Array.isArray(keys) ? keys.map((k) => idOf((k as Plain | null)?.network)) : [];
-  return [idOf(broadcast.network), ...psk].filter((id): id is string => id !== undefined);
+  const all = [idOf(broadcast.network), ...psk];
+  const ids = all.filter((id): id is string => id !== undefined);
+  return { ids, unplaced: ids.length < all.length };
+}
+
+/** The guard's target and fail-closed reason for a change to broadcasts in `states`. */
+function wifiGuard(
+  name: string,
+  states: Plain[],
+  defaultNetworkId: string | undefined,
+  scope: ProtectedScope,
+): { target?: Target; reason?: string } {
+  const served = states.map((s) => servedNetworks(s, defaultNetworkId));
+  const target = protectedNetworkTarget(
+    served.flatMap((s) => s.ids),
+    scope,
+  );
+  if (target) return { target };
+  return served.some((s) => s.unplaced)
+    ? { reason: `can't place broadcast ${name}'s network, so it may serve a protected network` }
+    : {};
+}
+
+/** The broadcast type picks the request variant: the console can't switch it in place. */
+function refuseTypeChange(current: Plain, patch: Plain): void {
+  if (patch.type !== undefined && patch.type !== current.type) {
+    throw new Error(
+      `delete and recreate the broadcast to change its type (${String(current.type)} → ${String(patch.type)})`,
+    );
+  }
 }
 
 const LOCKOUT_NOTE =
@@ -126,15 +160,15 @@ export function createWifiWriteTools(deps: WriteDeps): ToolDefinition[] {
       deps.official.listNetworks(site.id),
       deps.scope(),
     ]);
+    refuseTypeChange(current, patch);
     const { body, changes } = wholeUpdate(current, patch, WIFI_READ_ONLY);
     const fields = Object.keys(changes);
     if (fields.length === 0) return { unchanged: true, wifi: w.name };
     const defaultId = networks.find((n) => n.default)?.id;
-    const served = [...servedNetworks(current, defaultId), ...servedNetworks(body, defaultId)];
     return guarded(
       {
         level: 'confirm',
-        target: protectedNetworkTarget(served, scope),
+        ...wifiGuard(w.name, [current, body], defaultId, scope),
         confirm: args.confirm,
         preview: async () => ({ would: 'update wifi', wifi: w.name, changes }),
         run: () =>
@@ -240,7 +274,7 @@ export function createWifiWriteTools(deps: WriteDeps): ToolDefinition[] {
         return guarded(
           {
             level: 'confirm',
-            target: protectedNetworkTarget(servedNetworks(current, defaultId), scope),
+            ...wifiGuard(w.name, [current], defaultId, scope),
             confirm,
             preview: async () =>
               compact({
