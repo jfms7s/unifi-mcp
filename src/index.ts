@@ -9,7 +9,9 @@ async function main(): Promise<void> {
   const tools = buildTools(config);
 
   // stdout carries the MCP protocol on the stdio transport, so log to stderr.
-  console.error(`unifi-mcp: ${tools.length} tools for ${config.console.baseUrl}`);
+  console.error(
+    `unifi-mcp: ${tools.length} tools for ${config.console.baseUrl}${config.readOnly ? ' (read-only)' : ''}`,
+  );
   if ('insecure' in config.console.tls) {
     console.error('unifi-mcp: WARNING: TLS verification is off (UNIFI_TLS_INSECURE=true)');
   }

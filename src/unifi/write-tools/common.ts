@@ -4,7 +4,7 @@ import type { ProtectedScope } from '../guard.js';
 import type { ReadDeps } from '../read-common.js';
 
 export interface WriteDeps extends ReadDeps {
-  /** The protected scope; lazy and cached per process (see `lazyScope`). */
+  /** The protected scope; lazy and cached for a few minutes (see `lazyScope`). */
   scope: () => Promise<ProtectedScope>;
 }
 
@@ -18,19 +18,30 @@ export function write(opts: { destructive: boolean; idempotent: boolean }): Tool
   };
 }
 
+/** How long a loaded scope is trusted: long enough to spare the console, short enough to see a new device or subnet. */
+export const SCOPE_TTL_MS = 5 * 60_000;
+
 /**
- * Loads the scope on first use and keeps it for the life of the process. A
- * failed load (an unknown protected network name, the console unreachable) is
- * not kept, so the next change tries again rather than running unguarded.
+ * Loads the scope on first use and keeps it for `SCOPE_TTL_MS`, then loads it
+ * again so a device adopted later or a subnet change is seen without a
+ * restart. A failed load (an unknown protected network name, the console
+ * unreachable) is not kept, so the next change tries again rather than
+ * running unguarded.
  */
 export function lazyScope(load: () => Promise<ProtectedScope>): () => Promise<ProtectedScope> {
-  let cached: Promise<ProtectedScope> | undefined;
+  let cached: { scope: Promise<ProtectedScope>; loadedAt: number } | undefined;
   return () => {
-    cached ??= load().catch((error: unknown) => {
-      cached = undefined;
-      throw error;
-    });
-    return cached;
+    if (!cached || Date.now() - cached.loadedAt >= SCOPE_TTL_MS) {
+      const entry = {
+        loadedAt: Date.now(),
+        scope: load().catch((error: unknown) => {
+          if (cached === entry) cached = undefined;
+          throw error;
+        }),
+      };
+      cached = entry;
+    }
+    return cached.scope;
   };
 }
 
