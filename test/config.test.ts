@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ConfigError, loadConfig } from '../src/config.js';
+import { ConfigError, loadConfig, protectedNetworksLog } from '../src/config.js';
 
 const FP = 'AA:BB:CC:' + 'AB:'.repeat(28) + 'CD';
 const base = {
@@ -106,7 +106,23 @@ describe('loadConfig', () => {
       'pi-cluster',
       'IoT',
     ]);
-    expect(loadConfig({ ...base, UNIFI_MCP_PROTECTED_NETWORKS: '' }).protectedNetworks).toEqual([]);
+  });
+
+  it.each(['', '   ', ' , ,'])('an empty protected-networks value (%j) is an error, not "gateway only"', (v) => {
+    expect(() => loadConfig({ ...base, UNIFI_MCP_PROTECTED_NETWORKS: v })).toThrow(
+      new ConfigError(
+        'UNIFI_MCP_PROTECTED_NETWORKS is empty; set network names, or "none" to protect only the gateway',
+      ),
+    );
+  });
+
+  it.each(['none', 'NONE', ' None '])('"%s" protects only the gateway, explicitly', (v) => {
+    expect(loadConfig({ ...base, UNIFI_MCP_PROTECTED_NETWORKS: v }).protectedNetworks).toEqual([]);
+  });
+
+  it('describes the protected networks for the startup log, warning when there are none', () => {
+    expect(protectedNetworksLog(['pi-cluster', 'IoT'])).toBe('unifi-mcp: protected networks: pi-cluster, IoT');
+    expect(protectedNetworksLog([])).toBe('unifi-mcp: WARNING: protected networks: none (gateway only)');
   });
 
   it.each(['true', '1', 'TRUE', 'True'])('read-only is on for %s', (v) => {

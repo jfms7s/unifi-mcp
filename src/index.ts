@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { ConfigError, loadConfig } from './config.js';
+import { ConfigError, loadConfig, protectedNetworksLog } from './config.js';
 import { createServer } from './mcp/server.js';
 import { startHttp, startStdio } from './mcp/transport.js';
 import { buildTools } from './tools.js';
@@ -12,6 +12,7 @@ async function main(): Promise<void> {
   console.error(
     `unifi-mcp: ${tools.length} tools for ${config.console.baseUrl}${config.readOnly ? ' (read-only)' : ''}`,
   );
+  console.error(protectedNetworksLog(config.protectedNetworks));
   if ('insecure' in config.console.tls) {
     console.error('unifi-mcp: WARNING: TLS verification is off (UNIFI_TLS_INSECURE=true)');
   }

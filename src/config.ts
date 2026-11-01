@@ -82,13 +82,32 @@ function readConnection(env: NodeJS.ProcessEnv): ConsoleConnection {
   return { baseUrl: rawUrl.replace(/\/+$/, ''), apiKey, tls };
 }
 
+/**
+ * Unset means the default. An empty value is an error rather than "nothing
+ * protected", since it is more often a templating slip than a choice; `none`
+ * says the choice out loud (only the gateway stays protected).
+ */
 function readProtectedNetworks(env: NodeJS.ProcessEnv): string[] {
   const raw = env.UNIFI_MCP_PROTECTED_NETWORKS;
   if (raw === undefined) return [...DEFAULT_PROTECTED_NETWORKS];
-  return raw
+  if (raw.trim().toLowerCase() === 'none') return [];
+  const names = raw
     .split(',')
     .map((entry) => entry.trim())
     .filter((entry) => entry.length > 0);
+  if (names.length === 0) {
+    throw new ConfigError(
+      'UNIFI_MCP_PROTECTED_NETWORKS is empty; set network names, or "none" to protect only the gateway',
+    );
+  }
+  return names;
+}
+
+/** The startup line naming what the guard protects; a warning when it is only the gateway. */
+export function protectedNetworksLog(networks: readonly string[]): string {
+  return networks.length === 0
+    ? 'unifi-mcp: WARNING: protected networks: none (gateway only)'
+    : `unifi-mcp: protected networks: ${networks.join(', ')}`;
 }
 
 function readTransport(env: NodeJS.ProcessEnv): TransportMode {

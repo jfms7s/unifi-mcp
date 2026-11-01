@@ -64,7 +64,7 @@ Firewall changes need Zone-Based Firewall, which has to be switched on in the Un
 
 `UNIFI_MCP_PROTECTED_NETWORKS` (default value `pi-cluster`; for example `servers,management` to set your own) names the networks unifi-mcp must not cut itself, or what runs on them, off from. A comma-separated list of names or ids; names ignore case. The guard works out the clients on those networks, the subnets, the devices and ports that carry them (including through daisy-chained switches and APs) and the gateway. A change that touches any of them previews first and runs only with `confirm=true`. A client or device the guard cannot place leans to confirm.
 
-The names are looked up when the first change runs and again every five minutes, so a newly adopted device or a changed subnet is picked up without a restart. An unknown name is an error that lists the networks that exist, so a typo never leaves a network unprotected. **Renaming a protected network makes the guard refuse changes until `UNIFI_MCP_PROTECTED_NETWORKS` is updated to the new name** (or use the network's id).
+The names are looked up when the first change runs and again every five minutes, so a newly adopted device or a changed subnet is picked up without a restart. An unknown name is an error that lists the networks that exist, so a typo never leaves a network unprotected. An empty value is a startup error too; to protect only the gateway, say so with `none`. The protected list is logged at startup, as a warning when it is `none`. **Renaming a protected network makes the guard refuse changes until `UNIFI_MCP_PROTECTED_NETWORKS` is updated to the new name** (or use the network's id).
 
 ## Configuration
 
@@ -76,7 +76,7 @@ The names are looked up when the first change runs and again every five minutes,
 | `UNIFI_TLS_INSECURE` | no | `true` turns certificate checks off. Local experiments only. |
 | `UNIFI_SITE_MANAGER_API_KEY` | no | Site Manager (unifi.ui.com) key; adds `unifi_list_hosts` and `unifi_isp_metrics`. |
 | `UNIFI_MCP_READ_ONLY` | no | `true` registers the read tools only. |
-| `UNIFI_MCP_PROTECTED_NETWORKS` | no | Comma-separated network names or ids. The default value is `pi-cluster`; set your own, e.g. `servers,management`. |
+| `UNIFI_MCP_PROTECTED_NETWORKS` | no | Comma-separated network names or ids. The default value is `pi-cluster`; set your own, e.g. `servers,management`, or `none` to protect only the gateway. Empty is an error. |
 | `UNIFI_MCP_TRANSPORT` | no | `stdio` (default), `http` or `both`. The image sets `http`. |
 | `UNIFI_MCP_PORT` | no | HTTP port, default `3000`. |
 | `UNIFI_MCP_TOKEN` | for `http`/`both` | Bearer token MCP clients must send. |
