@@ -145,7 +145,7 @@ docker run --rm -p 3000:3000 \
   -e UNIFI_API_KEY=your-api-key \
   -e UNIFI_TLS_FINGERPRINT=AA:BB:...:FF \
   -e UNIFI_MCP_TOKEN=a-long-random-secret \
-  ghcr.io/jfms7s/unifi-mcp:v0.3.0
+  ghcr.io/jfms7s/unifi-mcp:v0.4.0
 ```
 
 Pin a `vX.Y.Z` tag, not `latest`, so an upgrade is a decision you make.
