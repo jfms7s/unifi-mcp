@@ -37,6 +37,66 @@ describe('secret keys beyond passphrases', () => {
   });
 });
 
+describe('secret keys: no false positives', () => {
+  it('leaves booleans, numbers and non-secret *pass*/*Key/*Mode fields as they are', () => {
+    const value = {
+      bypassEnabled: true,
+      bypassList: 'a,b',
+      sortKey: 'name',
+      pskMode: 'WPA2',
+      pskEnabled: false,
+      keyCount: 2,
+      passphraseLength: 12,
+      passwordPolicy: { minLength: 8 },
+      secretCount: 3,
+      key: 7,
+    };
+    expect(redact(value)).toEqual(value);
+    expect(secretsIn(value)).toEqual([]);
+    expect(diff({ s: { sortKey: 'a', pskMode: 'WPA2' } }, { s: { sortKey: 'b', pskMode: 'WPA3' } })).toEqual({
+      's.sortKey': { before: 'a', after: 'b' },
+      's.pskMode': { before: 'WPA2', after: 'WPA3' },
+    });
+  });
+
+  it('redacts string values under secret keys and their suffixes', () => {
+    const value = {
+      password: 'p1',
+      adminPassword: 'p2',
+      radiusSecret: 's1',
+      presharedKey: 'k1',
+      wpaPsk: 'k2',
+      secret: 's2',
+    };
+    expect(Object.values(redact(value) as object).every((v) => v === '<redacted>')).toBe(true);
+    expect(secretsIn(value).sort()).toEqual(['k1', 'k2', 'p1', 'p2', 's1', 's2']);
+  });
+
+  it('redacts nested PSK entries (presharedKeys[].passphrase and .key)', () => {
+    const value = {
+      presharedKeys: [
+        { name: 'guest', passphrase: 'pp1', vlan: 10 },
+        { name: 'iot', key: 'kk1', enabled: true },
+      ],
+    };
+    expect(redact(value)).toEqual({
+      presharedKeys: [
+        { name: 'guest', passphrase: '<redacted>', vlan: 10 },
+        { name: 'iot', key: '<redacted>', enabled: true },
+      ],
+    });
+    expect(secretsIn(value).sort()).toEqual(['kk1', 'pp1']);
+    const after = {
+      presharedKeys: [
+        { name: 'guest', passphrase: 'pp2', vlan: 10 },
+        { name: 'iot', key: 'kk1', enabled: true },
+      ],
+    };
+    expect(diff(value, after)).toEqual({ presharedKeys: 'changed' });
+    expect(JSON.stringify(diff(value, { presharedKeys: [] }))).not.toMatch(/pp1|kk1/);
+  });
+});
+
 describe('merge', () => {
   it('replaces a nested object whose mode changes, merges one whose mode stays', () => {
     const base = { d: { mode: 'SERVER', range: 1, lease: 2 } };

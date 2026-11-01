@@ -13,13 +13,19 @@ export type Change = { before: unknown; after: unknown } | 'changed' | 'removed'
 
 export const REDACTED = '<redacted>';
 
-/** Keys whose values are never shown: WiFi passphrases, PSKs and their kin. */
-const SECRET_KEY = /pass|secret|psk/i;
-/** `key`, `wpaKey`, `x_key`...: secret when it holds a string (a `keyCount` does not end in key). */
-const KEY_NAME = /(^|[a-z_])key$/i;
+/**
+ * Secret keys, matched case-insensitively on the whole key or its suffix
+ * (`passphrase`, `x_passphrase`, `adminPassword`, `radiusSecret`, `wpaPsk`).
+ * `key` itself is matched only whole, so `sortKey` and `keyCount` are not secrets.
+ */
+const SECRET_SUFFIXES = ['passphrase', 'password', 'secret', 'psk', 'wpakey', 'presharedkey'];
 
-const isSecret = (key: string, value: unknown): boolean =>
-  SECRET_KEY.test(key) || (KEY_NAME.test(key) && typeof value === 'string');
+/** Only a string is a secret: a `pskEnabled` boolean or a `passphraseLength` number is shown. */
+const isSecret = (key: string, value: unknown): boolean => {
+  if (typeof value !== 'string') return false;
+  const k = key.toLowerCase();
+  return k === 'key' || SECRET_SUFFIXES.some((s) => k.endsWith(s));
+};
 
 /** Nested objects whose variant these fields pick are replaced, not merged. */
 const DISCRIMINATORS = ['type', 'mode', 'management'];
@@ -61,7 +67,7 @@ export function redact(value: unknown): unknown {
   return Object.fromEntries(
     Object.entries(value).map(([k, v]) => [
       k,
-      isSecret(k, v) && v != null ? REDACTED : redact(v),
+      isSecret(k, v) ? REDACTED : redact(v),
     ]),
   );
 }
@@ -71,7 +77,7 @@ export function secretsIn(value: unknown, found: string[] = []): string[] {
   if (Array.isArray(value)) value.forEach((v) => secretsIn(v, found));
   else if (isPlain(value)) {
     for (const [k, v] of Object.entries(value)) {
-      if (isSecret(k, v) && typeof v === 'string' && v) found.push(v);
+      if (isSecret(k, v) && v) found.push(v as string);
       else secretsIn(v, found);
     }
   }
