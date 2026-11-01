@@ -15,7 +15,10 @@ export interface ThreatPortForward {
 
 export interface ThreatGroup {
   direction: Direction;
-  /** The LAN client (inbound, outbound), the firewall rule (blocked) or the log key (other). */
+  /**
+   * The LAN client (inbound, outbound), the firewall rule and the LAN address
+   * it blocked (`<trigger> -> <client> (<ip>)`, blocked), or the log key (other).
+   */
   lanSide: string;
   count: number;
   bySeverity: Record<string, number>;
@@ -55,17 +58,31 @@ interface Classified {
   lanSide: string;
   /** Distinguishes two LAN clients that happen to share a display name. */
   lanId: string;
+  /** The LAN address an inbound event reached (DST_IP): the forward match when there's no client. */
+  lanIp?: string;
   remote?: string;
 }
 
 const label = (p: Param): string | undefined => p?.name || p?.id;
 
-function classify(e: SyslogEntry): Classified {
+/** `name (ip)` for a LAN address a known client holds, else the address. */
+function lanAddress(ip: string, clients: KnownClient[]): string {
+  const name = clients.find((k) => k.ip === ip)?.name;
+  return name && name !== ip ? `${name} (${ip})` : ip;
+}
+
+function classify(e: SyslogEntry, clients: KnownClient[]): Classified {
   const p = e.parameters;
   if (e.key.endsWith('_KNOWN_DESTINATION_CLIENT')) {
     const lan = p.DST_CLIENT;
     const lanSide = label(lan) ?? label(p.DST_IP) ?? 'unknown client';
-    return { direction: 'inbound', lanSide, lanId: lan?.id ?? lanSide, remote: label(p.SRC_IP) };
+    return {
+      direction: 'inbound',
+      lanSide,
+      lanId: lan?.id ?? lanSide,
+      lanIp: p.DST_IP?.id,
+      remote: label(p.SRC_IP),
+    };
   }
   if (e.key.endsWith('_KNOWN_SOURCE_CLIENT')) {
     const lan = p.SRC_CLIENT;
@@ -73,8 +90,18 @@ function classify(e: SyslogEntry): Classified {
     return { direction: 'outbound', lanSide, lanId: lan?.id ?? lanSide, remote: label(p.DST_IP) };
   }
   if (e.key === 'TRAFFIC_BLOCKED') {
-    const lanSide = p.TRIGGER?.name ?? 'firewall';
-    return { direction: 'blocked', lanSide, lanId: lanSide, remote: label(p.SRC_IP) };
+    // By rule, then by the LAN address it blocked, so one rule over many hosts reads apart.
+    const trigger = p.TRIGGER?.name ?? 'firewall';
+    const dst = p.DST_IP?.id;
+    const lan = label(p.DST_CLIENT);
+    const target = lan && dst ? `${lan} (${dst})` : (lan ?? (dst ? lanAddress(dst, clients) : undefined));
+    const lanSide = target ? `${trigger} -> ${target}` : trigger;
+    return {
+      direction: 'blocked',
+      lanSide,
+      lanId: `${p.TRIGGER?.id ?? trigger}\u0000${dst ?? ''}`,
+      remote: label(p.SRC_IP),
+    };
   }
   return { direction: 'other', lanSide: e.key, lanId: e.key, remote: label(p.SRC_IP) ?? label(p.DST_IP) };
 }
@@ -90,10 +117,14 @@ interface Acc {
   keys: Set<string>;
 }
 
-const byCount = <T extends { count: number }>(a: T, b: T) => b.count - a.count;
+const byText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+const byIp = (a: string, b: string) => a.localeCompare(b, 'en', { numeric: true });
+/** Most first; equal counts by IP, so the same log always gives the same list. */
+const byCountThenIp = <T extends { count: number; ip: string }>(a: T, b: T) =>
+  b.count - a.count || byIp(a.ip, b.ip);
 
 function topOf(remotes: Map<string, number>, n: number) {
-  return [...remotes].map(([ip, count]) => ({ ip, count })).sort(byCount).slice(0, n);
+  return [...remotes].map(([ip, count]) => ({ ip, count })).sort(byCountThenIp).slice(0, n);
 }
 
 function describeForward(f: PortForward): ThreatPortForward {
@@ -101,10 +132,14 @@ function describeForward(f: PortForward): ThreatPortForward {
   return { name: f.name, ports, proto: f.proto, source: f.src };
 }
 
-/** Enabled forwards to an inbound client, matched by the client's IP, never by its name. */
+/**
+ * Enabled forwards to an inbound client, matched by the client's IP, never by
+ * its name; without a known client, by the event's DST_IP (as posture does).
+ */
 function forwardsFor(acc: Acc, forwards: PortForward[], clients: KnownClient[]) {
   if (acc.c.direction !== 'inbound') return undefined;
-  const ip = clients.find((k) => k.mac.toLowerCase() === acc.c.lanId.toLowerCase())?.ip;
+  const ip =
+    clients.find((k) => k.mac.toLowerCase() === acc.c.lanId.toLowerCase())?.ip ?? acc.c.lanIp;
   if (!ip) return undefined;
   const matched = forwards.filter((f) => f.enabled && f.fwd === ip).map(describeForward);
   return matched.length ? matched : undefined;
@@ -128,7 +163,7 @@ export function summariseThreats(
   for (const e of entries) {
     if (e.category !== 'SECURITY') continue;
     total++;
-    const c = classify(e);
+    const c = classify(e, clients);
     const id = `${c.direction}\u0000${c.lanId}`;
     let acc = groups.get(id);
     if (!acc) {
@@ -151,7 +186,11 @@ export function summariseThreats(
   }
 
   const ranked = [...groups.values()].sort(
-    (a, b) => severityRank(b.max) - severityRank(a.max) || b.count - a.count,
+    (a, b) =>
+      severityRank(b.max) - severityRank(a.max) ||
+      b.count - a.count ||
+      byText(a.c.lanSide, b.c.lanSide) ||
+      byText(a.c.direction, b.c.direction),
   );
   const shown = ranked.slice(0, opts.maxGroups);
   const rest = ranked.slice(opts.maxGroups);
@@ -187,7 +226,7 @@ export function summariseThreats(
       : {}),
     topRemotesOverall: [...remotesOverall]
       .map(([ip, r]) => ({ ip, count: r.count, lanSides: [...r.lanSides].sort() }))
-      .sort(byCount)
+      .sort(byCountThenIp)
       .slice(0, TOP_REMOTES_OVERALL),
   };
 }

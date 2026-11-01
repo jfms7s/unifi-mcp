@@ -159,6 +159,85 @@ describe('summariseThreats on synthetic entries', () => {
     expect(s.groups.map((g) => [g.direction, g.lanSide])).toEqual([['blocked', 'firewall']]);
   });
 
+  it('matches forwards by DST_IP for an inbound event without DST_CLIENT', () => {
+    const lanIp = forwards[0]!.fwd;
+    const s = summary({}, [
+      entry('e', 'THREAT_DETECTED_KNOWN_DESTINATION_CLIENT', {
+        DST_IP: { id: lanIp, name: lanIp },
+        SRC_IP: { id: '198.51.100.3', name: '198.51.100.3' },
+      }),
+    ]);
+    expect(s.groups).toHaveLength(1);
+    expect(s.groups[0]).toMatchObject({ direction: 'inbound', lanSide: lanIp });
+    expect(s.groups[0]!.portForwards?.map((f) => f.name)).toEqual(['Synology', 'PLEX', 'reverse']);
+  });
+
+  it('groups firewall blocks by trigger, then by the LAN address, naming its client', () => {
+    const lanIp = forwards[0]!.fwd;
+    const known = clients.find((c) => c.ip === lanIp)!.name;
+    const block = (id: string, trigger: string, dst: string) =>
+      entry(
+        id,
+        'TRAFFIC_BLOCKED',
+        {
+          TRIGGER: { id: trigger, name: trigger },
+          DST_IP: { id: dst, name: dst },
+          SRC_IP: { id: '192.0.2.1', name: '192.0.2.1' },
+        },
+        'MEDIUM',
+      );
+    const s = summary({}, [
+      block('f1', 'Block A', lanIp),
+      block('f2', 'Block A', lanIp),
+      block('f3', 'Block A', '192.168.1.250'),
+      block('f4', 'Block B', lanIp),
+    ]);
+    expect(s.groups.map((g) => [g.direction, g.lanSide, g.count])).toEqual([
+      ['blocked', `Block A -> ${known} (${lanIp})`, 2],
+      ['blocked', 'Block A -> 192.168.1.250', 1],
+      ['blocked', `Block B -> ${known} (${lanIp})`, 1],
+    ]);
+  });
+
+  it('orders ties by lanSide, then direction, and equal remotes by IP', () => {
+    const remote = (ip: string) => ({ id: ip, name: ip });
+    const s = summary({}, [
+      entry('t1', 'THREAT_DETECTED_KNOWN_SOURCE_CLIENT', {
+        SRC_CLIENT: { id: '02:00:00:00:00:bb', name: 'zeta' },
+        DST_IP: remote('198.51.100.9'),
+      }),
+      entry('t2', 'THREAT_DETECTED_KNOWN_SOURCE_CLIENT', {
+        SRC_CLIENT: { id: '02:00:00:00:00:aa', name: 'alpha' },
+        DST_IP: remote('198.51.100.9'),
+      }),
+      entry('t3', 'THREAT_DETECTED_KNOWN_DESTINATION_CLIENT', {
+        DST_CLIENT: { id: '02:00:00:00:00:aa', name: 'alpha' },
+        SRC_IP: remote('198.51.100.8'),
+      }),
+      entry('t4', 'THREAT_DETECTED_KNOWN_SOURCE_CLIENT', {
+        SRC_CLIENT: { id: '02:00:00:00:00:cc', name: 'mid' },
+        DST_IP: remote('198.51.100.7'),
+      }),
+      entry('t5', 'THREAT_DETECTED_KNOWN_SOURCE_CLIENT', {
+        SRC_CLIENT: { id: '02:00:00:00:00:cc', name: 'mid' },
+        DST_IP: remote('198.51.100.5'),
+      }),
+    ]);
+    expect(s.groups.map((g) => `${g.direction} ${g.lanSide}`)).toEqual([
+      'outbound mid',
+      'inbound alpha',
+      'outbound alpha',
+      'outbound zeta',
+    ]);
+    expect(s.groups[0]!.topRemotes.map((r) => r.ip)).toEqual(['198.51.100.5', '198.51.100.7']);
+    expect(s.topRemotesOverall.map((r) => r.ip)).toEqual([
+      '198.51.100.9',
+      '198.51.100.5',
+      '198.51.100.7',
+      '198.51.100.8',
+    ]);
+  });
+
   it('ignores entries outside the SECURITY category', () => {
     const s = summary({}, [{ ...both[0]!, category: 'CLIENT_DEVICES' }]);
     expect(s.totalEvents).toBe(0);
