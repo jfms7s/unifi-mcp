@@ -66,14 +66,14 @@ The guard column says what a change needs before it runs:
 | `unifi_create_acl_rule` | confirm if protected | Create a switch ACL rule. |
 | `unifi_update_acl_rule` | always confirm | Change a user-defined ACL rule. |
 | `unifi_delete_acl_rule` | always confirm | Delete a user-defined ACL rule. |
-| `unifi_create_dns_policy` | none | Create a local DNS record or forward domain. |
+| `unifi_create_dns_policy` | confirm if it names the console | Create a local DNS record or forward domain. When `UNIFI_URL` is a hostname, a record for it, or a forward of it or a parent domain, needs `confirm=true`. |
 | `unifi_update_dns_policy` | always confirm | Change a DNS policy. |
 | `unifi_delete_dns_policy` | always confirm | Delete a DNS policy. |
 | `unifi_create_traffic_list` | none | Create a traffic matching list (IPv4, IPv6 or ports). |
 | `unifi_update_traffic_list` | always confirm | Rename a traffic matching list or replace its items; the preview names the policies that use it. |
 | `unifi_delete_traffic_list` | always confirm | Delete a traffic matching list. |
-| `unifi_block_ip` | confirm if protected | Block an IPv4 address or CIDR both ways through the `unifi-mcp blocklist`; the first call creates the list and its two policies and needs `confirm=true` once. |
-| `unifi_unblock_ip` | confirm if protected | Take an address off the blocklist; removing the last one deletes the blocklist and needs `confirm=true`. |
+| `unifi_block_ip` | confirm if protected | Block an IPv4 address or CIDR both ways through the `unifi-mcp blocklist`; the first call creates the list and its two policies and needs `confirm=true` once. A range wider than /16 (prefix shorter than 16) needs `confirm=true` too. |
+| `unifi_unblock_ip` | confirm if protected | Take an address off the blocklist; removing the last one deletes the blocklist and needs `confirm=true`, as does a range wider than /16. |
 
 With a Site Manager key there are 58 tools (56 without). In read-only mode only the 19 read tools (17 without the key) are registered.
 

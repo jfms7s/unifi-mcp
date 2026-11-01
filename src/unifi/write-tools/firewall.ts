@@ -25,8 +25,9 @@ import { diff, protectedNetworkTarget, type Plain } from './objects.js';
 /** GET fields the `Create or update firewall policy` schema has no place for. */
 export const POLICY_READ_ONLY = ['id', 'metadata', 'index'] as const;
 
-const R19_NOTE =
-  'A side that is a zone alone matches every network in it: the Internal zone holds pi-cluster, so a policy on it is confirm-level, as is one whose addresses or traffic matching list reach 192.168.0.0/24 (the protected networks).';
+/** The R20 narrowing, in the README's terms. */
+const ZONE_NOTE =
+  "A side that is a zone alone reaches every network in it, and UniFi's Internal zone holds every LAN. So a policy on a zone holding a protected network (UNIFI_MCP_PROTECTED_NETWORKS, pi-cluster by default) is confirm-level unless its filters provably exclude it: a NETWORK filter naming only other networks the console has, or IPv4 addresses, ranges or subnets (directly or through an IPv4 traffic matching list) outside the protected subnets. Addresses that overlap a protected subnet are confirm-level in any zone. Anything the guard cannot place leans to confirm: an unknown zone, list or network id, an IPv6 address, an opposite match, or a MAC, port or other filter, which counts as the whole zone.";
 
 const FILTER_HELP =
   'Official traffic filter, e.g. {type: NETWORK, networkFilter: {networkIds, matchOpposite}}, {type: IP_ADDRESS, ipAddressFilter: {type: IP_ADDRESSES, matchOpposite, items: [{type: IP_ADDRESS|SUBNET, value} | {type: IP_ADDRESS_RANGE, start, stop}]}}, {type: IP_ADDRESS, ipAddressFilter: {type: TRAFFIC_MATCHING_LIST, matchOpposite, trafficMatchingListId}}, or PORT, MAC_ADDRESS, REGION, DOMAIN, APPLICATION...; absent means the whole zone';
@@ -122,7 +123,7 @@ export function createFirewallWriteTools(deps: WriteDeps): ToolDefinition[] {
   return [
     defineTool({
       name: 'unifi_create_firewall_policy',
-      description: `Create a zone-based firewall policy (official POST /firewall/policies), zones by name. Easy unless it can reach a protected network; then it needs confirm: true and previews first. ${R19_NOTE}`,
+      description: `Create a zone-based firewall policy (official POST /firewall/policies), zones by name. Easy unless it can reach a protected network; then it needs confirm: true and previews first. ${ZONE_NOTE}`,
       inputSchema: {
         site: siteInput,
         ...partial({ ...policyFields, ...nullable }),
@@ -159,7 +160,7 @@ export function createFirewallWriteTools(deps: WriteDeps): ToolDefinition[] {
 
     defineTool({
       name: 'unifi_update_firewall_policy',
-      description: `Change fields of a user-defined firewall policy. Give only what changes; source/destination merge (a null trafficFilter removes it). The tool reads the policy, merges and PUTs the whole object. Always needs confirm: true; without it the tool previews the changed fields. System-defined policies and the IPS auto-blocks are refused: UniFi manages them. ${R19_NOTE}`,
+      description: `Change fields of a user-defined firewall policy. Give only what changes; source/destination merge (a null trafficFilter removes it). The tool reads the policy, merges and PUTs the whole object. Always needs confirm: true; without it the tool previews the changed fields. System-defined policies and the IPS auto-blocks are refused: UniFi manages them. ${ZONE_NOTE}`,
       inputSchema: {
         site: siteInput,
         policy: policyInput,
@@ -234,7 +235,7 @@ export function createFirewallWriteTools(deps: WriteDeps): ToolDefinition[] {
 
     defineTool({
       name: 'unifi_set_firewall_policy_enabled',
-      description: `Enable or disable a user-defined firewall policy. Easy unless the policy can reach a protected network; then it needs confirm: true and previews first. System-defined policies and the IPS auto-blocks are refused. ${R19_NOTE}`,
+      description: `Enable or disable a user-defined firewall policy. Easy unless the policy can reach a protected network; then it needs confirm: true and previews first. System-defined policies and the IPS auto-blocks are refused. ${ZONE_NOTE}`,
       inputSchema: {
         site: siteInput,
         policy: policyInput,
@@ -422,7 +423,7 @@ function createZoneTools(
   resolve: (wanted: string | undefined) => Promise<{ site: { id: string }; state: FirewallState }>,
 ): ToolDefinition[] {
   const PROTECTED_NOTE =
-    'Moving a protected network (pi-cluster) into or out of a zone changes which policies reach it, so it needs confirm: true.';
+    'Moving a protected network (UNIFI_MCP_PROTECTED_NETWORKS, pi-cluster by default) into or out of a zone changes which policies reach it, so it needs confirm: true.';
   const findCustom = (state: FirewallState, query: string) => {
     const zone = findZone(state.zones, query);
     assertUserDefined('zone', `"${zone.name}"`, zone.metadata);

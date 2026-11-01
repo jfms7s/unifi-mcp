@@ -87,6 +87,22 @@ describe('unifi_create_acl_rule', () => {
   });
 });
 
+describe('a MAC rule on a network the console does not have', () => {
+  it('says the console does not have that network', async () => {
+    const { call, writes } = setup(created);
+    const out = (await call('unifi_create_acl_rule', {
+      name: 'x',
+      action: 'BLOCK',
+      type: 'MAC',
+      networkIdFilter: '99999999-0000-4000-8000-000000000000',
+    })) as Out;
+    expect(writes).toEqual([]);
+    expect(out.warning).toContain(
+      'network 99999999-0000-4000-8000-000000000000, which the console does not have',
+    );
+  });
+});
+
 describe('unifi_update_acl_rule and unifi_delete_acl_rule', () => {
   it('update is confirm-level and PUTs the merged rule without id, metadata and index', async () => {
     const { call, writes } = setup(withRules);

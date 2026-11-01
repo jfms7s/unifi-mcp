@@ -64,13 +64,14 @@ export function aclTarget(rule: Plain, knownNetworks?: Set<string>): PolicyTarge
       }
     } else if (e?.type === 'IP_ADDRESSES_OR_SUBNETS' && e.ipAddressesOrSubnets?.length)
       addrs.push(...e.ipAddressesOrSubnets);
-    else if (
-      rule.type === 'MAC' &&
-      typeof rule.networkIdFilter === 'string' &&
-      (!knownNetworks || knownNetworks.has(rule.networkIdFilter))
-    )
-      nets.push(rule.networkIdFilter);
-    else
+    else if (rule.type === 'MAC' && typeof rule.networkIdFilter === 'string') {
+      if (!knownNetworks || knownNetworks.has(rule.networkIdFilter))
+        nets.push(rule.networkIdFilter);
+      else
+        target.unplaced.push(
+          `the ACL rule's ${label} network ${rule.networkIdFilter}, which the console does not have,`,
+        );
+    } else
       target.unplaced.push(
         `the ACL rule's ${label}${e ? ` (${e.type})` : ''}, which is not limited to networks or addresses,`,
       );
@@ -96,7 +97,7 @@ async function findRule(deps: WriteDeps, site: Site, query: string) {
 }
 
 const PROTECTED_NOTE =
-  'A rule that can match a protected network (pi-cluster, its addresses, or any address because an endpoint is open) needs confirm: true.';
+  'A rule that can match a protected network (UNIFI_MCP_PROTECTED_NETWORKS, pi-cluster by default) needs confirm: true: one naming it or an address in its subnet, a network the console does not have, or an endpoint that is open (no filter, ports only, MACs) and so matches any address.';
 
 export function createAclWriteTools(deps: WriteDeps): ToolDefinition[] {
   const known = async (site: Site) =>

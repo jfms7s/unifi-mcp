@@ -73,7 +73,7 @@ function findList(state: FirewallState, query: string): TrafficList | ReturnType
 }
 
 const NOTE =
-  'A change that adds or removes a protected address (192.168.0.0/24 for pi-cluster), or a ports/IPv6 list used by a policy that reaches one, warns in its preview.';
+  "A change that adds or removes an address in a protected network's subnet (UNIFI_MCP_PROTECTED_NETWORKS, pi-cluster by default), or a ports/IPv6 list used by a policy that reaches one, warns in its preview.";
 
 export function createTrafficListWriteTools(deps: WriteDeps): ToolDefinition[] {
   const resolve = async (wanted: string | undefined) => {
