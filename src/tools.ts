@@ -1,5 +1,5 @@
 import type { UnifiMcpConfig } from './config.js';
-import { createUnifiHttpClient } from './http/client.js';
+import { createUnifiHttpClient, type UnifiHttpClientOptions } from './http/client.js';
 import type { ToolDefinition } from './mcp/types.js';
 import { loadProtectedScope } from './unifi/guard.js';
 import { createLegacyApi } from './unifi/legacy.js';
@@ -11,9 +11,15 @@ import { createSyslogApi } from './unifi/syslog.js';
 import { consoleHost } from './unifi/write-tools/common.js';
 import { createWriteTools, lazyScope } from './unifi/write-tools/index.js';
 
-/** Read tools, plus the change tools unless read-only; Site Manager tools only with its key. */
-export function buildTools(config: UnifiMcpConfig): ToolDefinition[] {
-  const client = createUnifiHttpClient(config);
+/**
+ * Read tools, plus the change tools unless read-only; Site Manager tools only
+ * with its key. `clientOpts` is the HTTP client's test seam (msw's fetch).
+ */
+export function buildTools(
+  config: UnifiMcpConfig,
+  clientOpts: UnifiHttpClientOptions = {},
+): ToolDefinition[] {
+  const client = createUnifiHttpClient(config, clientOpts);
   const deps = {
     official: createOfficialApi(client),
     legacy: createLegacyApi(client),

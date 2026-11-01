@@ -1,6 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { HttpResponse, http } from 'msw';
+import { afterEach, describe, expect, it } from 'vitest';
+import { buildTools } from '../../../src/tools.js';
 import { liveFixture } from '../../fixtures/live.js';
-import { useServer } from '../helpers.js';
+import { caller } from '../fixtures.js';
+import { BASE, testConfig, useServer, viaMsw } from '../helpers.js';
 import { LEGACY_SITE, fakeWriteConsole } from './harness.js';
 
 const server = useServer();
@@ -78,5 +81,83 @@ describe('writes on a console with two sites', () => {
       /This console has 2 sites; pick one of: Default \(default\), Branch \(branch\)/,
     );
     expect(writes).toEqual([]);
+  });
+});
+
+/**
+ * The production wiring: buildTools' lazyScope over loadProtectedScope, not
+ * the harness's per-call scope. The harness only serves the console.
+ */
+describe('writes on two sites through buildTools', () => {
+  afterEach(() => server.events.removeAllListeners());
+  const production = () => {
+    const console = setup();
+    const tools = buildTools(testConfig({ protectedNetworks: ['pi-cluster'] }), { fetch: viaMsw });
+    return { ...console, call: caller(tools) };
+  };
+
+  /** rest/networkconf GETs per site ref while the test runs. */
+  function networkReads() {
+    const reads: Record<string, number> = {};
+    server.events.on('request:start', ({ request }) => {
+      const m = /\/api\/s\/([^/]+)\/rest\/networkconf$/.exec(new URL(request.url).pathname);
+      if (request.method === 'GET' && m) reads[m[1]!] = (reads[m[1]!] ?? 0) + 1;
+    });
+    return reads;
+  }
+
+  it('keeps a scope per site: Branch is easy, Default needs confirm, each loaded once', async () => {
+    const { call, writes } = production();
+    const branch = { site: 'Branch', client: 'client-22' };
+    expect(await call('unifi_block_client', branch)).toEqual({ changed: 'blocked', client: 'client-22' });
+    const preview = (await call('unifi_block_client', { site: 'Default', client: 'client-22' })) as {
+      requires?: string;
+      warning?: string;
+    };
+    expect(preview.requires).toBe('confirm: true');
+    expect(preview.warning).toMatch(/client-22 .* is on pi-cluster/);
+    expect(writes.map((w) => w.path)).toEqual(['/proxy/network/api/s/branch/cmd/stamgr']);
+
+    // Cached per site: a second write on each site loads no scope again.
+    const reads = networkReads();
+    const before = { ...reads };
+    await call('unifi_block_client', branch);
+    await call('unifi_block_client', { site: 'Default', client: 'client-22' });
+    const scopeLoads = (ref: string) => (reads[ref] ?? 0) - (before[ref] ?? 0);
+    // Each call still reads networkconf for its own client lookup, but no more.
+    expect([scopeLoads('branch'), scopeLoads('default')]).toEqual([1, 1]);
+  });
+
+  it("two sites' scopes load at the same time, and each write gets its own", async () => {
+    const { call, writes } = production();
+    // Hold every networkconf read until both sites have asked, so both loads are in flight at once.
+    const seen = new Set<string>();
+    let release!: () => void;
+    const both = new Promise<void>((r) => (release = r));
+    let together = false;
+    server.use(
+      http.get(`${BASE}/proxy/network/api/s/:ref/rest/networkconf`, async ({ params }) => {
+        const ref = String(params.ref);
+        seen.add(ref);
+        if (seen.size === 2) {
+          together = true;
+          release();
+        }
+        await Promise.race([both, new Promise((r) => setTimeout(r, 2000))]);
+        const body =
+          ref === 'branch'
+            ? withoutPiCluster('legacy-rest-networkconf')
+            : liveFixture('legacy-rest-networkconf');
+        return HttpResponse.json(body as never);
+      }),
+    );
+    const [branch, home] = (await Promise.all([
+      call('unifi_block_client', { site: 'Branch', client: 'client-22' }),
+      call('unifi_block_client', { site: 'Default', client: 'client-22' }),
+    ])) as Array<Record<string, unknown>>;
+    expect(together).toBe(true);
+    expect(branch).toEqual({ changed: 'blocked', client: 'client-22' });
+    expect(home!.requires).toBe('confirm: true');
+    expect(writes.map((w) => w.path)).toEqual(['/proxy/network/api/s/branch/cmd/stamgr']);
   });
 });

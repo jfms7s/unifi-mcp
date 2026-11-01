@@ -13,7 +13,7 @@ export const V2 = `${BASE}/proxy/network/v2/api/site/default`;
 export const OFFICIAL = `${BASE}/proxy/network/integration/v1`;
 
 // msw intercepts globalThis.fetch only; see test/http/client.test.ts.
-const viaMsw: FetchFn = (url, init) =>
+export const viaMsw: FetchFn = (url, init) =>
   globalThis.fetch(url, {
     method: init.method,
     headers: init.headers,

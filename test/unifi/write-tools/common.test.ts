@@ -33,6 +33,27 @@ describe('lazyScope', () => {
     expect(load.mock.calls.map(([site]) => site.id)).toEqual([A.id, B.id]);
   });
 
+  it("two sites' loads in flight at once settle apart, whichever finishes first", async () => {
+    const pending = new Map<string, (s: ReturnType<typeof emptyScope>) => void>();
+    const load = vi.fn(
+      (site: Site) =>
+        new Promise<ReturnType<typeof emptyScope>>((resolve) => pending.set(site.id, resolve)),
+    );
+    const scope = lazyScope(load);
+    const a1 = scope(A);
+    const b1 = scope(B);
+    const a2 = scope(A);
+    expect([...pending.keys()]).toEqual([A.id, B.id]);
+    const [sa, sb] = [emptyScope(), emptyScope()];
+    pending.get(B.id)!(sb);
+    pending.get(A.id)!(sa);
+    expect(await b1).toBe(sb);
+    expect(await a1).toBe(sa);
+    expect(await a2).toBe(sa);
+    expect(await scope(B)).toBe(sb);
+    expect(load).toHaveBeenCalledTimes(2);
+  });
+
   it('a failed load on one site leaves the other site cached', async () => {
     const good = emptyScope();
     const load = vi
