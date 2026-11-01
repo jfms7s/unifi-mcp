@@ -1,6 +1,6 @@
 # unifi-mcp
 
-An MCP server for a UniFi network. It lets an LLM client diagnose the network (devices, clients, WAN, VPN, events), read metrics and traffic reports, summarise threats, audit the security posture, and make guarded changes to clients, devices, networks, WiFi and hotspot vouchers.
+An MCP server for a UniFi network. It lets an LLM client diagnose the network (devices, clients, WAN, VPN, events), read metrics and traffic reports, summarise threats, audit the security posture, and make guarded changes to clients, devices, networks, WiFi, hotspot vouchers and the zone-based firewall (policies, zones, ACL rules, DNS policies, traffic matching lists and an IP blocklist).
 
 **Important:** the write tools change the live network. A bad network or WiFi change can cut clients off, and a restart can take the gateway down. Changes that could lock unifi-mcp itself out are previewed first and only run with `confirm=true` (see [Protected networks](#protected-networks)). Give the server a key from a **dedicated local admin** (see [Create the API key](#create-the-api-key)), and set `UNIFI_MCP_READ_ONLY=true` if you only want to look.
 
@@ -9,7 +9,7 @@ An MCP server for a UniFi network. It lets an LLM client diagnose the network (d
 The guard column says what a change needs before it runs:
 
 - **none**: runs straight away (reads, and changes that cannot lock anything out).
-- **confirm if protected**: previews unless `confirm=true` when the target is on, or feeds, a protected network or is the gateway.
+- **confirm if protected**: previews unless `confirm=true` when the target is on, or feeds, a protected network or is the gateway, or when a firewall policy, zone, ACL rule or blocked address can reach a protected network.
 - **always confirm**: always previews first; runs only with `confirm=true`.
 
 `site` is optional on every tool; with one site the tool uses it.
@@ -26,7 +26,7 @@ The guard column says what a change needs before it runs:
 | `unifi_events` | read | The event log, newest first, paged to a ceiling that is reported when hit. |
 | `unifi_threat_summary` | read | SECURITY log entries grouped and checked against port forwards. |
 | `unifi_posture_audit` | read | Security posture findings, HIGH first. |
-| `unifi_list_firewall` | read | Zones, zone policies, ACL rules and DNS policies as one-line rules. |
+| `unifi_list_firewall` | read | Zones, zone policies, ACL rules, DNS policies and traffic matching lists as one-line rules; a rule repeated across zone pairs is one row. |
 | `unifi_list_port_forwards` | read | Port forwards, enabled state and exposure. |
 | `unifi_list_wifi` | read | WiFi networks with security, network and guest flags. |
 | `unifi_list_networks` | read | Networks with VLAN, subnet, DHCP and isolation. |
@@ -55,10 +55,29 @@ The guard column says what a change needs before it runs:
 | `unifi_create_vouchers` | none | Generate hotspot vouchers. |
 | `unifi_delete_voucher` | none | Delete one voucher. |
 | `unifi_delete_vouchers` | always confirm | Delete every voucher a filter matches. |
+| `unifi_create_firewall_policy` | confirm if protected | Create a zone policy; zones by name. |
+| `unifi_update_firewall_policy` | always confirm | Change a user-defined zone policy; the preview shows before and after. |
+| `unifi_set_firewall_policy_enabled` | confirm if protected | Turn a user-defined zone policy on or off. |
+| `unifi_delete_firewall_policy` | always confirm | Delete a user-defined zone policy. |
+| `unifi_reorder_firewall_policies` | always confirm | Set the order of a zone pair's user-defined policies. |
+| `unifi_create_firewall_zone` | confirm if protected | Create a custom zone, for example to give IoT a zone of its own. |
+| `unifi_update_firewall_zone` | always confirm | Rename a custom zone or set its networks. |
+| `unifi_delete_firewall_zone` | always confirm | Delete a custom zone. |
+| `unifi_create_acl_rule` | confirm if protected | Create a switch ACL rule. |
+| `unifi_update_acl_rule` | always confirm | Change a user-defined ACL rule. |
+| `unifi_delete_acl_rule` | always confirm | Delete a user-defined ACL rule. |
+| `unifi_create_dns_policy` | none | Create a local DNS record or forward domain. |
+| `unifi_update_dns_policy` | always confirm | Change a DNS policy. |
+| `unifi_delete_dns_policy` | always confirm | Delete a DNS policy. |
+| `unifi_create_traffic_list` | none | Create a traffic matching list (IPv4, IPv6 or ports). |
+| `unifi_update_traffic_list` | always confirm | Rename a traffic matching list or replace its items; the preview names the policies that use it. |
+| `unifi_delete_traffic_list` | always confirm | Delete a traffic matching list. |
+| `unifi_block_ip` | confirm if protected | Block an IPv4 address or CIDR both ways through the `unifi-mcp blocklist`; the first call creates the list and its two policies and needs `confirm=true` once. |
+| `unifi_unblock_ip` | confirm if protected | Take an address off the blocklist; removing the last one deletes the blocklist and needs `confirm=true`. |
 
-With a Site Manager key there are 39 tools (37 without). In read-only mode only the 19 read tools (17 without the key) are registered.
+With a Site Manager key there are 58 tools (56 without). In read-only mode only the 19 read tools (17 without the key) are registered.
 
-Firewall changes need Zone-Based Firewall, which has to be switched on in the UniFi UI (Settings → Policy Engine). The firewall write tools will come in a later release; `unifi_list_firewall` works today.
+The zone policy and zone tools and the blocklist need Zone-Based Firewall (UniFi UI, Settings → Policy Engine); while it is off they say so and change nothing, and `unifi_list_firewall` shows the old-style rules instead. System-defined policies and zones are UniFi's and are refused, as are the IPS auto-blocks, which the console lists without an id.
 
 ## Protected networks
 
@@ -69,6 +88,8 @@ The names are looked up when the first change runs and again every five minutes,
 The guard works out the protected scope from the console's one (default) site, and every write tool is checked against that scope. Consoles with more than one site are not supported for changes yet: there the guard cannot pick a site, so changes fail with the list of sites. Use the read tools there, or `UNIFI_MCP_READ_ONLY=true`.
 
 The machine running unifi-mcp is protected only if it sits on a protected network. A stdio run on a desktop on another network can block or disconnect that desktop without a confirm. Run read-only there, or add the desktop's network to `UNIFI_MCP_PROTECTED_NETWORKS`.
+
+A firewall policy's side that is a zone alone reaches every network in that zone. When a protected network shares a zone with others (the default Internal zone holds every LAN), any policy on that zone is confirm-level, as is one whose addresses, subnets or traffic matching list overlap a protected subnet. A filter the guard cannot place (an unknown zone or list, an IPv6 address) leans to confirm; a MAC, port or other filter counts as the whole zone.
 
 Write tools act only on an exact client or device: an id, MAC, IP or full name. A partial name comes back as candidates to ask again with, and nothing changes.
 
@@ -109,7 +130,7 @@ docker run --rm -p 3000:3000 \
   -e UNIFI_API_KEY=your-api-key \
   -e UNIFI_TLS_FINGERPRINT=AA:BB:...:FF \
   -e UNIFI_MCP_TOKEN=a-long-random-secret \
-  ghcr.io/jfms7s/unifi-mcp:v0.1.0
+  ghcr.io/jfms7s/unifi-mcp:v0.2.0
 ```
 
 Pin a `vX.Y.Z` tag, not `latest`, so an upgrade is a decision you make.
