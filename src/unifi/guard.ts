@@ -28,7 +28,16 @@ export type Target =
   | { kind: 'ip'; ip: string }
   | { kind: 'device'; id: string }
   | { kind: 'port'; deviceId: string; portIdx: number }
-  | { kind: 'policy'; sourceNetworkIds: string[]; destNetworkIds: string[] };
+  | {
+      kind: 'policy';
+      sourceNetworkIds: string[];
+      destNetworkIds: string[];
+      /** IPv4 addresses, CIDRs and `a-b` ranges a side matches by address (an IP filter or list). */
+      sourceAddresses?: string[];
+      destAddresses?: string[];
+      /** Why a side could not be placed: it may then match a protected network. */
+      unplaced?: string[];
+    };
 
 export type Guard = 'easy' | 'confirm';
 
@@ -62,6 +71,24 @@ function networkCidr(subnet: string): string | undefined {
   if (ip === undefined || !Number.isInteger(prefix) || prefix < 0 || prefix > 32) return undefined;
   const size = 2 ** (32 - prefix);
   return `${dotted(ip - (ip % size))}/${prefix}`;
+}
+
+/** `a.b.c.d`, `a.b.c.d/n` or `a.b.c.d-e.f.g.h` as an inclusive range, or undefined. */
+function ipv4Span(value: string): [number, number] | undefined {
+  const dash = value.split('-');
+  if (dash.length === 2) {
+    const [lo, hi] = dash.map((v) => ipv4(v));
+    return lo === undefined || hi === undefined || lo > hi ? undefined : [lo, hi];
+  }
+  const [addr, bits, extra] = value.split('/');
+  const ip = ipv4(addr ?? '');
+  if (ip === undefined || extra !== undefined) return undefined;
+  if (bits === undefined) return [ip, ip];
+  const prefix = /^\d{1,2}$/.test(bits) ? Number(bits) : NaN;
+  if (!(prefix >= 0 && prefix <= 32)) return undefined;
+  const size = 2 ** (32 - prefix);
+  const base = ip - (ip % size);
+  return [base, base + size - 1];
 }
 
 function inCidr(ip: number, cidr: string): boolean {
@@ -339,7 +366,28 @@ export function touchesProtected(
       if (dst.length)
         return `the policy's destination includes ${dst.join(', ')}, a protected network`;
       if (src.length) return `the policy's source includes ${src.join(', ')}, a protected network`;
-      return undefined;
+      // With nothing protected there is nothing an address could reach.
+      if (scope.networkIds.size === 0) return undefined;
+      for (const [side, addresses] of [
+        ['destination', target.destAddresses ?? []],
+        ['source', target.sourceAddresses ?? []],
+      ] as const) {
+        for (const address of addresses) {
+          const span = ipv4Span(address);
+          if (span === undefined) {
+            return cantPlace(`the policy's ${side} address ${address}`);
+          }
+          const subnet = scope.subnets.find((s) => {
+            const net = ipv4Span(s.cidr);
+            return net !== undefined && span[0] <= net[1] && span[1] >= net[0];
+          });
+          if (subnet) {
+            return `the policy's ${side} matches ${address}, inside ${subnet.network} (${subnet.cidr}), a protected network`;
+          }
+        }
+      }
+      const [lost] = target.unplaced ?? [];
+      return lost === undefined ? undefined : cantPlace(lost);
     }
 
     case 'ip': {
