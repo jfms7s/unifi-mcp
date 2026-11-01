@@ -137,6 +137,7 @@ export function createSecurityTools(deps: ReadDeps): ToolDefinition[] {
           counts: { HIGH: count('HIGH'), MEDIUM: count('MEDIUM'), LOW: count('LOW') },
           findings,
           skipped: skipped.length ? skipped : undefined,
+          note: 'note' in input.firewall ? input.firewall.note : undefined,
           threatScan:
             input.threats.truncatedAt === undefined
               ? undefined

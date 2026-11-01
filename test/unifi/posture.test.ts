@@ -355,6 +355,46 @@ describe('a firewall endpoint that changed (M5)', () => {
     expect(skipped[0]!.note).toContain('UniFi endpoint changed for GET /firewall/policies');
   });
 
+  it('a failing listWans alone keeps the zone rules, without WAN names, and says so', async () => {
+    const deps = withBroken('listWans', '/wans');
+    const input = await loadPostureInput(deps, await deps.sites.resolve(), {
+      newClientDays: 7,
+      threatDays: 7,
+    });
+    expect(skippedRules(input)).toEqual([]);
+    const fw = input.firewall as { wans?: unknown; note?: string; zones: unknown[] };
+    expect(fw.zones).toHaveLength(6);
+    expect(fw.wans).toBeUndefined();
+    expect(fw.note).toMatch(/^WAN names were unavailable \(UniFi endpoint changed for GET \/wans/);
+    expect(byRule(auditPosture(input), 'zone-mixed-trust')).toHaveLength(1);
+    // A WAN id still reads as the internet: it is one of the External zone's networks.
+    const wan1 = '984ca476-c888-45ec-b042-a67b1991ed98';
+    const policy: FirewallPolicy = {
+      id: 'p-wan-as-hotspot',
+      name: 'wan-as-hotspot',
+      enabled: true,
+      action: { type: 'ALLOW' },
+      source: {
+        zoneId: 'd2e63b8f-895d-4976-a0cd-d4173c1f1698',
+        trafficFilter: { type: 'NETWORK', networkFilter: { matchOpposite: false, networkIds: [wan1] } },
+      },
+      destination: { zoneId: '2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0' },
+      ipProtocolScope: { ipVersion: 'IPV4_AND_IPV6' },
+      metadata: { origin: 'USER_DEFINED' },
+    };
+    const found = byRule(
+      auditPosture({ ...input, firewall: { ...fw, policies: [policy] } as PostureInput['firewall'] }),
+      'zone-allow-to-trusted',
+    );
+    expect(found.map((f) => [f.object, f.severity])).toEqual([['wan-as-hotspot', 'HIGH']]);
+    const out = (await caller(createReadTools(deps))('unifi_posture_audit')) as {
+      note?: string;
+      skipped?: unknown;
+    };
+    expect(out.skipped).toBeUndefined();
+    expect(out.note).toMatch(/^WAN names were unavailable/);
+  });
+
   it('unifi_list_firewall reports the collection that failed and lists the rest', async () => {
     const out = (await caller(createReadTools(withBroken('listAcl', '/acl-rules')))(
       'unifi_list_firewall',

@@ -24,6 +24,8 @@ export type FirewallView =
       networks?: Array<{ id: string; name: string }>;
       /** Official WANs: the External zone's networks, the internet in a filter. */
       wans?: Array<{ id: string; name: string }>;
+      /** Why part of the view is missing (the WAN names), while the zone rules still run. */
+      note?: string;
     }
   /** Why the zone rules could not run: Zone-Based Firewall is off, or an endpoint changed. */
   | { unavailable: string };
@@ -52,17 +54,25 @@ export async function loadPostureInput(
   opts: { newClientDays: number; threatDays: number },
 ): Promise<PostureInput> {
   const now = (deps.now ?? Date.now)();
+  // The WAN list only names the External zone's networks: without it the zone
+  // rules still run (a WAN id is still the internet by its zone), with a note.
+  const wans = deps.official.listWans(site.id).then(
+    (list) => ({ wans: list.map((w) => ({ id: w.id, name: w.name })) }),
+    (error: unknown) => ({
+      note: `WAN names were unavailable (${error instanceof Error ? error.message : String(error)}); WAN networks are shown by id`,
+    }),
+  );
   const firewall: Promise<FirewallView> = Promise.all([
     deps.official.listFirewallZones(site.id),
     deps.official.listFirewallPolicies(site.id),
     deps.official.listNetworks(site.id),
-    deps.official.listWans(site.id),
+    wans,
   ]).then(
-    ([zones, policies, networks, wans]) => ({
+    ([zones, policies, networks, wanView]) => ({
       zones,
       policies,
       networks: networks.map((n) => ({ id: n.id, name: n.name })),
-      wans: wans.map((w) => ({ id: w.id, name: w.name })),
+      ...wanView,
     }),
     (error: unknown) => {
       // ZBF off, or a firewall endpoint this firmware moved: the zone rules are
@@ -255,8 +265,11 @@ function side(
   const ids = filteredNetworks(p);
   if (!ids)
     return { known: zone !== undefined, trust: zoneTrust, label: zone?.name ?? 'unknown zone' };
+  const external = fw.zones.filter((z) => trust(z) === 0).flatMap((z) => z.networkIds);
   const nets = ids.map((id) => {
     const name = names.network(id);
+    // An External zone network (a WAN) is the internet even without its name.
+    if (name === undefined && external.includes(id)) return { label: id, trust: 0 };
     if (name === undefined) return { label: id, trust: zoneTrust, unresolved: true };
     const wan = fw.wans?.some((w) => w.id === id);
     return { label: name, trust: wan ? 0 : networkTrust(name, input) };
