@@ -160,9 +160,14 @@ describe('loadConfig', () => {
     expect(loadConfig({ ...base, UNIFI_MCP_ACCEPTED_FINDINGS: v }).acceptedFindings).toEqual([]);
   });
 
-  it.each(['PLEX', 'port-forward-open:', 'port-forward-open: '])('an accepted finding without an object (%j) is an error', (v) => {
-    expect(() => loadConfig({ ...base, UNIFI_MCP_ACCEPTED_FINDINGS: v })).toThrow(/must be rule:object/);
-  });
+  it.each(['PLEX', 'port-forward-open:', 'port-forward-open: '])(
+    'an accepted finding without an object (%j) is an error',
+    (v) => {
+      expect(() => loadConfig({ ...base, UNIFI_MCP_ACCEPTED_FINDINGS: v })).toThrow(
+        /must be rule:object/,
+      );
+    },
+  );
 
   it('an accepted finding with an unknown rule is an error that lists the rules', () => {
     expect(() => loadConfig({ ...base, UNIFI_MCP_ACCEPTED_FINDINGS: 'port-forward:PLEX' })).toThrow(
