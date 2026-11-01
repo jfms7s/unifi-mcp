@@ -51,9 +51,10 @@ const bare = (domain: string) => domain.trim().toLowerCase().replace(/\.$/, '');
  */
 export function consoleRedirect(
   record: { type?: unknown; domain?: unknown },
-  host: string | undefined,
+  consoleHostName: string | undefined,
 ): string | undefined {
-  if (host === undefined || typeof record.domain !== 'string') return undefined;
+  if (consoleHostName === undefined || typeof record.domain !== 'string') return undefined;
+  const host = bare(consoleHostName);
   const domain = bare(record.domain);
   if (domain === host) {
     return `the record is for ${host}, the console's hostname in UNIFI_URL, so it can send unifi-mcp elsewhere`;

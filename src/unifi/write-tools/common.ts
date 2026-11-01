@@ -15,11 +15,12 @@ export interface WriteDeps extends ReadDeps {
 }
 
 /**
- * The host unifi-mcp reaches the console by, lower-cased, when UNIFI_URL names
- * a hostname; undefined for an IP address, which no DNS record can redirect.
+ * The host unifi-mcp reaches the console by, lower-cased and without a root
+ * dot (`unifi.home.arpa.`), when UNIFI_URL names a hostname; undefined for an
+ * IP address, which no DNS record can redirect.
  */
 export function consoleHost(baseUrl: string): string | undefined {
-  const host = new URL(baseUrl).hostname.toLowerCase();
+  const host = new URL(baseUrl).hostname.toLowerCase().replace(/\.$/, '');
   if (host.startsWith('[') || /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return undefined;
   return host;
 }

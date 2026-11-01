@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { connect, expectRejectsLooseConfirm } from '../../helpers/sdk.js';
 import { consoleHost } from '../../../src/unifi/write-tools/common.js';
+import { consoleRedirect } from '../../../src/unifi/write-tools/dns.js';
 import { useServer } from '../helpers.js';
 import { dnsPolicies } from './firewall-fixtures.js';
 import { without } from './firewall-fixtures.js';
@@ -161,6 +162,23 @@ describe('DNS policies', () => {
     expect(consoleHost('https://Unifi.Example.com:8443')).toBe('unifi.example.com');
     expect(consoleHost('https://192.168.1.1')).toBeUndefined();
     expect(consoleHost('https://[fd00::1]')).toBeUndefined();
+  });
+
+  it('consoleHost: a trailing root dot is dropped, so the record still needs confirm', () => {
+    expect(consoleHost('https://unifi.home.arpa.')).toBe('unifi.home.arpa');
+    expect(consoleHost('https://UniFi.Home.Arpa.:8443/')).toBe('unifi.home.arpa');
+    const host = consoleHost('https://unifi.home.arpa.');
+    expect(consoleRedirect({ type: 'A_RECORD', domain: 'unifi.home.arpa' }, host)).toContain(
+      'unifi.home.arpa',
+    );
+    expect(consoleRedirect({ type: 'A_RECORD', domain: 'UNIFI.home.arpa.' }, host)).toBeDefined();
+    expect(consoleRedirect({ type: 'FORWARD_DOMAIN', domain: 'home.arpa' }, host)).toBeDefined();
+  });
+
+  it('consoleRedirect compares the host case-insensitively, with or without its root dot', () => {
+    expect(consoleRedirect({ type: 'A_RECORD', domain: 'console.test' }, 'Console.Test.')).toBeDefined();
+    expect(consoleRedirect({ type: 'FORWARD_DOMAIN', domain: 'test' }, 'CONSOLE.TEST')).toBeDefined();
+    expect(consoleRedirect({ type: 'A_RECORD', domain: 'nas.console.test' }, 'Console.Test.')).toBeUndefined();
   });
 
   it.each([
