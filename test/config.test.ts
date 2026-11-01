@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ConfigError, loadConfig } from '../src/config.js';
 
-const FP = '93:0E:7D:' + 'AB:'.repeat(28) + 'CD';
+const FP = 'AA:BB:CC:' + 'AB:'.repeat(28) + 'CD';
 const base = {
   UNIFI_URL: 'https://192.168.0.1',
   UNIFI_API_KEY: 'api-key',
