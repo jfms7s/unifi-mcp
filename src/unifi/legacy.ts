@@ -4,6 +4,7 @@ import { createEndpointGuard, type EndpointGuard } from './endpoint-guard.js';
 import {
   deviceBasicSchema,
   dpiSchema,
+  firewallRuleSchema,
   healthSchema,
   legacyEnvelope,
   networkConfSchema,
@@ -17,6 +18,7 @@ import {
   wlanConfSchema,
   type DeviceBasic,
   type DpiRow,
+  type FirewallRule,
   type Health,
   type NetworkConf,
   type ReportRow,
@@ -31,6 +33,7 @@ import {
 export type {
   DeviceBasic,
   DpiRow,
+  FirewallRule,
   Health,
   NetworkConf,
   ReportRow,
@@ -56,6 +59,10 @@ export interface KnownClient {
   wired?: boolean;
   firstSeen?: number;
   lastSeen?: number;
+  /** MAC of the switch (wired) or AP (wireless) the connected client hangs off. */
+  uplinkMac?: string;
+  /** Switch port, for a wired client. */
+  uplinkPort?: number;
 }
 
 export interface PortForward {
@@ -92,6 +99,7 @@ export interface LegacyApi {
   wlanConf(ref: string): Promise<WlanConf[]>;
   networkConf(ref: string): Promise<NetworkConf[]>;
   settings(ref: string): Promise<Setting[]>;
+  firewallRules(ref: string): Promise<FirewallRule[]>;
   siteDpi(ref: string): Promise<DpiRow[]>;
   /** `macs` limits it to those clients; DPI per client is only kept for clients that asked. */
   stationDpi(ref: string, macs?: string[]): Promise<DpiRow[]>;
@@ -129,6 +137,8 @@ function toKnownClient(user: User, station: Station | undefined): KnownClient {
     wired: station?.is_wired ?? user.is_wired,
     firstSeen: user.first_seen,
     lastSeen: station?.last_seen ?? user.last_seen,
+    uplinkMac: nonEmpty(station?.sw_mac) ?? nonEmpty(station?.ap_mac),
+    uplinkPort: station?.sw_port,
   };
 }
 
@@ -195,6 +205,7 @@ export function createLegacyApi(client: UnifiHttpClient, guard?: EndpointGuard):
     wlanConf: (ref) => rows(ref, 'rest/wlanconf', wlanConfSchema),
     networkConf: (ref) => rows(ref, 'rest/networkconf', networkConfSchema),
     settings: (ref) => rows(ref, 'rest/setting', settingSchema),
+    firewallRules: (ref) => rows(ref, 'rest/firewallrule', firewallRuleSchema),
     siteDpi: (ref) => rows(ref, 'stat/sitedpi', dpiSchema),
     stationDpi: (ref, macs) =>
       rows(ref, 'stat/stadpi', dpiSchema, { type: 'by_app', ...(macs ? { macs } : {}) }),

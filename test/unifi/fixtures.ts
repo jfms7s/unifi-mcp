@@ -1,5 +1,13 @@
 import { z } from 'zod';
-import type { Api, HttpMethod, RequestOptions, UnifiHttpClient } from '../../src/http/client.js';
+import {
+  ZBF_DISABLED,
+  isZbfDisabled,
+  type Api,
+  type HttpMethod,
+  type RequestOptions,
+  type UnifiHttpClient,
+} from '../../src/http/client.js';
+import { UnifiApiError } from '../../src/http/errors.js';
 import type { ToolDefinition } from '../../src/mcp/types.js';
 import { createLegacyApi } from '../../src/unifi/legacy.js';
 import { createOfficialApi } from '../../src/unifi/official.js';
@@ -83,7 +91,12 @@ export function fakeConsole(opts: { log?: RawEntry[] } = {}): FakeConsole {
           data: inRange.slice(start, start + body.pageSize),
         } as T;
       }
-      return liveFixture(fixtureName(api, path)) as T;
+      const fixture = liveFixture(fixtureName(api, path)) as { status?: number; body?: unknown };
+      // A captured error response ({ status, body }) fails the way the real client does.
+      if (typeof fixture.status === 'number' && isZbfDisabled(fixture.status, fixture.body)) {
+        throw new UnifiApiError({ kind: 'zbf-disabled', method, path, status: fixture.status, detail: ZBF_DISABLED });
+      }
+      return fixture as T;
     },
   };
 }

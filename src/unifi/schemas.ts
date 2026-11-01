@@ -178,6 +178,25 @@ export const settingSchema = z.object({
 });
 export type Setting = z.infer<typeof settingSchema>;
 
+/** rest/firewallrule: the pre-zone firewall, read-only while Zone-Based Firewall is off. */
+export const firewallRuleSchema = z.object({
+  _id: z.string(),
+  name: z.string(),
+  enabled: z.boolean(),
+  ruleset: z.string(),
+  rule_index: z.number(),
+  action: z.string(),
+  protocol: z.string().optional(),
+  src_address: z.string().optional(),
+  src_networkconf_id: z.string().optional(),
+  src_firewallgroup_ids: z.array(z.string()).optional(),
+  dst_address: z.string().optional(),
+  dst_networkconf_id: z.string().optional(),
+  dst_firewallgroup_ids: z.array(z.string()).optional(),
+  dst_port: z.string().optional(),
+});
+export type FirewallRule = z.infer<typeof firewallRuleSchema>;
+
 const dpiCountSchema = z.object({
   app: z.number().optional(),
   cat: z.number(),
@@ -323,10 +342,20 @@ export const namedObjectSchema = z.object({
 });
 export type NamedObject = z.infer<typeof namedObjectSchema>;
 
+/** One side of a zone policy: its zone, and a filter that narrows it (absent means any). */
+const policySideSchema = z.object({
+  zoneId: z.string().optional(),
+  trafficFilter: z.unknown().optional(),
+});
+
 export const firewallPolicySchema = namedObjectSchema.extend({
   action: z.object({ type: z.string() }).optional(),
-  source: z.unknown().optional(),
-  destination: z.unknown().optional(),
+  source: policySideSchema.optional(),
+  destination: policySideSchema.optional(),
+  /** Set on policies that only match some connection states (e.g. return traffic). */
+  connectionStateFilter: z.array(z.string()).optional(),
+  ipProtocolScope: z.object({ protocolFilter: z.unknown().optional() }).optional(),
+  metadata: z.object({ origin: z.string().optional() }).optional(),
 });
 export type FirewallPolicy = z.infer<typeof firewallPolicySchema>;
 

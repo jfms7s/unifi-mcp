@@ -53,7 +53,8 @@ const DEFAULT_TIMEOUT_MS = 15_000;
 const SITE_MANAGER_URL = 'https://api.ui.com';
 const MAX_DETAIL = 200;
 const ZBF_NOT_CONFIGURED = 'api.firewall.zone-based-firewall-not-configured';
-const ZBF_DISABLED =
+/** What every firewall call says while Zone-Based Firewall is off. */
+export const ZBF_DISABLED =
   'Zone-Based Firewall is not enabled on this console; turn it on in the UniFi UI (Settings → Policy Engine)';
 
 const BASE_PATHS: Record<Exclude<Api, 'sitemanager'>, string> = {
@@ -108,7 +109,7 @@ function statusDetail(api: Api, status: number, raw: string, parsed: unknown): s
   return bodyMessage(parsed, raw);
 }
 
-function isZbfDisabled(status: number, parsed: unknown): boolean {
+export function isZbfDisabled(status: number, parsed: unknown): boolean {
   return (
     status === 400 &&
     !!parsed &&
