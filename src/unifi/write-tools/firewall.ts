@@ -65,6 +65,9 @@ const nullable = {
 
 const policyInput = z.string().min(1).describe('Policy id or exact name');
 
+const RETURN_TRAFFIC_ALLOW_ONLY =
+  'allowReturnTraffic applies to ALLOW policies only; leave it out for BLOCK and REJECT';
+
 function actionOf(type: string, allowReturnTraffic: boolean | undefined): Plain {
   return type === 'ALLOW' ? { type, allowReturnTraffic: allowReturnTraffic ?? false } : { type };
 }
@@ -88,6 +91,9 @@ function createBody(
   },
   state: FirewallState,
 ): Plain {
+  if (a.action !== 'ALLOW' && a.allowReturnTraffic !== undefined) {
+    throw new Error(RETURN_TRAFFIC_ALLOW_ONLY);
+  }
   const side = (s: z.infer<typeof sideInput>) =>
     compact({ zoneId: findZone(state.zones, s.zone).id, trafficFilter: s.trafficFilter });
   return compact({
@@ -178,6 +184,10 @@ export function createFirewallWriteTools(deps: WriteDeps): ToolDefinition[] {
                 trafficFilter: s.trafficFilter,
               });
         const currentAction = (current.action ?? {}) as Plain;
+        const nextAction = a.action ?? (currentAction.type as string | undefined);
+        if (nextAction !== 'ALLOW' && a.allowReturnTraffic !== undefined) {
+          throw new Error(RETURN_TRAFFIC_ALLOW_ONLY);
+        }
         const patch = compact({
           name: a.name,
           description: a.description,

@@ -269,6 +269,17 @@ describe('what it cannot place leans to confirm', () => {
     }
   });
 
+  it('a NETWORK filter naming a network the console does not have (a name, an unknown id) (M3)', () => {
+    for (const id of ['IoT', '99999999-0000-4000-8000-000000000000']) {
+      can(
+        reason({
+          source: { zoneId: INTERNAL, trafficFilter: nets(id) },
+          destination: { zoneId: EXTERNAL },
+        }),
+      );
+    }
+  });
+
   it('with nothing protected, nothing is unplaceable', () => {
     const empty = { ...scope, networkIds: new Set<string>(), subnets: [], networkNames: new Map() };
     expect(

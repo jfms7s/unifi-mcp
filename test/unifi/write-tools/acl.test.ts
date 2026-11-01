@@ -69,6 +69,11 @@ describe('unifi_create_acl_rule', () => {
       },
       {},
       { sourceFilter: { type: 'PORTS', portFilter: [22] } },
+      // M3: a network the console does not have can't be placed.
+      {
+        sourceFilter: { type: 'NETWORKS', networkIds: ['99999999-0000-4000-8000-000000000000'] },
+        destinationFilter: { type: 'NETWORKS', networkIds: [NETS.iot] },
+      },
     ]) {
       const { call, writes } = setup(created);
       const out = (await call('unifi_create_acl_rule', {

@@ -195,6 +195,36 @@ describe('unifi_create_firewall_policy', () => {
   });
 });
 
+describe('allowReturnTraffic is for ALLOW only (M6)', () => {
+  it('create refuses it on BLOCK or REJECT', async () => {
+    for (const action of ['BLOCK', 'REJECT']) {
+      const { call, writes } = setup(created);
+      await expect(
+        call('unifi_create_firewall_policy', {
+          name: 'x',
+          action,
+          allowReturnTraffic: true,
+          source: { zone: 'Dmz' },
+          destination: { zone: 'External' },
+        }),
+      ).rejects.toThrow('allowReturnTraffic applies to ALLOW policies only');
+      expect(writes).toEqual([]);
+    }
+  });
+
+  it('update refuses it on a policy that stays BLOCK', async () => {
+    const { call, writes } = setup(WITH_USER);
+    await expect(
+      call('unifi_update_firewall_policy', {
+        policy: 'dmz-out',
+        allowReturnTraffic: true,
+        confirm: true,
+      }),
+    ).rejects.toThrow('allowReturnTraffic applies to ALLOW policies only');
+    expect(writes).toEqual([]);
+  });
+});
+
 describe('unifi_update_firewall_policy', () => {
   it('is always confirm-level: previews only the changed fields', async () => {
     const { call, writes } = setup(WITH_USER);

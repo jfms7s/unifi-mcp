@@ -89,7 +89,7 @@ The guard works out the protected scope from the console's one (default) site, a
 
 The machine running unifi-mcp is protected only if it sits on a protected network. A stdio run on a desktop on another network can block or disconnect that desktop without a confirm. Run read-only there, or add the desktop's network to `UNIFI_MCP_PROTECTED_NETWORKS`.
 
-A firewall policy's side that is a zone alone reaches every network in that zone. When a protected network shares a zone with others (the default Internal zone holds every LAN), any policy on that zone is confirm-level, as is one whose addresses, subnets or traffic matching list overlap a protected subnet. A filter the guard cannot place (an unknown zone or list, an IPv6 address) leans to confirm; a MAC, port or other filter counts as the whole zone.
+A firewall policy's side that is a zone alone reaches every network in that zone. The default Internal zone holds every LAN, pi-cluster included, so a policy touching the Internal zone is confirm-level unless its filters provably exclude pi-cluster: a NETWORK filter naming only other networks, or IPv4 addresses, ranges or subnets (directly or through an IPv4 traffic matching list) outside pi-cluster's subnet. Addresses that overlap a protected subnet are confirm-level in any zone. Anything the guard cannot place leans to confirm: an unknown zone, list or network id, an IPv6 address, an opposite match, or a MAC, port or other filter, which counts as the whole zone.
 
 Write tools act only on an exact client or device: an id, MAC, IP or full name. A partial name comes back as candidates to ask again with, and nothing changes.
 

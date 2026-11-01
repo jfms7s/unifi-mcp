@@ -12,6 +12,8 @@ import { policyFilterSchema } from './schemas.js';
 export interface FirewallContext {
   zones: FirewallZone[];
   trafficLists: TrafficList[];
+  /** The console's networks; with the zones' networkIds, what a NETWORK filter may name. */
+  networks?: Array<{ id: string }>;
 }
 
 /** One policy as given (from the console or a caller): its two sides, unchecked. */
@@ -71,7 +73,18 @@ function placeSide(raw: unknown, label: 'source' | 'destination', ctx: FirewallC
   const { networkFilter, ipAddressFilter } = filter.data;
 
   if (filter.data.type === 'NETWORK' && networkFilter && !networkFilter.matchOpposite) {
-    placed.networkIds.push(...networkFilter.networkIds);
+    // An id the console doesn't have (a name, a typo) could stand for anything: never a pass.
+    const known = new Set([
+      ...ctx.zones.flatMap((z) => z.networkIds),
+      ...(ctx.networks ?? []).map((n) => n.id),
+    ]);
+    for (const id of networkFilter.networkIds) {
+      if (known.has(id)) placed.networkIds.push(id);
+      else
+        placed.unplaced.push(
+          `the policy's ${label} network ${id}, which the console does not have,`,
+        );
+    }
     return placed;
   }
   if (filter.data.type !== 'IP_ADDRESS' || !ipAddressFilter || ipAddressFilter.matchOpposite) {

@@ -320,3 +320,137 @@ describe('blocklist tools through the MCP SDK', () => {
     );
   });
 });
+
+describe('the blocklist objects must be wired as unifi-mcp made them, not just named so', () => {
+  const withPolicies = (inb: Record<string, unknown>, out: Record<string, unknown> = outbound) => ({
+    fixtures: {
+      'official-traffic-matching-lists': trafficLists(list('198.51.100.1')),
+      'official-firewall-policies': policies(inb, out),
+    },
+  });
+  const otherList = {
+    ...listFilter,
+    ipAddressFilter: { ...listFilter.ipAddressFilter, trafficMatchingListId: 'some-other-list' },
+  };
+  const opposite = {
+    ...listFilter,
+    ipAddressFilter: { ...listFilter.ipAddressFilter, matchOpposite: true },
+  };
+
+  it.each([
+    [
+      'an ALLOW',
+      { ...inbound, action: { type: 'ALLOW', allowReturnTraffic: false } },
+      'is not a BLOCK policy',
+    ],
+    [
+      'the wrong zone pair',
+      { ...inbound, destination: { zoneId: ZONES.dmz } },
+      'is not External → Internal',
+    ],
+    [
+      'another list',
+      { ...inbound, source: { zoneId: ZONES.external, trafficFilter: otherList } },
+      'does not match on the "unifi-mcp blocklist" in its source',
+    ],
+    [
+      'matchOpposite',
+      { ...inbound, source: { zoneId: ZONES.external, trafficFilter: opposite } },
+      'does not match on the "unifi-mcp blocklist" in its source',
+    ],
+    [
+      'the list on the wrong side',
+      {
+        ...inbound,
+        source: { zoneId: ZONES.external },
+        destination: { zoneId: ZONES.internal, trafficFilter: listFilter },
+      },
+      'does not match on the "unifi-mcp blocklist" in its source',
+    ],
+  ])('an inbound policy with %s is refused, by name and reason', async (_, inb, why) => {
+    for (const [name, args] of [
+      ['unifi_block_ip', { ip: '198.51.100.7', confirm: true }],
+      ['unifi_unblock_ip', { ip: '198.51.100.1', confirm: true }],
+    ] as const) {
+      const { call, writes } = setup(withPolicies(inb));
+      await expect(call(name, args)).rejects.toThrow(
+        `"unifi-mcp blocklist inbound" ${why}; rename or delete it in the UniFi app`,
+      );
+      expect(writes).toEqual([]);
+    }
+  });
+
+  it('an outbound policy that matches on the list in its source is refused', async () => {
+    const bad = {
+      ...outbound,
+      source: { zoneId: ZONES.internal, trafficFilter: listFilter },
+      destination: { zoneId: ZONES.external },
+    };
+    const { call, writes } = setup(withPolicies(inbound, bad));
+    await expect(call('unifi_block_ip', { ip: '198.51.100.7' })).rejects.toThrow(
+      '"unifi-mcp blocklist outbound" does not match on the "unifi-mcp blocklist" in its destination',
+    );
+    expect(writes).toEqual([]);
+  });
+
+  it('policies without their list are refused rather than given an orphan list', async () => {
+    const { call, writes } = setup({
+      ...ids,
+      fixtures: { 'official-firewall-policies': policies(inbound, outbound) },
+    });
+    await expect(call('unifi_block_ip', { ip: '198.51.100.7', confirm: true })).rejects.toThrow(
+      '"unifi-mcp blocklist inbound" exists but the "unifi-mcp blocklist" list does not; rename or delete it in the UniFi app',
+    );
+    expect(writes).toEqual([]);
+  });
+});
+
+describe('blocklist edges', () => {
+  it('a failure part-way through the first block says what was created and what was not (M4)', async () => {
+    const { call, writes } = setup({
+      officialReply: (w: Write) => {
+        if (w.path === LISTS) return { id: LIST_ID };
+        if ((w.body as { name: string }).name.endsWith('outbound'))
+          return new Response(JSON.stringify({ code: 'api.err.Invalid', message: 'bad' }), {
+            status: 400,
+          });
+        return { id: '55555555-0000-4000-8000-000000000001' };
+      },
+    });
+    await expect(call('unifi_block_ip', { ip: '198.51.100.7', confirm: true })).rejects.toThrow(
+      /the unifi-mcp blocklist was only partly created: created list, inbound; not created outbound; .*400/,
+    );
+    expect(writes).toHaveLength(3);
+  });
+
+  it.each(['10.0.0.0/8', '0.0.0.0/0', '172.16.0.0/12'])(
+    'a range wider than /16 (%s) is confirm-level (M5)',
+    async (ip) => {
+      const { call, writes } = setup(existing('198.51.100.1'));
+      const out = (await call('unifi_block_ip', { ip })) as Out;
+      expect(writes).toEqual([]);
+      expect(out.warning).toContain('blocks a large address range');
+    },
+  );
+
+  it('unblocking a range wider than /16 is confirm-level too (M5)', async () => {
+    const { call, writes } = setup(existing('198.51.100.1', '10.0.0.0/8'));
+    const out = (await call('unifi_unblock_ip', { ip: '10.0.0.0/8' })) as Out;
+    expect(writes).toEqual([]);
+    expect(out.warning).toContain('large address range');
+  });
+
+  it('an address already listed still says when a policy is disabled (M10)', async () => {
+    const { call } = setup({
+      fixtures: {
+        'official-traffic-matching-lists': trafficLists(list('198.51.100.7')),
+        'official-firewall-policies': policies({ ...inbound, enabled: false }, outbound),
+      },
+    });
+    expect(await call('unifi_block_ip', { ip: '198.51.100.7' })).toEqual({
+      unchanged: true,
+      ip: '198.51.100.7',
+      note: '198.51.100.7 is already in the unifi-mcp blocklist; "unifi-mcp blocklist inbound" is disabled, so that direction is not blocked',
+    });
+  });
+});

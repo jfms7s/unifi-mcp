@@ -386,7 +386,7 @@ export const policyFilterSchema = z.object({
   type: z.string(),
   networkFilter: z
     .object({ networkIds: z.array(z.string()), matchOpposite: z.boolean().optional() })
-    .optional(),
+    .nullish(),
   ipAddressFilter: z
     .object({
       /** `IP_ADDRESSES` (items) or `TRAFFIC_MATCHING_LIST` (trafficMatchingListId). */
@@ -395,7 +395,7 @@ export const policyFilterSchema = z.object({
       items: z.array(ipMatchSchema).optional(),
       trafficMatchingListId: z.string().optional(),
     })
-    .optional(),
+    .nullish(),
   portFilter: z
     .object({
       type: z.string(),
@@ -403,13 +403,14 @@ export const policyFilterSchema = z.object({
       items: z.array(portMatchSchema).optional(),
       trafficMatchingListId: z.string().optional(),
     })
-    .optional(),
+    .nullish(),
 });
 export type PolicyFilter = z.infer<typeof policyFilterSchema>;
 
 const policySideSchema = z.object({
   zoneId: z.string(),
-  trafficFilter: policyFilterSchema.optional(),
+  /** The console may send null for "no filter". */
+  trafficFilter: policyFilterSchema.nullish(),
 });
 
 export const firewallPolicySchema = z.object({
@@ -418,7 +419,12 @@ export const firewallPolicySchema = z.object({
   name: z.string(),
   enabled: z.boolean(),
   index: z.number().optional(),
-  action: z.object({ type: z.string() }),
+  action: z.object({ type: z.string(), allowReturnTraffic: z.boolean().optional() }),
+  /** Read so that only truly identical policies are grouped as copies. */
+  description: z.string().nullish(),
+  loggingEnabled: z.boolean().optional(),
+  ipsecFilter: z.string().nullish(),
+  schedule: z.unknown().optional(),
   source: policySideSchema,
   destination: policySideSchema,
   /** Set on policies that only match some connection states (e.g. return traffic). */
@@ -450,10 +456,10 @@ export type FirewallZone = z.infer<typeof firewallZoneSchema>;
 /** One endpoint of an ACL rule: `NETWORKS`, `IP_ADDRESSES_OR_SUBNETS`, `PORTS`, or a MAC endpoint. */
 export const aclEndpointSchema = z.object({
   type: z.string(),
-  networkIds: z.array(z.string()).optional(),
-  ipAddressesOrSubnets: z.array(z.string()).optional(),
-  portFilter: z.array(z.number()).optional(),
-  macAddresses: z.array(z.string()).optional(),
+  networkIds: z.array(z.string()).nullish(),
+  ipAddressesOrSubnets: z.array(z.string()).nullish(),
+  portFilter: z.array(z.number()).nullish(),
+  macAddresses: z.array(z.string()).nullish(),
 });
 export type AclEndpoint = z.infer<typeof aclEndpointSchema>;
 

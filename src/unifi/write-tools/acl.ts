@@ -39,7 +39,7 @@ const aclFields = {
  * address endpoints by address. Any other endpoint (none, ports only, MACs)
  * can match any host, so it is reported as unplaced and leans to confirm.
  */
-export function aclTarget(rule: Plain): PolicyTarget {
+export function aclTarget(rule: Plain, knownNetworks?: Set<string>): PolicyTarget {
   const target: Required<PolicyTarget> = {
     kind: 'policy',
     sourceNetworkIds: [],
@@ -54,10 +54,21 @@ export function aclTarget(rule: Plain): PolicyTarget {
   ] as const) {
     const parsed = aclEndpointSchema.safeParse(raw);
     const e = parsed.success ? parsed.data : undefined;
-    if (e?.type === 'NETWORKS' && e.networkIds?.length) nets.push(...e.networkIds);
-    else if (e?.type === 'IP_ADDRESSES_OR_SUBNETS' && e.ipAddressesOrSubnets?.length)
+    if (e?.type === 'NETWORKS' && e.networkIds?.length) {
+      for (const id of e.networkIds) {
+        if (!knownNetworks || knownNetworks.has(id)) nets.push(id);
+        else
+          target.unplaced.push(
+            `the ACL rule's ${label} network ${id}, which the console does not have,`,
+          );
+      }
+    } else if (e?.type === 'IP_ADDRESSES_OR_SUBNETS' && e.ipAddressesOrSubnets?.length)
       addrs.push(...e.ipAddressesOrSubnets);
-    else if (rule.type === 'MAC' && typeof rule.networkIdFilter === 'string')
+    else if (
+      rule.type === 'MAC' &&
+      typeof rule.networkIdFilter === 'string' &&
+      (!knownNetworks || knownNetworks.has(rule.networkIdFilter))
+    )
       nets.push(rule.networkIdFilter);
     else
       target.unplaced.push(
@@ -88,6 +99,8 @@ const PROTECTED_NOTE =
   'A rule that can match a protected network (pi-cluster, its addresses, or any address because an endpoint is open) needs confirm: true.';
 
 export function createAclWriteTools(deps: WriteDeps): ToolDefinition[] {
+  const known = async (site: Site) =>
+    new Set((await deps.official.listNetworks(site.id)).map((n) => n.id));
   return [
     defineTool({
       name: 'unifi_create_acl_rule',
@@ -108,7 +121,7 @@ export function createAclWriteTools(deps: WriteDeps): ToolDefinition[] {
         return guarded(
           {
             level: 'easy',
-            target: aclTarget(body),
+            target: aclTarget(body, await known(site)),
             confirm,
             preview: async () => ({ would: 'create ACL rule', aclRule: body }),
             run: async () => {
@@ -143,7 +156,10 @@ export function createAclWriteTools(deps: WriteDeps): ToolDefinition[] {
         return guarded(
           {
             level: 'confirm',
-            target: unionTargets(aclTarget(current), aclTarget(body)),
+            target: unionTargets(
+              aclTarget(current, await known(site)),
+              aclTarget(body, await known(site)),
+            ),
             confirm,
             preview: async () => ({ would: 'update ACL rule', aclRule: rule.name, changes }),
             run: async () => {
@@ -170,7 +186,7 @@ export function createAclWriteTools(deps: WriteDeps): ToolDefinition[] {
         return guarded(
           {
             level: 'confirm',
-            target: aclTarget(rule as unknown as Plain),
+            target: aclTarget(rule as unknown as Plain, await known(site)),
             confirm,
             preview: async () => ({ would: 'delete ACL rule', aclRule: rule.name }),
             run: async () => {

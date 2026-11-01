@@ -125,12 +125,27 @@ export function dnsRecord(d: Partial<DnsPolicy> & { type?: string }): string {
   return `${d.type ?? '?'} ${d.domain ?? '?'}${value === undefined ? '' : ` → ${String(value)}`}`;
 }
 
+/** The fields that tell two policies apart, beyond their zone pair. */
+type Groupable = PolicyLike & {
+  action?: { type?: string; allowReturnTraffic?: boolean };
+  description?: string | null;
+  loggingEnabled?: boolean;
+  ipsecFilter?: string | null;
+  schedule?: unknown;
+  metadata?: { origin?: string };
+};
+
 /** Everything that makes two policies the same rule, except the zone pair they sit in. */
-function signature(p: PolicyLike & { metadata?: { origin?: string } }): string {
+function signature(p: Groupable): string {
   return JSON.stringify([
     p.name,
+    p.description ?? null,
     p.enabled,
+    p.loggingEnabled ?? null,
+    p.ipsecFilter ?? null,
+    p.schedule ?? null,
     p.action?.type,
+    p.action?.allowReturnTraffic ?? null,
     p.source?.trafficFilter ?? null,
     p.destination?.trafficFilter ?? null,
     p.ipProtocolScope ?? null,
@@ -144,9 +159,7 @@ function signature(p: PolicyLike & { metadata?: { origin?: string } }): string {
  * console order: the Zone-Based Firewall migration copied each IPS block into
  * every pair, and UniFi's own defaults repeat per pair by design.
  */
-export function groupPolicies<T extends PolicyLike & { metadata?: { origin?: string } }>(
-  policies: T[],
-): T[][] {
+export function groupPolicies<T extends Groupable>(policies: T[]): T[][] {
   const groups = new Map<string, T[]>();
   for (const p of policies) {
     const key = signature(p);

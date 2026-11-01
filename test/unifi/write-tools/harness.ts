@@ -59,7 +59,10 @@ export function fakeWriteConsole(server: SetupServer, opts: ConsoleOptions = {})
       const [prefix, api] = PREFIXES.find(([p]) => path.startsWith(`${p}/`)) ?? [];
       if (prefix === undefined || api === undefined) throw new Error(`no fixture for ${path}`);
       if (opts.zbfOff && ZBF_PATH.test(path)) {
-        const zbf = liveFixture('official-firewall-zbf-disabled') as { status: number; body: unknown };
+        const zbf = liveFixture('official-firewall-zbf-disabled') as {
+          status: number;
+          body: unknown;
+        };
         return HttpResponse.json(zbf.body as never, { status: zbf.status });
       }
       const name = fixtureName(api, path.slice(prefix.length));
@@ -103,6 +106,7 @@ export function fakeWriteConsole(server: SetupServer, opts: ConsoleOptions = {})
           typeof opts.officialReply === 'function'
             ? (opts.officialReply as (w: Write) => unknown)(write)
             : opts.officialReply;
+        if (reply instanceof Response) return reply;
         return reply === undefined
           ? new HttpResponse(null, { status: 200 })
           : HttpResponse.json(reply as never);
