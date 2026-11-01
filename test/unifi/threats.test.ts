@@ -250,6 +250,25 @@ describe('summariseThreats on synthetic entries', () => {
     expect(s.groups.find((g) => g.lanSide === 'Block D -> 203.0.113.9')!.count).toBe(2);
   });
 
+  it('a short first IPv6 group (fd::, fd1::, fe8::, fe9::) is not ULA or link-local', () => {
+    const ip = (a: string) => ({ id: a, name: a });
+    const out = (id: string, src: string) =>
+      entry(id, 'TRAFFIC_BLOCKED', { TRIGGER: ip('Block E'), SRC_IP: ip(src), DST_IP: ip('203.0.113.9') }, 'MEDIUM');
+    const s = summary({}, [
+      out('d1', 'fd::1'),
+      out('d2', 'fd1::1'),
+      out('d3', 'fe8::1'),
+      out('d4', 'fe9::1'),
+      out('d5', 'fdab:1::1'),
+      out('d6', 'febf::1'),
+    ]);
+    const outbound = s.groups.filter((g) => g.lanSide.includes('outbound from')).map((g) => g.lanSide);
+    expect(outbound.sort()).toEqual(
+      ['fdab:1::1', 'febf::1'].map((a) => `Block E, outbound from ${a}`).sort(),
+    );
+    expect(s.groups.find((g) => g.lanSide === 'Block E -> 203.0.113.9')!.count).toBe(4);
+  });
+
   it('on the capture, every event is in a group or the tail', () => {
     const s = summary({ maxGroups: 3 });
     expect(s.totalEvents).toBe(4516);

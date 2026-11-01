@@ -84,7 +84,7 @@ function isPrivate(ip: string): boolean {
       (a === 169 && b === 254)
     );
   }
-  return /^fd[0-9a-f]{0,2}:/i.test(ip) || /^fe[89ab][0-9a-f]?:/i.test(ip);
+  return /^fd[0-9a-f]{2}:/i.test(ip) || /^fe[89ab][0-9a-f]:/i.test(ip);
 }
 
 /** `name (ip)` for a LAN address a known client holds, else the address. */
