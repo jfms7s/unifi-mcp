@@ -112,12 +112,36 @@ const uplinkSchema = z.object({
   uplink_remote_port: z.number().optional(),
 });
 
-/** stat/device, read only for where each device hangs (R15). An offline device keeps only `last_uplink`. */
+const devicePortSchema = z.object({
+  port_idx: z.number(),
+  up: z.boolean(),
+  /** The port can deliver PoE. */
+  port_poe: z.boolean().optional(),
+  poe_good: z.boolean().optional(),
+  /** Watts, as a string ("3.55"). */
+  poe_power: z.union([z.string(), z.number()]).optional(),
+});
+
+const radioStatsSchema = z.object({
+  /** `ng` 2.4 GHz, `na` 5 GHz, `6e` 6 GHz. */
+  radio: z.string(),
+  channel: z.union([z.number(), z.string()]).optional(),
+  num_sta: z.number().optional(),
+});
+
+/**
+ * stat/device: where each device hangs (R15), and its ports and radios for the
+ * device list. An offline device keeps only `last_uplink`; a gateway's uplink
+ * is the WAN and names no parent.
+ */
 export const deviceSchema = z.object({
   mac: z.string(),
   name: z.string().optional(),
+  type: z.string().optional(),
   uplink: uplinkSchema.optional(),
   last_uplink: uplinkSchema.optional(),
+  port_table: z.array(devicePortSchema).optional(),
+  radio_table_stats: z.array(radioStatsSchema).optional(),
 });
 export type Device = z.infer<typeof deviceSchema>;
 

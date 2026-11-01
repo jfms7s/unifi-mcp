@@ -76,6 +76,22 @@ export interface DeviceLink {
   uplinkPort?: number;
 }
 
+/** One stat/device row as the device list shows it: uplink, ports and radios. */
+export interface LegacyDevice {
+  mac: string;
+  name?: string;
+  /** `udm`, `usw`, `uap`... */
+  type?: string;
+  /** The parent and its port now; absent for the gateway and an offline device. */
+  uplinkMac?: string;
+  uplinkPort?: number;
+  /** Where an offline device last hung. */
+  lastUplinkMac?: string;
+  lastUplinkPort?: number;
+  ports: Array<{ idx: number; up: boolean; poeInUse?: boolean }>;
+  radios: Array<{ radio: string; channel?: number | string; clients?: number }>;
+}
+
 export interface PortForward {
   id: string;
   name: string;
@@ -106,6 +122,8 @@ export interface LegacyApi {
   devicesBasic(ref: string): Promise<DeviceBasic[]>;
   /** Each device's parent and parent port, from stat/device (last_uplink for an offline device). */
   deviceLinks(ref: string): Promise<DeviceLink[]>;
+  /** stat/device: each device's uplink, port table and radios. */
+  devices(ref: string): Promise<LegacyDevice[]>;
   /** `stations` spares a second stat/sta read when the caller already has it. */
   knownClients(ref: string, stations?: Station[]): Promise<KnownClient[]>;
   portForwards(ref: string): Promise<PortForward[]>;
@@ -224,6 +242,32 @@ export function createLegacyApi(client: UnifiHttpClient, guard?: EndpointGuard):
           name: nonEmpty(d.name),
           uplinkMac: nonEmpty(up?.uplink_mac),
           uplinkPort: up?.uplink_remote_port,
+        };
+      });
+    },
+    async devices(ref) {
+      const devices = await rows(ref, 'stat/device', deviceSchema);
+      return devices.map((d) => {
+        const now = nonEmpty(d.uplink?.uplink_mac);
+        return {
+          mac: d.mac,
+          name: nonEmpty(d.name),
+          type: nonEmpty(d.type),
+          uplinkMac: now,
+          uplinkPort: now ? d.uplink?.uplink_remote_port : undefined,
+          lastUplinkMac: nonEmpty(d.last_uplink?.uplink_mac),
+          lastUplinkPort: d.last_uplink?.uplink_remote_port,
+          ports: (d.port_table ?? []).map((p) => ({
+            idx: p.port_idx,
+            up: p.up,
+            // Only a PoE-capable port says whether it is powering something.
+            poeInUse: p.port_poe ? (p.poe_good ?? Number(p.poe_power ?? 0) > 0) : undefined,
+          })),
+          radios: (d.radio_table_stats ?? []).map((r) => ({
+            radio: r.radio,
+            channel: r.channel,
+            clients: r.num_sta,
+          })),
         };
       });
     },

@@ -303,6 +303,47 @@ describe('legacy API maps rows for tools', () => {
     ]);
   });
 
+  it('devices reads uplink, ports and radios from the captured stat/device', async () => {
+    server.use(
+      http.get(`${LEGACY}/stat/device`, () =>
+        HttpResponse.json(liveFixture('legacy-stat-device') as never),
+      ),
+    );
+    const rows = await legacy().devices(REF);
+    const gw = rows.find((d) => d.mac === GW_MAC)!;
+    expect(gw).toMatchObject({ type: 'udm' });
+    expect(gw.uplinkMac).toBeUndefined();
+    expect(gw.ports.every((p) => p.poeInUse === undefined)).toBe(true);
+    const ap = rows.find((d) => d.mac === '02:00:00:00:00:03')!;
+    expect(ap).toMatchObject({ uplinkMac: FLEX_MAC, uplinkPort: 8, ports: [] });
+    expect(ap.radios).toEqual([
+      { radio: 'ng', channel: 11, clients: 9 },
+      { radio: 'na', channel: 44, clients: 4 },
+    ]);
+  });
+
+  it('devices: an offline device has only where it last hung', async () => {
+    const specs = LIVE_LINKS.map((l) => (l.mac === FLEX_MAC ? { ...l, offline: true } : l));
+    server.use(
+      http.get(`${LEGACY}/stat/device`, () => HttpResponse.json(statDevice(specs) as never)),
+    );
+    const flex = (await legacy().devices(REF)).find((d) => d.mac === FLEX_MAC)!;
+    expect(flex.uplinkMac).toBeUndefined();
+    expect(flex).toMatchObject({ lastUplinkMac: GW_MAC, lastUplinkPort: 4 });
+  });
+
+  it('devices: a port without its up state is a changed endpoint', async () => {
+    const body = structuredClone(liveFixture('legacy-stat-device')) as {
+      data: Array<{ port_table: Record<string, unknown>[] }>;
+    };
+    delete body.data[0]!.port_table[0]!.up;
+    server.use(
+      http.get(`${LEGACY}/stat/device`, () => HttpResponse.json(body as never)),
+      sysinfoHandler(),
+    );
+    expect((await failure(legacy().devices(REF))).kind).toBe('endpoint-changed');
+  });
+
   it('deviceLinks: a row without its mac is a changed endpoint', async () => {
     const body = statDevice(LIVE_LINKS) as { data: Record<string, unknown>[] };
     delete body.data[1]!.mac;

@@ -7,6 +7,7 @@ import {
   firewallEndpoints,
   orderingPairs,
   parseOnly,
+  pickDeviceFields,
   siteIdFor,
   writeFixtures,
 } from '../scripts/capture-fixtures.js';
@@ -111,8 +112,9 @@ describe('--only firewall', () => {
     expect(parseOnly([])).toBeUndefined();
     expect(parseOnly(['--only', 'firewall'])).toBe('firewall');
     expect(parseOnly(['--only=firewall'])).toBe('firewall');
-    expect(() => parseOnly(['--only', 'wifi'])).toThrow('--only takes: firewall');
-    expect(() => parseOnly(['--only'])).toThrow('--only takes: firewall');
+    expect(parseOnly(['--only', 'devices'])).toBe('devices');
+    expect(() => parseOnly(['--only', 'wifi'])).toThrow('--only takes: firewall, devices');
+    expect(() => parseOnly(['--only'])).toThrow('--only takes: firewall, devices');
   });
 
   it('captures the official zones, policies, ACL rules, DNS policies and traffic lists', () => {
@@ -138,6 +140,49 @@ describe('--only firewall', () => {
       { sourceZoneId: 'b', destinationZoneId: 'b' },
     ]);
     expect(() => orderingPairs({})).toThrow('no zones');
+  });
+});
+
+describe('--only devices', () => {
+  it('keeps only the stat/device fields the device summary reads', () => {
+    const raw = {
+      meta: { rc: 'ok' },
+      data: [
+        {
+          mac: 'a4:b1:c2:d3:e4:f5',
+          name: 'Switch',
+          type: 'usw',
+          model: 'USM8P60',
+          state: 1,
+          serial: 'A4B1C2D3E4F5',
+          config_network: { ip: '192.168.1.2' },
+          uplink: { uplink_mac: 'a4:b1:c2:d3:e4:01', uplink_device_name: 'Gw', uplink_remote_port: 3, type: 'wire', up: true, ip: '192.168.1.2' },
+          last_uplink: { uplink_mac: 'a4:b1:c2:d3:e4:01', uplink_device_name: 'Gw', uplink_remote_port: 3, type: 'wire' },
+          port_table: [
+            { port_idx: 1, up: true, name: 'NAS', port_poe: true, poe_enable: true, poe_good: true, poe_power: '3.55', speed: 1000, is_uplink: false, mac_table: [] },
+          ],
+          radio_table_stats: [{ name: 'wifi0', radio: 'ng', channel: 11, num_sta: 9, tx_power: 20 }],
+        },
+      ],
+    };
+    expect(pickDeviceFields(raw)).toEqual({
+      meta: { rc: 'ok' },
+      data: [
+        {
+          mac: 'a4:b1:c2:d3:e4:f5',
+          name: 'Switch',
+          type: 'usw',
+          model: 'USM8P60',
+          state: 1,
+          uplink: { uplink_mac: 'a4:b1:c2:d3:e4:01', uplink_remote_port: 3, type: 'wire', up: true },
+          last_uplink: { uplink_mac: 'a4:b1:c2:d3:e4:01', uplink_remote_port: 3, type: 'wire' },
+          port_table: [
+            { port_idx: 1, up: true, port_poe: true, poe_enable: true, poe_good: true, poe_power: '3.55', speed: 1000, is_uplink: false },
+          ],
+          radio_table_stats: [{ name: 'wifi0', radio: 'ng', channel: 11, num_sta: 9 }],
+        },
+      ],
+    });
   });
 });
 

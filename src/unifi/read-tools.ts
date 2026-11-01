@@ -4,6 +4,7 @@ import { defineTool, type ToolDefinition } from '../mcp/types.js';
 import { clientDetail, clientRow, loadClients, type ClientRecord } from './clients.js';
 import { limitInput, parseTime, siteInput } from './inputs.js';
 import { ambiguous, findClient, findDevice, hasText, sameId, sameText } from './lookup.js';
+import type { LegacyDevice } from './legacy.js';
 import type { OfficialDevice } from './official.js';
 import { EVENT_CEILING, DAY_MS, READ, coverageNote, severityRank, type ReadDeps } from './read-common.js';
 import { compact, cut, isGatewayModel, modelName } from './shape.js';
@@ -16,6 +17,48 @@ import { createHostTools, createWanTools } from './wan-tools.js';
 export type { ReadDeps };
 
 const OFFLINE_STATES = new Set(['OFFLINE', 'CONNECTION_INTERRUPTED', 'ISOLATED']);
+
+const BANDS: Record<string, string> = { ng: '2.4 GHz', na: '5 GHz', '6e': '6 GHz', ad: '60 GHz' };
+const GATEWAY_TYPES = new Set(['udm', 'ugw', 'uxg', 'ucg', 'udr']);
+
+/**
+ * The list's one-glance summary of a device from stat/device: what it hangs
+ * off (parent name and port, or WAN for the gateway), ports up and PoE in use
+ * for a switch or gateway, and each radio's band, channel and clients for an AP.
+ */
+function deviceSummary(d: OfficialDevice, legacyRows: LegacyDevice[], devices: OfficialDevice[]) {
+  const row = legacyRows.find((l) => sameId(l.mac, d.macAddress));
+  if (!row) return {};
+  const parentName = (m: string) =>
+    devices.find((o) => sameId(o.macAddress, m))?.name ??
+    legacyRows.find((l) => sameId(l.mac, m))?.name ??
+    'an unknown device';
+  const uplink = row.uplinkMac
+    ? `${parentName(row.uplinkMac)} port ${row.uplinkPort ?? '?'}`
+    : isGatewayModel(d.model) || GATEWAY_TYPES.has(row.type ?? '')
+      ? 'WAN'
+      : row.lastUplinkMac
+        ? `${parentName(row.lastUplinkMac)} port ${row.lastUplinkPort ?? '?'} (last seen)`
+        : undefined;
+  const poeCapable = row.ports.filter((p) => p.poeInUse !== undefined);
+  return compact({
+    uplink,
+    ports:
+      row.ports.length === 0
+        ? undefined
+        : compact({
+            up: row.ports.filter((p) => p.up).length,
+            total: row.ports.length,
+            poeInUse: poeCapable.length ? poeCapable.filter((p) => p.poeInUse).length : undefined,
+          }),
+    radios:
+      row.radios.length === 0
+        ? undefined
+        : row.radios.map((r) =>
+            compact({ band: BANDS[r.radio] ?? r.radio, channel: r.channel, clients: r.clients }),
+          ),
+  });
+}
 
 function deviceRow(d: OfficialDevice) {
   return compact({
@@ -106,26 +149,35 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
     defineTool({
       name: 'unifi_list_devices',
       description:
-        "List the console's UniFi devices: name, model, IP, state, firmware (and whether an update exists), uptime, CPU and memory.",
+        "List the console's UniFi devices: name, model, IP, state, firmware (and whether an update exists), uptime, CPU and memory, plus what each hangs off (parent and port, or WAN), ports up and PoE ports in use, and each AP radio's band, channel and clients.",
       inputSchema: { site: siteInput },
       annotations: READ,
       handler: async ({ site: wanted }) => {
         const site = await sites.resolve(wanted);
-        const devices = await official.listDevices(site.id);
+        const [devices, legacyRows] = await Promise.all([
+          official.listDevices(site.id),
+          legacy.devices(site.ref).catch((e: unknown) => ({ error: describeError(e) })),
+        ]);
         // An offline device has no statistics; its row simply lacks them.
         const stats = await Promise.allSettled(devices.map((d) => official.deviceStats(site.id, d.id)));
-        return {
+        const rows = 'error' in legacyRows ? [] : legacyRows;
+        return compact({
           site: site.name,
           devices: devices.map((d, i) => {
             const s = stats[i]?.status === 'fulfilled' ? stats[i].value : undefined;
             return compact({
               ...deviceRow(d),
+              ...deviceSummary(d, rows, devices),
               uptimeSec: s?.uptimeSec,
               cpuPct: s?.cpuUtilizationPct,
               memoryPct: s?.memoryUtilizationPct,
             });
           }),
-        };
+          note:
+            'error' in legacyRows
+              ? `uplink, port and radio summary unavailable: ${legacyRows.error}`
+              : undefined,
+        });
       },
     }),
 

@@ -17,7 +17,7 @@ The guard column says what a change needs before it runs:
 | Tool | Guard | What it does |
 |---|---|---|
 | `unifi_overview` | read | The "is anything wrong?" entry point: console, health per subsystem, devices and clients, recent HIGH events. |
-| `unifi_list_devices` | read | Devices with state, firmware, uptime, CPU and memory. |
+| `unifi_list_devices` | read | Devices with state, firmware, uptime, CPU and memory, uplink, ports up and PoE in use, and AP radios. |
 | `unifi_get_device` | read | One device in detail. |
 | `unifi_list_clients` | read | Clients, newest activity first; filter by network, offline, blocked. |
 | `unifi_get_client` | read | One client in detail. |

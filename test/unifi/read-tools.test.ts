@@ -153,6 +153,51 @@ describe('unifi_list_devices / unifi_get_device', () => {
     expect(result.devices[0]).not.toHaveProperty('mac');
   });
 
+  it('summarises each device: uplink, ports up and PoE in use, radios', async () => {
+    const { call } = setup();
+    const result = (await call('unifi_list_devices')) as { devices: Row[] };
+    const byName = (name: string) => result.devices.find((d) => d.name === name);
+    expect(byName('Gateway CGU')).toMatchObject({ uplink: 'WAN', ports: { up: 3, total: 5 } });
+    expect(byName('Gateway CGU')?.ports).not.toHaveProperty('poeInUse');
+    expect(byName('device-2')).toMatchObject({
+      uplink: 'Gateway CGU port 1',
+      ports: { up: 8, total: 8, poeInUse: 5 },
+    });
+    expect(byName('device-4')).toMatchObject({
+      uplink: 'Gateway CGU port 2',
+      ports: { up: 4, total: 10, poeInUse: 1 },
+    });
+    expect(byName('device-3')).toMatchObject({
+      uplink: 'device-4 port 8',
+      radios: [
+        { band: '2.4 GHz', channel: 11, clients: 9 },
+        { band: '5 GHz', channel: 44, clients: 4 },
+      ],
+    });
+    expect(byName('device-3')).not.toHaveProperty('ports');
+    expect(JSON.stringify(result)).not.toMatch(/02:00:00/);
+  });
+
+  it('an offline device shows where it last hung; a failed stat/device read leaves a note', async () => {
+    const { deps, call } = setup();
+    const links = await deps.legacy.devices('default');
+    const ap = links.find((d) => d.mac === '02:00:00:00:00:03')!;
+    deps.legacy.devices = async () => [
+      ...links.filter((d) => d !== ap),
+      { ...ap, uplinkMac: undefined, uplinkPort: undefined, lastUplinkMac: '02:00:00:00:00:04', lastUplinkPort: 8 },
+    ];
+    const offline = (await call('unifi_list_devices')) as { devices: Row[] };
+    expect(offline.devices.find((d) => d.name === 'device-3')?.uplink).toBe('device-4 port 8 (last seen)');
+
+    deps.legacy.devices = async () => {
+      throw new Error('stat/device is gone');
+    };
+    const bare = (await call('unifi_list_devices')) as { devices: Row[]; note: string };
+    expect(bare.devices).toHaveLength(4);
+    expect(bare.devices[0]).not.toHaveProperty('uplink');
+    expect(bare.note).toMatch(/uplink, port and radio summary unavailable/);
+  });
+
   it('finds a device by name, MAC, IP or id', async () => {
     const { call } = setup();
     for (const device of ['Gateway CGU', '02:00:00:00:00:01', '192.168.1.162']) {

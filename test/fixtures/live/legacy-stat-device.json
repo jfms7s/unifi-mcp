@@ -1,0 +1,309 @@
+{
+  "meta": {
+    "rc": "ok"
+  },
+  "data": [
+    {
+      "mac": "02:00:00:00:00:02",
+      "name": "device-2",
+      "type": "usw",
+      "model": "USM8P60",
+      "state": 1,
+      "uplink": {
+        "uplink_mac": "02:00:00:00:00:01",
+        "uplink_remote_port": 1,
+        "type": "wire",
+        "up": true
+      },
+      "last_uplink": {
+        "uplink_mac": "02:00:00:00:00:01",
+        "uplink_remote_port": 1,
+        "type": "wire"
+      },
+      "port_table": [
+        {
+          "port_idx": 1,
+          "up": true,
+          "port_poe": true,
+          "poe_enable": true,
+          "poe_good": true,
+          "poe_power": "3.89",
+          "speed": 1000,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 2,
+          "up": true,
+          "port_poe": true,
+          "poe_enable": true,
+          "poe_good": true,
+          "poe_power": "3.70",
+          "speed": 1000,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 3,
+          "up": true,
+          "port_poe": true,
+          "poe_enable": false,
+          "poe_good": false,
+          "poe_power": "0.00",
+          "speed": 1000,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 4,
+          "up": true,
+          "port_poe": true,
+          "poe_enable": true,
+          "poe_good": true,
+          "poe_power": "2.08",
+          "speed": 100,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 5,
+          "up": true,
+          "port_poe": true,
+          "poe_enable": true,
+          "poe_good": true,
+          "poe_power": "8.48",
+          "speed": 1000,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 6,
+          "up": true,
+          "port_poe": true,
+          "poe_enable": true,
+          "poe_good": true,
+          "poe_power": "2.08",
+          "speed": 100,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 7,
+          "up": true,
+          "port_poe": true,
+          "poe_enable": false,
+          "poe_good": false,
+          "poe_power": "0.00",
+          "speed": 1000,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 8,
+          "up": true,
+          "port_poe": false,
+          "speed": 1000,
+          "is_uplink": true
+        }
+      ]
+    },
+    {
+      "mac": "02:00:00:00:00:04",
+      "name": "device-4",
+      "type": "usw",
+      "model": "USWED37",
+      "state": 1,
+      "uplink": {
+        "uplink_mac": "02:00:00:00:00:01",
+        "uplink_remote_port": 2,
+        "type": "wire",
+        "up": true
+      },
+      "last_uplink": {
+        "uplink_mac": "02:00:00:00:00:01",
+        "uplink_remote_port": 2,
+        "type": "wire"
+      },
+      "port_table": [
+        {
+          "port_idx": 1,
+          "up": true,
+          "port_poe": true,
+          "poe_enable": false,
+          "poe_good": false,
+          "poe_power": "0.00",
+          "speed": 1000,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 2,
+          "up": true,
+          "port_poe": true,
+          "poe_enable": false,
+          "poe_good": false,
+          "poe_power": "0.00",
+          "speed": 100,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 3,
+          "up": false,
+          "port_poe": true,
+          "poe_enable": false,
+          "poe_good": false,
+          "poe_power": "0.00",
+          "speed": 0,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 4,
+          "up": false,
+          "port_poe": true,
+          "poe_enable": false,
+          "poe_good": false,
+          "poe_power": "0.00",
+          "speed": 0,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 5,
+          "up": false,
+          "port_poe": true,
+          "poe_enable": false,
+          "poe_good": false,
+          "poe_power": "0.00",
+          "speed": 0,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 6,
+          "up": false,
+          "port_poe": true,
+          "poe_enable": false,
+          "poe_good": false,
+          "poe_power": "0.00",
+          "speed": 0,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 7,
+          "up": false,
+          "port_poe": true,
+          "poe_enable": false,
+          "poe_good": false,
+          "poe_power": "0.00",
+          "speed": 0,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 8,
+          "up": true,
+          "port_poe": true,
+          "poe_enable": true,
+          "poe_good": true,
+          "poe_power": "4.79",
+          "speed": 100,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 9,
+          "up": true,
+          "port_poe": false,
+          "speed": 1000,
+          "is_uplink": true
+        },
+        {
+          "port_idx": 10,
+          "up": false,
+          "port_poe": false,
+          "speed": 0,
+          "is_uplink": false
+        }
+      ]
+    },
+    {
+      "mac": "02:00:00:00:00:01",
+      "name": "Gateway CGU",
+      "type": "udm",
+      "model": "UDRULT",
+      "state": 1,
+      "uplink": {
+        "type": "wire",
+        "up": true
+      },
+      "port_table": [
+        {
+          "port_idx": 1,
+          "up": true,
+          "port_poe": false,
+          "poe_enable": false,
+          "poe_power": "0.00",
+          "speed": 1000,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 2,
+          "up": true,
+          "port_poe": false,
+          "poe_enable": false,
+          "poe_power": "0.00",
+          "speed": 1000,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 3,
+          "up": false,
+          "port_poe": false,
+          "poe_enable": false,
+          "poe_power": "0.00",
+          "speed": 10,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 4,
+          "up": false,
+          "port_poe": false,
+          "poe_enable": false,
+          "poe_power": "0.00",
+          "speed": 10,
+          "is_uplink": false
+        },
+        {
+          "port_idx": 5,
+          "up": true,
+          "port_poe": false,
+          "poe_enable": false,
+          "poe_power": "0.00",
+          "speed": 1000,
+          "is_uplink": true
+        }
+      ]
+    },
+    {
+      "mac": "02:00:00:00:00:03",
+      "name": "device-3",
+      "type": "uap",
+      "model": "UAPA693",
+      "state": 1,
+      "uplink": {
+        "uplink_mac": "02:00:00:00:00:04",
+        "uplink_remote_port": 8,
+        "type": "wire",
+        "up": true
+      },
+      "last_uplink": {
+        "uplink_mac": "02:00:00:00:00:04",
+        "uplink_remote_port": 8,
+        "type": "wire"
+      },
+      "port_table": [],
+      "radio_table_stats": [
+        {
+          "name": "wifi0",
+          "radio": "ng",
+          "channel": 11,
+          "num_sta": 9
+        },
+        {
+          "name": "wifi1",
+          "radio": "na",
+          "channel": 44,
+          "num_sta": 4
+        }
+      ]
+    }
+  ]
+}

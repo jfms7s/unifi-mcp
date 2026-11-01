@@ -8,7 +8,10 @@
  * `--only firewall` captures just the official firewall objects (zones,
  * policies, the policy ordering of every zone pair, ACL rules, DNS policies,
  * traffic matching lists) and leaves every other fixture as it is, so tests
- * pinned to the earlier capture keep their counts.
+ * pinned to the earlier capture keep their counts. `--only devices` captures
+ * just legacy stat/device (each device's uplink, ports and radios), reading the
+ * official device list first so the scrub gives the devices the same fake MACs
+ * and names as the full capture did.
  *
  * Reads only: GETs, plus the read-only POSTs to stat/report/* and system-log/*.
  * Never prints a response body or a key; failures print the error kind only.
@@ -86,14 +89,75 @@ export interface Captured {
 }
 
 /** What `--only` can narrow a capture to. */
-export type Only = 'firewall';
+export type Only = 'firewall' | 'devices';
+const ONLY: readonly Only[] = ['firewall', 'devices'];
 
 export function parseOnly(argv: string[]): Only | undefined {
   const i = argv.findIndex((a) => a === '--only' || a.startsWith('--only='));
   if (i === -1) return undefined;
   const value = argv[i]!.startsWith('--only=') ? argv[i]!.slice('--only='.length) : argv[i + 1];
-  if (value !== 'firewall') throw new Error('--only takes: firewall');
-  return value;
+  if (!ONLY.includes(value as Only)) throw new Error(`--only takes: ${ONLY.join(', ')}`);
+  return value as Only;
+}
+
+/** The stat/device fields unifi-mcp reads; the rest (port names, LLDP, serials, counters) is dropped. */
+const DEVICE_FIELDS = ['mac', 'name', 'type', 'model', 'state'] as const;
+const UPLINK_FIELDS = ['uplink_mac', 'uplink_remote_port', 'type', 'up'] as const;
+const PORT_FIELDS = [
+  'port_idx',
+  'up',
+  'port_poe',
+  'poe_enable',
+  'poe_good',
+  'poe_power',
+  'speed',
+  'is_uplink',
+] as const;
+const RADIO_FIELDS = ['name', 'radio', 'channel', 'num_sta'] as const;
+
+function pick(value: unknown, fields: readonly string[]): unknown {
+  if (!value || typeof value !== 'object') return value;
+  const record = value as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const field of fields) if (field in record) out[field] = record[field];
+  return out;
+}
+
+const pickAll = (value: unknown, fields: readonly string[]) =>
+  Array.isArray(value) ? value.map((v) => pick(v, fields)) : undefined;
+
+/** stat/device cut down to the fields the device summary and the guard read. */
+export function pickDeviceFields(envelope: unknown): unknown {
+  const record = envelope as { data?: unknown } | undefined;
+  if (!record || !Array.isArray(record.data)) return envelope;
+  return {
+    ...record,
+    data: record.data.map((d: unknown) => {
+      const row = d as Record<string, unknown>;
+      const out = pick(row, DEVICE_FIELDS) as Record<string, unknown>;
+      if (row.uplink !== undefined) out.uplink = pick(row.uplink, UPLINK_FIELDS);
+      if (row.last_uplink !== undefined) out.last_uplink = pick(row.last_uplink, UPLINK_FIELDS);
+      const ports = pickAll(row.port_table, PORT_FIELDS);
+      if (ports) out.port_table = ports;
+      const radios = pickAll(row.radio_table_stats, RADIO_FIELDS);
+      if (radios) out.radio_table_stats = radios;
+      return out;
+    }),
+  };
+}
+
+const STAT_DEVICE = 'legacy-stat-device';
+
+/** stat/device, cut to the fields read (see `pickDeviceFields`). */
+async function captureStatDevice(
+  client: UnifiHttpClient,
+  captured: Captured[],
+  attempt: (name: string, run: () => Promise<void>) => Promise<void>,
+): Promise<void> {
+  await attempt(STAT_DEVICE, async () => {
+    const raw = await client.request('legacy', 'GET', `/s/${SITE_REF}/stat/device`);
+    captured.push({ name: STAT_DEVICE, data: pickDeviceFields(raw) });
+  });
 }
 
 interface Endpoint {
@@ -313,12 +377,23 @@ export async function collect(
     await collectFirewall(client, siteId, captured, attempt);
     return { captured, failures };
   }
+  if (only === 'devices') {
+    // The full capture meets the devices first in the official list; reading it
+    // first here gives them the same fakes, so stat/device lines up with it.
+    await attempt('official-devices', async () => {
+      const e = official('devices', `${site('/devices')}?limit=200`);
+      captured.push({ name: e.name, data: await fetchOne(client, e), contextOnly: true });
+    });
+    await captureStatDevice(client, captured, attempt);
+    return { captured, failures };
+  }
 
   for (const e of staticEndpoints(now, siteId)) {
     await attempt(e.name, async () => {
       captured.push({ name: e.name, data: await fetchOne(client, e) });
     });
   }
+  await captureStatDevice(client, captured, attempt);
   const rogue = captured.find((c) => c.name === 'legacy-stat-rogueap');
   if (rogue) rogue.data = keepFirst(rogue.data, ROGUE_AP_LIMIT);
 
