@@ -1,5 +1,6 @@
 import { UnifiApiError } from '../http/errors.js';
 import type { KnownClient, NetworkConf, PortForward, Setting, WlanConf } from './legacy.js';
+import { groupPolicies, pairsOf, type FirewallNames } from './firewall-view.js';
 import type { FirewallPolicy, FirewallZone, OfficialDevice } from './official.js';
 import { DAY_MS, EVENT_CEILING, severityRank, type ReadDeps } from './read-common.js';
 import { iso } from './shape.js';
@@ -16,7 +17,12 @@ export interface Finding {
 }
 
 export type FirewallView =
-  | { zones: FirewallZone[]; policies: FirewallPolicy[] }
+  | {
+      zones: FirewallZone[];
+      policies: FirewallPolicy[];
+      /** Official networks (and WANs), to name a zone's networks; ids are shown without. */
+      networks?: Array<{ id: string; name: string }>;
+    }
   /** Zone-Based Firewall is off: why the zone rules could not run. */
   | { unavailable: string };
 
@@ -47,8 +53,13 @@ export async function loadPostureInput(
   const firewall: Promise<FirewallView> = Promise.all([
     deps.official.listFirewallZones(site.id),
     deps.official.listFirewallPolicies(site.id),
+    deps.official.listNetworks(site.id),
   ]).then(
-    ([zones, policies]) => ({ zones, policies }),
+    ([zones, policies, networks]) => ({
+      zones,
+      policies,
+      networks: networks.map((n) => ({ id: n.id, name: n.name })),
+    }),
     (error: unknown) => {
       if (error instanceof UnifiApiError && error.kind === 'zbf-disabled')
         return { unavailable: error.message };
@@ -185,9 +196,49 @@ function wifiFindings(input: PostureInput): Finding[] {
 function trust(zone: FirewallZone | undefined): number {
   const name = zone?.name?.toLowerCase() ?? '';
   if (name === 'external') return 0;
-  if (/hotspot|guest|iot|dmz|untrusted/.test(name)) return 1;
+  if (LESS_TRUSTED.test(name)) return 1;
   if (name === 'internal' || name === 'gateway') return 3;
   return 2;
+}
+
+const LESS_TRUSTED = /hotspot|guest|iot|dmz|untrusted|camera|cctv/i;
+
+/** A network by its name or legacy purpose: 1 for IoT, guest and the like, else 3 (a LAN). */
+function networkTrust(name: string, input: PostureInput): number {
+  const purpose = input.networks.find((n) => n.name === name)?.purpose;
+  return LESS_TRUSTED.test(name) || purpose === 'guest' ? 1 : 3;
+}
+
+type ZoneData = Extract<FirewallView, { zones: FirewallZone[] }>;
+
+function viewNames(fw: ZoneData): FirewallNames {
+  return {
+    zone: (id) => fw.zones.find((z) => z.id === id)?.name,
+    network: (id) => fw.networks?.find((n) => n.id === id)?.name,
+    list: () => undefined,
+  };
+}
+
+/** A side's networks when a NETWORK filter names them, else undefined (the zone decides). */
+function filteredNetworks(side: FirewallPolicy['source']): string[] | undefined {
+  const f = side.trafficFilter;
+  if (f?.type !== 'NETWORK' || !f.networkFilter || f.networkFilter.matchOpposite) return undefined;
+  return f.networkFilter.networkIds.length ? f.networkFilter.networkIds : undefined;
+}
+
+/** How trusted a side is, and its label: by its networks when a filter names them, else by zone. */
+function side(p: FirewallPolicy['source'], fw: ZoneData, input: PostureInput) {
+  const names = viewNames(fw);
+  const zone = fw.zones.find((z) => z.id === p.zoneId);
+  const nets = filteredNetworks(p)?.map((id) => names.network(id) ?? id);
+  if (nets) {
+    return {
+      known: true,
+      trust: Math.min(...nets.map((n) => networkTrust(n, input))),
+      label: nets.join(', '),
+    };
+  }
+  return { known: zone !== undefined, trust: trust(zone), label: zone?.name ?? 'unknown zone' };
 }
 
 const RETURN_STATES = new Set(['ESTABLISHED', 'RELATED']);
@@ -207,16 +258,16 @@ function userAllows(policies: FirewallPolicy[]) {
 
 function policyFindings(input: PostureInput): Finding[] {
   if ('unavailable' in input.firewall) return [];
-  const zones = new Map(input.firewall.zones.map((z) => [z.id, z]));
+  const fw = input.firewall;
   const out: Finding[] = [];
-  for (const p of userAllows(input.firewall.policies)) {
-    const src = zones.get(p.source?.zoneId ?? '');
-    const dst = zones.get(p.destination?.zoneId ?? '');
-    const pair = `${src?.name ?? 'unknown zone'} → ${dst?.name ?? 'unknown zone'}`;
+  for (const p of userAllows(fw.policies)) {
+    const src = side(p.source, fw, input);
+    const dst = side(p.destination, fw, input);
+    const pair = `${src.label} → ${dst.label}`;
     const object = p.name ?? p.id;
-    const from = trust(src);
-    const to = trust(dst);
-    if (src && dst && from <= 1 && to > from) {
+    const from = src.trust;
+    const to = dst.trust;
+    if (src.known && dst.known && from <= 1 && to > from) {
       out.push({
         rule: 'zone-allow-to-trusted',
         severity: from === 0 ? 'HIGH' : 'MEDIUM',
@@ -238,6 +289,84 @@ function policyFindings(input: PostureInput): Finding[] {
     }
   }
   return out;
+}
+
+/**
+ * Networks of different trust in one zone: a zone is the unit policies apply
+ * to, so the zone's own pair (Internal → Internal) decides what the IoT
+ * devices can reach, and UniFi's default there allows everything.
+ */
+function mixedTrustFindings(input: PostureInput): Finding[] {
+  if ('unavailable' in input.firewall) return [];
+  const fw = input.firewall;
+  const names = viewNames(fw);
+  const out: Finding[] = [];
+  for (const zone of fw.zones) {
+    const nets = zone.networkIds.map((id) => names.network(id) ?? id);
+    const low = nets.filter((n) => networkTrust(n, input) === 1);
+    const lan = nets.filter((n) => networkTrust(n, input) !== 1);
+    if (low.length === 0 || lan.length === 0) continue;
+    const openDefault = fw.policies.find(
+      (p) =>
+        p.source.zoneId === zone.id &&
+        p.destination.zoneId === zone.id &&
+        p.enabled &&
+        p.action.type === 'ALLOW' &&
+        !p.source.trafficFilter &&
+        !p.destination.trafficFilter &&
+        !p.connectionStateFilter?.length,
+    );
+    const pair = `${zone.name} → ${zone.name}`;
+    const reach = openDefault
+      ? `"${openDefault.name}" (${pair}) lets ${low.join(', ')} devices reach them`
+      : `only the ${pair} policies keep ${low.join(', ')} devices from them`;
+    out.push({
+      rule: 'zone-mixed-trust',
+      severity: 'MEDIUM',
+      object: `${zone.name} zone`,
+      why: `${low.join(', ')} share${low.length === 1 ? 's' : ''} the ${zone.name} zone with ${lan.join(', ')}: ${reach}. Move ${low.join(', ')} to a zone of its own (unifi_create_firewall_zone) and allow only what it needs`,
+    });
+  }
+  return out;
+}
+
+/** One user-defined rule present several times: in several zone pairs, or twice in one. */
+function duplicateFindings(input: PostureInput): Finding[] {
+  if ('unavailable' in input.firewall) return [];
+  const fw = input.firewall;
+  const names = viewNames(fw);
+  const user = fw.policies.filter((p) => p.metadata.origin === 'USER_DEFINED');
+  return groupPolicies(user)
+    .filter((g) => g.length > 1)
+    .map((g) => {
+      const first = g[0]!;
+      const pairs = pairsOf(g, names);
+      const same = g.length - pairs.length;
+      const byAddress = [first.source, first.destination].some(
+        (s) => s.trafficFilter?.type === 'IP_ADDRESS',
+      );
+      const where =
+        pairs.length > 1
+          ? `is repeated in ${pairs.length} zone pairs (${pairs.join(', ')})`
+          : `appears ${g.length} times in ${pairs[0]}`;
+      const extra =
+        pairs.length > 1 && same > 0
+          ? `, ${same} more time${same === 1 ? '' : 's'} within a pair`
+          : '';
+      const idle =
+        byAddress && pairs.length > 1
+          ? '; copies in pairs its addresses never cross do nothing'
+          : '';
+      const fix = g.every((p) => p.id === undefined)
+        ? 'The console gives these IPS auto-blocks no id, so remove the extra copies in the UniFi UI'
+        : 'Remove the extra copies (unifi_delete_firewall_policy)';
+      return {
+        rule: 'duplicate-policies',
+        severity: 'LOW' as const,
+        object: first.name,
+        why: `the same ${first.action.type} rule ${where}${extra}${idle}. ${fix}`,
+      };
+    });
 }
 
 // ---- (5) IDS/IPS -----------------------------------------------------------
@@ -307,6 +436,8 @@ export function auditPosture(input: PostureInput): Finding[] {
     ...portForwardFindings(input),
     ...wifiFindings(input),
     ...policyFindings(input),
+    ...mixedTrustFindings(input),
+    ...duplicateFindings(input),
     ...ipsFindings(input),
     ...newClientFindings(input),
     ...firmwareFindings(input),
@@ -320,10 +451,14 @@ export function auditPosture(input: PostureInput): Finding[] {
 export function skippedRules(input: PostureInput): Array<{ rule: string; note: string }> {
   const out: Array<{ rule: string; note: string }> = [];
   if ('unavailable' in input.firewall) {
-    out.push(
-      { rule: 'zone-allow-to-trusted', note: input.firewall.unavailable },
-      { rule: 'policy-any-any', note: input.firewall.unavailable },
-    );
+    for (const rule of [
+      'zone-allow-to-trusted',
+      'policy-any-any',
+      'zone-mixed-trust',
+      'duplicate-policies',
+    ]) {
+      out.push({ rule, note: input.firewall.unavailable });
+    }
   }
   if (!ipsSetting(input.settings)) {
     out.push({

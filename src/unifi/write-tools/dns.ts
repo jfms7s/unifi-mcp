@@ -4,6 +4,7 @@ import { guarded } from '../guard.js';
 import { confirmInput, siteInput } from '../inputs.js';
 import { ambiguous, lookup, sameText } from '../lookup.js';
 import type { DnsPolicy } from '../official.js';
+import { dnsRecord } from '../firewall-view.js';
 import { compact } from '../shape.js';
 import type { Site } from '../sites.js';
 import { partial, write, type WriteDeps } from './common.js';
@@ -39,24 +40,6 @@ const TYPES = [
   'TXT_RECORD',
   'FORWARD_DOMAIN',
 ] as const;
-
-/** The field that holds each record type's value. */
-const VALUE_FIELD: Record<string, keyof DnsPolicy> = {
-  A_RECORD: 'ipv4Address',
-  AAAA_RECORD: 'ipv6Address',
-  CNAME_RECORD: 'targetDomain',
-  MX_RECORD: 'mailServerDomain',
-  SRV_RECORD: 'serverDomain',
-  TXT_RECORD: 'text',
-  FORWARD_DOMAIN: 'ipAddress',
-};
-
-/** `A_RECORD nas.home.arpa → 192.168.10.3`: DNS policies have no name. */
-export function dnsRecord(d: Partial<DnsPolicy> & { type?: string }): string {
-  const field = VALUE_FIELD[d.type ?? ''];
-  const value = field === undefined ? undefined : d[field];
-  return `${d.type ?? '?'} ${d.domain ?? '?'}${value === undefined ? '' : ` → ${String(value)}`}`;
-}
 
 const policyInput = z.string().min(1).describe('DNS policy id, or its domain');
 

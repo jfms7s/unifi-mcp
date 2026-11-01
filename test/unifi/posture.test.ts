@@ -202,16 +202,95 @@ describe('zone and policy rules', () => {
     ).toEqual([]);
   });
 
-  it('both rules are skipped with a note while Zone-Based Firewall is off', () => {
+  it('a NETWORK filter is judged by its networks: ALLOW IoT → Default inside Internal is MEDIUM', () => {
+    const inside = policy({ name: 'iot-to-lan', from: 'z-int', to: 'z-int' });
+    inside.source.trafficFilter = {
+      type: 'NETWORK',
+      networkFilter: { matchOpposite: false, networkIds: ['f1b4fdb6-c787-4421-92bb-56d55e0ea95a'] },
+    };
+    inside.destination.trafficFilter = {
+      type: 'NETWORK',
+      networkFilter: { matchOpposite: false, networkIds: ['50edfc66-8b84-4f92-8753-9d69a080a695'] },
+    };
+    const found = byRule(
+      audit({
+        firewall: {
+          zones,
+          policies: [inside],
+          networks: (live.firewall as { networks?: Array<{ id: string; name: string }> }).networks,
+        },
+      }),
+      'zone-allow-to-trusted',
+    );
+    expect(found.map((f) => [f.object, f.severity])).toEqual([['iot-to-lan', 'MEDIUM']]);
+    expect(found[0]!.why).toContain('IoT → Default');
+  });
+
+  it('all four zone rules are skipped with a note while Zone-Based Firewall is off', () => {
     expect(byRule(auditPosture(zbfOff), 'zone-allow-to-trusted')).toEqual([]);
     expect(byRule(auditPosture(zbfOff), 'policy-any-any')).toEqual([]);
     const skipped = skippedRules(zbfOff);
-    expect(skipped.map((s) => s.rule)).toEqual(['zone-allow-to-trusted', 'policy-any-any']);
+    expect(skipped.map((s) => s.rule)).toEqual([
+      'zone-allow-to-trusted',
+      'policy-any-any',
+      'zone-mixed-trust',
+      'duplicate-policies',
+    ]);
     expect(skipped[0]!.note).toContain('Zone-Based Firewall is not enabled');
   });
 
   it('nothing is skipped when the firewall was read', () => {
     expect(skippedRules({ ...live, firewall: { zones, policies: [] } })).toEqual([]);
+  });
+});
+
+describe('zone rules on the live ZBF capture', () => {
+  it('run, and find no user ALLOW into a more trusted zone and no ALLOW any → any', () => {
+    expect(skippedRules(live)).toEqual([]);
+    expect(byRule(audit(), 'zone-allow-to-trusted')).toEqual([]);
+    expect(byRule(audit(), 'policy-any-any')).toEqual([]);
+  });
+
+  it('zone-mixed-trust: IoT shares the Internal zone with Default and pi-cluster (MEDIUM)', () => {
+    expect(byRule(audit(), 'zone-mixed-trust')).toEqual([
+      {
+        rule: 'zone-mixed-trust',
+        severity: 'MEDIUM',
+        object: 'Internal zone',
+        why: 'IoT shares the Internal zone with Default, pi-cluster: "Allow All Traffic" (Internal → Internal) lets IoT devices reach them. Move IoT to a zone of its own (unifi_create_firewall_zone) and allow only what it needs',
+      },
+    ]);
+  });
+
+  it('zone-mixed-trust: a zone of one kind is fine', () => {
+    const split = (live.firewall as { zones: FirewallZone[] }).zones.map((z) =>
+      z.name === 'Internal'
+        ? {
+            ...z,
+            networkIds: z.networkIds.filter((id) => id !== 'f1b4fdb6-c787-4421-92bb-56d55e0ea95a'),
+          }
+        : z,
+    );
+    const firewall = { ...(live.firewall as object), zones: split } as PostureInput['firewall'];
+    expect(byRule(audit({ firewall }), 'zone-mixed-trust')).toEqual([]);
+  });
+
+  it('duplicate-policies: the 32 IPS auto-blocks are 8 rules, each in 4 zone pairs (LOW)', () => {
+    const found = byRule(audit(), 'duplicate-policies');
+    expect(found).toHaveLength(8);
+    expect(found.every((f) => f.severity === 'LOW')).toBe(true);
+    expect(found[0]).toEqual({
+      rule: 'duplicate-policies',
+      severity: 'LOW',
+      object: 'IPS Block Traffic from 192.168.10.3 to 203.0.113.1',
+      why: 'the same BLOCK rule is repeated in 4 zone pairs (Internal → External, External → External, Vpn → External, Hotspot → External); copies in pairs its addresses never cross do nothing. The console gives these IPS auto-blocks no id, so remove the extra copies in the UniFi UI',
+    });
+  });
+
+  it('duplicate-policies leaves the system defaults alone (one per zone pair by design)', () => {
+    expect(byRule(audit(), 'duplicate-policies').map((f) => f.object)).not.toContain(
+      'Allow All Traffic',
+    );
   });
 });
 
@@ -303,8 +382,57 @@ describe('security tools', () => {
       counts: Record<string, number>;
     };
     expect(out.findings.filter((f) => f.rule === 'port-forward-open')).toHaveLength(3);
-    expect(out.skipped.map((s) => s.rule)).toEqual(['zone-allow-to-trusted', 'policy-any-any']);
+    expect(out.skipped.map((s) => s.rule)).toEqual([
+      'zone-allow-to-trusted',
+      'policy-any-any',
+      'zone-mixed-trust',
+      'duplicate-policies',
+    ]);
     expect(out.counts).toEqual({ HIGH: 3, MEDIUM: 4, LOW: 10 });
+  });
+
+  it('unifi_posture_audit with ZBF on: the zone rules run on the live capture', async () => {
+    const out = (await setup()('unifi_posture_audit')) as {
+      findings: Finding[];
+      skipped?: unknown;
+      counts: Record<string, number>;
+    };
+    expect(out.skipped).toBeUndefined();
+    expect(out.counts).toEqual({ HIGH: 3, MEDIUM: 5, LOW: 18 });
+  });
+
+  it('unifi_list_firewall with ZBF on: compact rows, the IPS copies collapsed, no legacy fallback', async () => {
+    const out = (await setup()('unifi_list_firewall')) as Record<string, unknown> & {
+      zones: string[];
+      policies: string[];
+      duplicates: string;
+    };
+    expect(out.legacy).toBeUndefined();
+    expect(out.zoneBasedFirewall).toBeUndefined();
+    expect(out.zones).toEqual([
+      'Dmz: (no networks)',
+      'Gateway: (no networks)',
+      'External: Internet 1, Internet 2',
+      'Hotspot: (no networks)',
+      'Vpn: (no networks)',
+      'Internal: Default, IoT, pi-cluster',
+    ]);
+    expect(out.policies).toContain(
+      'Internal → External, External → External, Vpn → External, Hotspot → External: BLOCK from 192.168.10.3 to 203.0.113.1 "IPS Block Traffic from 192.168.10.3 to 203.0.113.1"',
+    );
+    expect(out.policies).toContain(
+      'External → Internal: ALLOW to 192.168.10.3 port 6690 tcp_udp "Allow Port Forward Synology" (system)',
+    );
+    // UniFi's defaults repeat per zone pair by design: one row names every pair.
+    expect(out.policies[0]).toMatch(
+      /^Internal → Internal, Internal → External, .* Dmz → External: ALLOW all "Allow All Traffic" \(system\)$/,
+    );
+    expect(out.policies).toHaveLength(21);
+    expect(out.policies.filter((r) => r.includes('IPS Block'))).toHaveLength(8);
+    expect(out.duplicates).toBe(
+      '32 user-defined policies are 8 rules, each repeated in 4 zone pairs (the IPS auto-blocks; see unifi_posture_audit duplicate-policies)',
+    );
+    expect(JSON.stringify(out).length).toBeLessThan(12_000);
   });
 
   it('unifi_list_firewall with ZBF off: the ZBF message and the legacy rules, read-only and readable', async () => {

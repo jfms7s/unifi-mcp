@@ -2,7 +2,7 @@
 // 192.168.10.3 to 203.0.113.1 "name"`. Shared by unifi_list_firewall and the
 // firewall write tools' previews and results.
 
-import { policyFilterSchema, type PolicyFilter } from './schemas.js';
+import { policyFilterSchema, type DnsPolicy, type PolicyFilter } from './schemas.js';
 
 /** How ids become names in a rule line; an unknown id is shown as it is. */
 export interface FirewallNames {
@@ -106,3 +106,58 @@ export function policyRule(p: PolicyLike, names: FirewallNames, opts: { name?: b
   const off = p.enabled === false ? ' (disabled)' : '';
   return `${zonePair(p, names)}: ${policyMatch(p, names, opts)}${off}`;
 }
+
+/** The field that holds each record type's value. */
+const VALUE_FIELD: Record<string, keyof DnsPolicy> = {
+  A_RECORD: 'ipv4Address',
+  AAAA_RECORD: 'ipv6Address',
+  CNAME_RECORD: 'targetDomain',
+  MX_RECORD: 'mailServerDomain',
+  SRV_RECORD: 'serverDomain',
+  TXT_RECORD: 'text',
+  FORWARD_DOMAIN: 'ipAddress',
+};
+
+/** `A_RECORD nas.home.arpa → 192.168.10.3`: DNS policies have no name. */
+export function dnsRecord(d: Partial<DnsPolicy> & { type?: string }): string {
+  const field = VALUE_FIELD[d.type ?? ''];
+  const value = field === undefined ? undefined : d[field];
+  return `${d.type ?? '?'} ${d.domain ?? '?'}${value === undefined ? '' : ` → ${String(value)}`}`;
+}
+
+/** Everything that makes two policies the same rule, except the zone pair they sit in. */
+function signature(p: PolicyLike & { metadata?: { origin?: string } }): string {
+  return JSON.stringify([
+    p.name,
+    p.enabled,
+    p.action?.type,
+    p.source?.trafficFilter ?? null,
+    p.destination?.trafficFilter ?? null,
+    p.ipProtocolScope ?? null,
+    p.connectionStateFilter ?? null,
+    p.metadata?.origin,
+  ]);
+}
+
+/**
+ * Policies that are the same rule in several zone pairs (or twice in one), in
+ * console order: the Zone-Based Firewall migration copied each IPS block into
+ * every pair, and UniFi's own defaults repeat per pair by design.
+ */
+export function groupPolicies<T extends PolicyLike & { metadata?: { origin?: string } }>(
+  policies: T[],
+): T[][] {
+  const groups = new Map<string, T[]>();
+  for (const p of policies) {
+    const key = signature(p);
+    const group = groups.get(key);
+    if (group) group.push(p);
+    else groups.set(key, [p]);
+  }
+  return [...groups.values()];
+}
+
+/** The distinct zone pairs of a group, in order. */
+export const pairsOf = (group: PolicyLike[], names: FirewallNames) => [
+  ...new Set(group.map((p) => zonePair(p, names))),
+];

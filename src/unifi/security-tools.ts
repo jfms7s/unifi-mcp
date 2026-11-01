@@ -2,9 +2,16 @@ import { z } from 'zod';
 import { UnifiApiError } from '../http/errors.js';
 import { defineTool, type ToolDefinition } from '../mcp/types.js';
 import { limitInput, parseRange, siteInput, sinceInput, untilInput } from './inputs.js';
+import {
+  dnsRecord,
+  groupPolicies,
+  pairsOf,
+  policyMatch,
+  type FirewallNames,
+} from './firewall-view.js';
 import type { FirewallRule, NetworkConf, WlanConf } from './legacy.js';
 import { sameText } from './lookup.js';
-import type { FirewallPolicy, FirewallZone } from './official.js';
+import type { AclRule, FirewallPolicy, TrafficList } from './official.js';
 import { auditPosture, loadPostureInput, skippedRules } from './posture.js';
 import { EVENT_CEILING, READ, coverageNote, type ReadDeps } from './read-common.js';
 import { compact, cut, iso, renderMessage } from './shape.js';
@@ -26,37 +33,54 @@ function legacyRuleLine(r: FirewallRule, networkName: (id: string) => string | u
   return `${r.ruleset} #${r.rule_index}: ${r.action.toUpperCase()} ${r.protocol ?? 'all'} ${src} → ${dst}${port} "${r.name}"${off}`;
 }
 
-/** Every `networkIds` array inside a traffic filter, whatever its exact shape. */
-function filterNetworkIds(filter: unknown, found: string[] = []): string[] {
-  if (Array.isArray(filter)) filter.forEach((f) => filterNetworkIds(f, found));
-  else if (filter && typeof filter === 'object') {
-    for (const [k, v] of Object.entries(filter)) {
-      if (k === 'networkIds' && Array.isArray(v))
-        found.push(...v.filter((x): x is string => typeof x === 'string'));
-      else filterNetworkIds(v, found);
-    }
-  }
-  return found;
+/**
+ * Policies as compact rows, the same rule in several zone pairs as one row
+ * listing the pairs: `Internal → External, Vpn → External: BLOCK from X to Y "name"`.
+ */
+function policyRows(policies: FirewallPolicy[], names: FirewallNames): string[] {
+  return groupPolicies(policies).map((g) => {
+    const p = g[0]!;
+    const off = p.enabled ? '' : ' (disabled)';
+    const system = p.metadata.origin === 'SYSTEM_DEFINED' ? ' (system)' : '';
+    const times = g.length > pairsOf(g, names).length ? ` ×${g.length}` : '';
+    return `${pairsOf(g, names).join(', ')}: ${policyMatch(p, names)}${off}${system}${times}`;
+  });
 }
 
-/** `IoT → Default: BLOCK all "name"`: networks when the side filters on them, else the zone. */
-function policyLine(
-  p: FirewallPolicy,
-  zones: Map<string, FirewallZone>,
-  networkName: (id: string) => string | undefined,
-) {
-  const side = (s: FirewallPolicy['source']) => {
-    const zone = zones.get(s?.zoneId ?? '')?.name ?? 'any zone';
-    if (!s?.trafficFilter) return zone;
-    const nets = filterNetworkIds(s.trafficFilter).map((id) => networkName(id) ?? id);
-    if (nets.length) return nets.join(', ');
-    const type = (s.trafficFilter as { type?: unknown }).type;
-    return `${zone} [${typeof type === 'string' ? type.toLowerCase() : 'filtered'}]`;
-  };
-  const what = p.ipProtocolScope?.protocolFilter ? 'filtered protocols' : 'all';
-  const off = p.enabled === false ? ' (disabled)' : '';
-  return `${side(p.source)} → ${side(p.destination)}: ${p.action?.type ?? '?'} ${what}${p.name ? ` "${p.name}"` : ''}${off}`;
+/** How many user-defined policies are copies of one another, said once. */
+function duplicateNote(policies: FirewallPolicy[], names: FirewallNames): string | undefined {
+  const groups = groupPolicies(policies.filter((p) => p.metadata.origin === 'USER_DEFINED')).filter(
+    (g) => g.length > 1,
+  );
+  if (groups.length === 0) return undefined;
+  const total = groups.reduce((n, g) => n + g.length, 0);
+  const sizes = new Set(groups.map((g) => g.length));
+  const spread = groups.every((g) => pairsOf(g, names).length === g.length);
+  const each =
+    sizes.size === 1 && spread
+      ? `each repeated in ${[...sizes][0]} zone pairs`
+      : `repeated up to ${Math.max(...sizes)} times`;
+  const ips = groups.every((g) => g.every((p) => p.id === undefined))
+    ? 'the IPS auto-blocks; '
+    : '';
+  return `${total} user-defined policies are ${groups.length} rules, ${each} (${ips}see unifi_posture_audit duplicate-policies)`;
 }
+
+const aclEndpoint = (e: AclRule['sourceFilter'], names: FirewallNames) => {
+  if (!e) return 'any';
+  const what =
+    e.networkIds?.map((id) => names.network(id) ?? id).join(', ') ??
+    e.ipAddressesOrSubnets?.join(',') ??
+    e.macAddresses?.join(',') ??
+    e.type.toLowerCase();
+  return e.portFilter?.length ? `${what} port ${e.portFilter.join(',')}` : what;
+};
+
+const aclRow = (r: AclRule, names: FirewallNames) =>
+  `${r.name}: ${r.action} ${aclEndpoint(r.sourceFilter, names)} → ${aclEndpoint(r.destinationFilter, names)}${r.enabled ? '' : ' (disabled)'}`;
+
+const listRow = (l: TrafficList) =>
+  `${l.name} (${l.type}): ${l.items.map((i) => String(i.value ?? `${String(i.start)}–${String(i.stop)}`)).join(', ')}`;
 
 function wifiSecurity(w: WlanConf): string {
   if (w.security === 'open') return 'open';
@@ -80,7 +104,7 @@ export function createSecurityTools(deps: ReadDeps): ToolDefinition[] {
     defineTool({
       name: 'unifi_posture_audit',
       description:
-        'Audit the security posture and list findings (severity, object, why), HIGH first: port forwards open to any source with the inbound threats against their target; WiFi with no encryption, WPA2-only where an AP supports WPA3, or a guest SSID not isolated; zone policies that let a less trusted zone into a more trusted one; ALLOW policies matching any → any; IDS/IPS off or detect-only; clients first seen in the last newClientDays; devices with firmware updates. Rules that cannot run (e.g. zone rules while Zone-Based Firewall is off) are listed under skipped with the reason. WPS is not checked: the console config does not expose it.',
+        'Audit the security posture and list findings (severity, object, why), HIGH first: port forwards open to any source with the inbound threats against their target; WiFi with no encryption, WPA2-only where an AP supports WPA3, or a guest SSID not isolated; zone policies that let a less trusted zone or network into a more trusted one; ALLOW policies matching any → any; networks of different trust sharing one zone (IoT in Internal); user-defined policies repeated as copies; IDS/IPS off or detect-only; clients first seen in the last newClientDays; devices with firmware updates. Rules that cannot run (e.g. zone rules while Zone-Based Firewall is off) are listed under skipped with the reason. WPS is not checked: the console config does not expose it.',
       inputSchema: {
         site: siteInput,
         newClientDays: z
@@ -124,41 +148,48 @@ export function createSecurityTools(deps: ReadDeps): ToolDefinition[] {
     defineTool({
       name: 'unifi_list_firewall',
       description:
-        'The firewall as readable one-line rules ("IoT → Default: BLOCK all"): zones and zone policies, ACL rules, DNS policies and traffic matching lists. While Zone-Based Firewall is off, says so and lists the old-style rules instead, read-only.',
+        'The firewall as readable one-line rules ("Internal → External: BLOCK from 192.168.10.3 to 203.0.113.1 \"name\""): zones with their networks, zone policies (UniFi\'s own tagged (system); the same rule in several zone pairs is one row listing the pairs, and duplicates says how many user-defined policies are copies), ACL rules, DNS policies and traffic matching lists. While Zone-Based Firewall is off, says so and lists the old-style rules instead, read-only.',
       inputSchema: { site: siteInput },
       annotations: READ,
       handler: async ({ site: wanted }) => {
         const site = await sites.resolve(wanted);
-        const [networks, officialNets, acl, dns, traffic] = await Promise.all([
+        const [networks, officialNets, wans, acl, dns, traffic] = await Promise.all([
           legacy.networkConf(site.ref),
           official.listNetworks(site.id),
+          official.listWans(site.id),
           official.listAcl(site.id),
           official.listDnsPolicies(site.id),
           official.listTrafficLists(site.id),
         ]);
         const legacyName = namesOf(networks);
-        const officialName = new Map(officialNets.map((n) => [n.id, n.name]));
+        const officialName = new Map([...officialNets, ...wans].map((n) => [n.id, n.name]));
         const networkName = (id: string) => officialName.get(id) ?? legacyName(id);
+        const names: FirewallNames = {
+          zone: () => undefined,
+          network: networkName,
+          list: (id) => traffic.find((l) => l.id === id)?.name,
+        };
         const others = {
-          aclRules: acl.map((x) => x.name ?? x.id),
-          dnsPolicies: dns.map((x) => x.domain ?? x.id),
-          trafficMatchingLists: traffic.map((x) => x.name ?? x.id),
+          aclRules: acl.map((r) => aclRow(r, names)),
+          dnsPolicies: dns.map((d) => `${dnsRecord(d)}${d.enabled ? '' : ' (disabled)'}`),
+          trafficMatchingLists: traffic.map(listRow),
         };
         try {
           const [zones, policies] = await Promise.all([
             official.listFirewallZones(site.id),
             official.listFirewallPolicies(site.id),
           ]);
-          const byId = new Map(zones.map((z) => [z.id, z]));
-          return {
+          names.zone = (id) => zones.find((z) => z.id === id)?.name;
+          return compact({
             site: site.name,
             zones: zones.map(
               (z) =>
-                `${z.name ?? z.id}: ${(z.networkIds ?? []).map(networkName).join(', ') || '(no networks)'}`,
+                `${z.name}: ${z.networkIds.map((id) => networkName(id) ?? id).join(', ') || '(no networks)'}`,
             ),
-            policies: policies.map((p) => policyLine(p, byId, networkName)),
+            policies: policyRows(policies, names),
+            duplicates: duplicateNote(policies, names),
             ...others,
-          };
+          });
         } catch (error) {
           if (!(error instanceof UnifiApiError && error.kind === 'zbf-disabled')) throw error;
           const rules = await legacy.firewallRules(site.ref);
