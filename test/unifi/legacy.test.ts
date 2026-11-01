@@ -344,3 +344,45 @@ describe('legacy API reports a changed endpoint', () => {
     expect(error.status).toBe(401);
   });
 });
+
+describe('legacy API classifies console errors by message', () => {
+  const body = (msg: string) => ({ meta: { rc: 'error', msg }, data: [] });
+  const url = `${LEGACY}/stat/health`;
+
+  it('200 with api.err.InvalidObject is a status error carrying the message', async () => {
+    server.use(http.get(url, () => HttpResponse.json(body('api.err.InvalidObject'))));
+    const error = await failure(legacy().health(REF));
+    expect(error.kind).toBe('status');
+    expect(error.message).toContain('api.err.InvalidObject');
+  });
+
+  it('400 with api.err.InvalidObject is a status error carrying the message', async () => {
+    server.use(
+      http.get(url, () => HttpResponse.json(body('api.err.InvalidObject'), { status: 400 })),
+    );
+    const error = await failure(legacy().health(REF));
+    expect(error.kind).toBe('status');
+    expect(error.status).toBe(400);
+    expect(error.message).toContain('api.err.InvalidObject');
+  });
+
+  it('400 with api.err.NotFound is a changed endpoint', async () => {
+    server.use(
+      http.get(url, () => HttpResponse.json(body('api.err.NotFound'), { status: 400 })),
+      sysinfoHandler(),
+    );
+    const error = await failure(legacy().health(REF));
+    expect(error.kind).toBe('endpoint-changed');
+    expect(error.message).toBe(
+      "the console's legacy endpoint stat/health changed or is gone (Network 10.6.109); update unifi-mcp",
+    );
+  });
+
+  it('404 with api.err.NotFound is a changed endpoint', async () => {
+    server.use(
+      http.get(url, () => HttpResponse.json(body('api.err.NotFound'), { status: 404 })),
+      sysinfoHandler(),
+    );
+    expect((await failure(legacy().health(REF))).kind).toBe('endpoint-changed');
+  });
+});

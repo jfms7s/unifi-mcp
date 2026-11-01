@@ -31,11 +31,27 @@ export interface EndpointGuard {
 
 const SITE_SEGMENT: Record<GuardedApi, string> = { legacy: 's', v2: 'site' };
 
+const NOT_FOUND = 'api.err.NotFound';
+
+/** The console's `meta.msg` on an `rc:'error'` body, whatever the HTTP status. */
+function errorMessage(raw: unknown): string | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const meta = (raw as { meta?: unknown }).meta;
+  if (!meta || typeof meta !== 'object') return undefined;
+  const { rc, msg } = meta as { rc?: unknown; msg?: unknown };
+  return rc === 'error' && typeof msg === 'string' ? msg : undefined;
+}
+
+/**
+ * Gone means the console says so: a 404, an HTML or redirect answer, or
+ * `api.err.NotFound` at any status. Other errors (bad input, no site context)
+ * are the caller's, not a changed endpoint.
+ */
 function isGone(error: unknown): boolean {
-  return (
-    error instanceof UnifiApiError &&
-    (error.kind === 'endpoint-changed' || (error.kind === 'status' && error.status === 404))
-  );
+  if (!(error instanceof UnifiApiError)) return false;
+  if (error.kind === 'endpoint-changed') return true;
+  if (error.kind !== 'status') return false;
+  return error.status === 404 || error.detail === NOT_FOUND;
 }
 
 export function createEndpointGuard(client: UnifiHttpClient): EndpointGuard {
@@ -83,6 +99,16 @@ export function createEndpointGuard(client: UnifiHttpClient): EndpointGuard {
     } catch (error) {
       if (isGone(error)) throw await gone(call, (error as UnifiApiError).status);
       throw error;
+    }
+    const message = errorMessage(raw);
+    if (message === NOT_FOUND) throw await gone(call);
+    if (message !== undefined) {
+      throw new UnifiApiError({
+        kind: 'status',
+        method: call.method,
+        path,
+        detail: message,
+      });
     }
     const parsed = call.schema.safeParse(raw);
     if (!parsed.success) throw await gone(call);

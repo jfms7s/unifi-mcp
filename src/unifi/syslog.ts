@@ -1,5 +1,5 @@
 import type { UnifiHttpClient } from '../http/client.js';
-import { createEndpointGuard, type EndpointGuard } from './guard.js';
+import { createEndpointGuard, type EndpointGuard } from './endpoint-guard.js';
 import { syslogPageSchema } from './schemas.js';
 
 export interface SyslogEntry {

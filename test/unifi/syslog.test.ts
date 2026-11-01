@@ -177,4 +177,15 @@ describe('syslog reports a changed endpoint', () => {
     );
     expect((await failure(call())).message).toBe(expected);
   });
+
+  it('an api.err.InvalidObject answer is a status error, not a changed endpoint', async () => {
+    server.use(
+      http.post(`${V2}/system-log/all`, () =>
+        HttpResponse.json({ meta: { rc: 'error', msg: 'api.err.InvalidObject' }, data: [] }),
+      ),
+    );
+    const error = await failure(call());
+    expect(error.kind).toBe('status');
+    expect(error.message).toContain('api.err.InvalidObject');
+  });
 });
