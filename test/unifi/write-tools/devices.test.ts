@@ -51,6 +51,24 @@ describe('createWriteTools', () => {
       'unifi_delete_wifi',
       'unifi_delete_voucher',
       'unifi_delete_vouchers',
+      // Firewall: a new BLOCK, a moved network or a reorder can cut traffic off.
+      'unifi_create_firewall_policy',
+      'unifi_update_firewall_policy',
+      'unifi_set_firewall_policy_enabled',
+      'unifi_delete_firewall_policy',
+      'unifi_reorder_firewall_policies',
+      'unifi_create_firewall_zone',
+      'unifi_update_firewall_zone',
+      'unifi_delete_firewall_zone',
+      'unifi_create_acl_rule',
+      'unifi_update_acl_rule',
+      'unifi_delete_acl_rule',
+      'unifi_update_dns_policy',
+      'unifi_delete_dns_policy',
+      'unifi_update_traffic_list',
+      'unifi_delete_traffic_list',
+      'unifi_block_ip',
+      'unifi_unblock_ip',
     ]);
     for (const t of tools) {
       expect(t.annotations, t.name).toMatchObject({

@@ -394,6 +394,17 @@ export function touchesProtected(
       const subnet = subnetOf(target.ip, scope);
       if (subnet)
         return `${target.ip} is inside ${subnet.network} (${subnet.cidr}), a protected network`;
+      // A CIDR (unifi_block_ip takes one) is placed by overlap with each protected subnet.
+      const span = target.ip.includes('/') ? ipv4Span(target.ip) : undefined;
+      if (span) {
+        const hit = scope.subnets.find((s) => {
+          const net = ipv4Span(s.cidr);
+          return net !== undefined && span[0] <= net[1] && span[1] >= net[0];
+        });
+        return hit
+          ? `${target.ip} overlaps ${hit.network} (${hit.cidr}), a protected network`
+          : undefined;
+      }
       if (ipv4(target.ip) === undefined && scope.subnets.length > 0) {
         return `${target.ip} is not an IPv4 address unifi-mcp can place, so it may belong to a protected network`;
       }

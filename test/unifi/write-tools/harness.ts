@@ -12,7 +12,7 @@ import { createSiteResolver } from '../../../src/unifi/sites.js';
 import { createSyslogApi } from '../../../src/unifi/syslog.js';
 import { createWriteTools, type WriteDeps } from '../../../src/unifi/write-tools/index.js';
 import { liveFixture } from '../../fixtures/live.js';
-import { caller, fixtureName } from '../fixtures.js';
+import { caller, fixtureName, orderingFor } from '../fixtures.js';
 import { BASE, SITE_ID, testClient } from '../helpers.js';
 import { LIVE_LINKS, statDevice, type LinkSpec } from '../topology.js';
 
@@ -35,10 +35,14 @@ export interface ConsoleOptions {
   fixtures?: Record<string, unknown>;
   /** What an official write answers (default: an empty 200); a function sees the write. */
   officialReply?: unknown;
+  /** Firewall zone and policy reads answer the ZBF-not-configured 400, as before ZBF was on. */
+  zbfOff?: boolean;
 }
 
-/** `official-networks-<id>` and `official-wifi-broadcasts-<id>`: one object of a list. */
-const DETAIL = /^(official-(?:networks|wifi-broadcasts))-([0-9a-f-]{36})$/;
+/** `official-networks-<id>`, `official-firewall-policies-<id>`...: one object of a list. */
+const DETAIL =
+  /^(official-(?:networks|wifi-broadcasts|firewall-policies|firewall-zones|acl-rules|dns-policies|traffic-matching-lists))-([0-9a-z-]{1,36})$/;
+const ZBF_PATH = /\/firewall\/(zones|policies)(\/|$)/;
 
 const PREFIXES = [
   ['/proxy/network/integration', 'official'],
@@ -54,7 +58,15 @@ export function fakeWriteConsole(server: SetupServer, opts: ConsoleOptions = {})
       const path = new URL(request.url).pathname;
       const [prefix, api] = PREFIXES.find(([p]) => path.startsWith(`${p}/`)) ?? [];
       if (prefix === undefined || api === undefined) throw new Error(`no fixture for ${path}`);
+      if (opts.zbfOff && ZBF_PATH.test(path)) {
+        const zbf = liveFixture('official-firewall-zbf-disabled') as { status: number; body: unknown };
+        return HttpResponse.json(zbf.body as never, { status: zbf.status });
+      }
       const name = fixtureName(api, path.slice(prefix.length));
+      if (name === 'official-firewall-policies-ordering' && opts.fixtures?.[name] === undefined) {
+        const query = Object.fromEntries(new URL(request.url).searchParams);
+        return HttpResponse.json(orderingFor(query) as never);
+      }
       const detail = DETAIL.exec(name);
       if (detail && opts.fixtures?.[name] === undefined) {
         // A detail GET answers with that row of the list fixture, as the console would.
