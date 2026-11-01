@@ -43,6 +43,7 @@ describe('registration', () => {
       'unifi_wan_status',
       'unifi_vpn_status',
       'unifi_events',
+      'unifi_threat_summary',
       'unifi_traffic_report',
       'unifi_top_apps',
       'unifi_isp_metrics',
@@ -62,7 +63,7 @@ describe('registration', () => {
     const { tools } = setup({ sitemanager: false });
     expect(tools.map((t) => t.name)).not.toContain('unifi_list_hosts');
     expect(tools.map((t) => t.name)).not.toContain('unifi_isp_metrics');
-    expect(tools).toHaveLength(10);
+    expect(tools).toHaveLength(11);
   });
 });
 

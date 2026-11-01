@@ -9,6 +9,7 @@ import { EVENT_CEILING, DAY_MS, READ, coverageNote, severityRank, type ReadDeps 
 import { compact, cut, isGatewayModel, modelName } from './shape.js';
 import { createEventTools } from './event-tools.js';
 import { createMetricsTools } from './metrics-tools.js';
+import { createThreatTools } from './threat-tools.js';
 import { createHostTools, createWanTools } from './wan-tools.js';
 
 export type { ReadDeps };
@@ -237,6 +238,7 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
     }),
     ...createWanTools(deps),
     ...createEventTools(deps),
+    ...createThreatTools(deps),
     ...createMetricsTools(deps),
     ...createHostTools(deps),
   ];
