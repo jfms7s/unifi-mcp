@@ -21,8 +21,10 @@ export interface SyslogApi {
   ): Promise<{ total: number; entries: SyslogEntry[] }>;
   /**
    * Pages newest first until the range is covered or `ceiling` entries have been
-   * read. `truncatedAt` is the timestamp of the oldest entry reached and is set
-   * only when entries older than that, inside the range, were left unread.
+   * read. `truncatedAt` is the timestamp of the oldest entry reached (or `to`,
+   * if none was) and is set only when entries older than that, inside the
+   * range, were left unread: at the ceiling, or when the console's paging
+   * stops short of its own `total` (a capped pageSize, an ignored pageNumber).
    */
   scan(
     ref: string,
@@ -70,6 +72,7 @@ export function createSyslogApi(client: UnifiHttpClient, guard?: EndpointGuard):
     const kept: SyslogEntry[] = [];
     let read = 0;
     let oldest: number | undefined;
+    const truncated = () => ({ entries: kept, truncatedAt: oldest ?? q.to });
     for (let pageNumber = 0; ; pageNumber++) {
       const { total, entries } = await page(ref, {
         from: q.from,
@@ -77,19 +80,28 @@ export function createSyslogApi(client: UnifiHttpClient, guard?: EndpointGuard):
         page: pageNumber,
         size: SCAN_PAGE_SIZE,
       });
+      let fresh = 0;
       for (const entry of entries) {
         // Entries logged while paging shift later pages; a repeat is not a new event.
         if (seen.has(entry.id)) continue;
-        if (read >= q.ceiling) return { entries: kept, truncatedAt: oldest };
+        if (read >= q.ceiling) return truncated();
         seen.add(entry.id);
         read++;
+        fresh++;
         oldest = entry.timestamp;
         if (!q.filter || q.filter(entry)) kept.push(entry);
       }
-      const exhausted =
-        entries.length < SCAN_PAGE_SIZE || (pageNumber + 1) * SCAN_PAGE_SIZE >= total;
-      if (exhausted) return { entries: kept };
-      if (read >= q.ceiling) return { entries: kept, truncatedAt: oldest };
+      // A page that brings nothing new before `total` is reached means the
+      // console ignored pageNumber; paging on would only repeat it.
+      if (fresh === 0 && read < total) return truncated();
+      if (entries.length < SCAN_PAGE_SIZE) {
+        // A short page is the end only if it reaches `total`; short of that the
+        // console capped pageSize, and what is left of the range went unread.
+        const reached = pageNumber * SCAN_PAGE_SIZE + entries.length >= total;
+        return reached ? { entries: kept } : truncated();
+      }
+      if ((pageNumber + 1) * SCAN_PAGE_SIZE >= total) return { entries: kept };
+      if (read >= q.ceiling) return truncated();
     }
   }
 

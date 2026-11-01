@@ -121,6 +121,66 @@ describe('syslog.scan', () => {
   });
 });
 
+describe('syslog.scan does not mistake a misbehaving pager for the end of the range', () => {
+  const page0 = () => liveFixture('v2-system-log-all-page-0') as RawPage;
+
+  it('a console that caps the page size: a short page short of total is truncated', async () => {
+    const all = page0().data;
+    server.use(
+      http.post(`${V2}/system-log/all`, async ({ request }) => {
+        const { pageNumber } = (await request.json()) as { pageNumber: number };
+        const data = all.slice(pageNumber * 500, pageNumber * 500 + 500);
+        return HttpResponse.json({ total_element_count: 3000, data } as never);
+      }),
+    );
+    const result = await syslog().scan(REF, { ...Q, ceiling: 20_000 });
+    expect(result.entries).toHaveLength(500);
+    expect(result.truncatedAt).toBe(all[499]!.timestamp);
+  });
+
+  it('a console that ignores pageNumber: a page with nothing new is truncated', async () => {
+    const requested: number[] = [];
+    server.use(
+      http.post(`${V2}/system-log/all`, async ({ request }) => {
+        requested.push(((await request.json()) as { pageNumber: number }).pageNumber);
+        return HttpResponse.json(page0() as never);
+      }),
+    );
+    const result = await syslog().scan(REF, { ...Q, ceiling: 20_000 });
+    expect(result.entries).toHaveLength(1000);
+    expect(result.truncatedAt).toBe(page0().data[999]!.timestamp);
+    expect(requested).toEqual([0, 1]);
+  });
+
+  it('an empty first page while total says there are entries is truncated at the range end', async () => {
+    server.use(
+      http.post(`${V2}/system-log/all`, () =>
+        HttpResponse.json({ total_element_count: 3000, data: [] } as never),
+      ),
+    );
+    const result = await syslog().scan(REF, { ...Q, ceiling: 20_000 });
+    expect(result.entries).toEqual([]);
+    expect(result.truncatedAt).toBe(Q.to);
+  });
+
+  it('a genuine short last page, total reached, is complete', async () => {
+    const all = page0().data;
+    server.use(
+      http.post(`${V2}/system-log/all`, async ({ request }) => {
+        const { pageNumber } = (await request.json()) as { pageNumber: number };
+        const data =
+          pageNumber === 0
+            ? all
+            : (liveFixture('v2-system-log-all-page-1') as RawPage).data.slice(0, 300);
+        return HttpResponse.json({ total_element_count: 1300, data } as never);
+      }),
+    );
+    const result = await syslog().scan(REF, { ...Q, ceiling: 20_000 });
+    expect(result.entries).toHaveLength(1300);
+    expect(result.truncatedAt).toBeUndefined();
+  });
+});
+
 describe('syslog reports a changed endpoint', () => {
   const expected =
     "the console's legacy endpoint system-log/all changed or is gone (Network 10.6.109); update unifi-mcp";
