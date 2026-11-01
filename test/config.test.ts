@@ -33,6 +33,19 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...base, UNIFI_URL: 'not a url' })).toThrow(/UNIFI_URL is not a valid URL/);
   });
 
+  it('does not echo an invalid URL, which could hold credentials', () => {
+    expect(() => loadConfig({ ...base, UNIFI_URL: 'https://admin:hunter2@[bad' })).toThrow(
+      new ConfigError('UNIFI_URL is not a valid URL'),
+    );
+  });
+
+  it('rejects schemes other than https and http', () => {
+    expect(() => loadConfig({ ...base, UNIFI_URL: 'ftp://192.168.0.1' })).toThrow(
+      new ConfigError('UNIFI_URL must use https:// (or http://)'),
+    );
+    expect(loadConfig({ ...base, UNIFI_URL: 'http://192.168.0.1' }).console.baseUrl).toBe('http://192.168.0.1');
+  });
+
   it('strips trailing slashes', () => {
     expect(loadConfig({ ...base, UNIFI_URL: 'https://192.168.0.1//' }).console.baseUrl).toBe('https://192.168.0.1');
   });

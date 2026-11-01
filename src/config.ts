@@ -62,10 +62,15 @@ function readConnection(env: NodeJS.ProcessEnv): ConsoleConnection {
   if (!rawUrl) throw new ConfigError('UNIFI_URL is required');
   if (!apiKey) throw new ConfigError('UNIFI_API_KEY is required');
 
+  let url: URL;
   try {
-    new URL(rawUrl);
+    url = new URL(rawUrl);
   } catch {
-    throw new ConfigError(`UNIFI_URL is not a valid URL: ${rawUrl}`);
+    // The raw value is not echoed: it could carry userinfo.
+    throw new ConfigError('UNIFI_URL is not a valid URL');
+  }
+  if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+    throw new ConfigError('UNIFI_URL must use https:// (or http://)');
   }
 
   return { baseUrl: rawUrl.replace(/\/+$/, ''), apiKey, tls: readTls(env) };

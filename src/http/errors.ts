@@ -1,4 +1,13 @@
+export type UnifiErrorKind =
+  | 'unreachable'
+  | 'status'
+  | 'endpoint-changed'
+  | 'certificate-changed'
+  | 'timeout'
+  | 'zbf-disabled';
+
 export interface UnifiApiErrorOptions {
+  kind: UnifiErrorKind;
   method: string;
   path: string;
   status?: number;
@@ -20,28 +29,49 @@ function safeBaseUrl(baseUrl: string): string | undefined {
   }
 }
 
+function formatMessage({
+  kind,
+  method,
+  path,
+  status,
+  detail,
+  baseUrl,
+}: UnifiApiErrorOptions): string {
+  switch (kind) {
+    case 'unreachable': {
+      // The URL only helps when the request never arrived.
+      const at = baseUrl === undefined ? undefined : safeBaseUrl(baseUrl);
+      const target = at === undefined ? 'UniFi' : `UniFi at ${at}`;
+      return `Cannot reach ${target} for ${method} ${path}: ${detail}`;
+    }
+    case 'status':
+      return `UniFi returned ${status ?? 'an error'} for ${method} ${path}: ${detail}`;
+    case 'timeout':
+      return `UniFi timed out on ${method} ${path}: ${detail}`;
+    case 'endpoint-changed':
+      return `UniFi endpoint changed for ${method} ${path}: ${detail}`;
+    case 'certificate-changed':
+    case 'zbf-disabled':
+      // These already say exactly what is wrong and what to do.
+      return detail;
+  }
+}
+
 export class UnifiApiError extends Error {
+  readonly kind: UnifiErrorKind;
   readonly method: string;
   readonly path: string;
   readonly status?: number;
   readonly detail: string;
 
   constructor(options: UnifiApiErrorOptions) {
-    const { method, path, status, detail, baseUrl } = options;
-    // The URL only helps when the request never arrived; once a status comes
-    // back the server was plainly reachable.
-    const at = baseUrl === undefined ? undefined : safeBaseUrl(baseUrl);
-    const target = at === undefined ? 'UniFi' : `UniFi at ${at}`;
-    const message =
-      status === undefined
-        ? `Cannot reach ${target} for ${method} ${path}: ${detail}`
-        : `UniFi returned ${status} for ${method} ${path}: ${detail}`;
-    super(message);
+    super(formatMessage(options));
     this.name = 'UnifiApiError';
-    this.method = method;
-    this.path = path;
-    this.status = status;
-    this.detail = detail;
+    this.kind = options.kind;
+    this.method = options.method;
+    this.path = options.path;
+    this.status = options.status;
+    this.detail = options.detail;
   }
 }
 

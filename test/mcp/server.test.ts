@@ -54,7 +54,7 @@ describe('createServer', () => {
         inputSchema: {},
         annotations: { readOnlyHint: true },
         handler: async () => {
-          throw new UnifiApiError({ method: 'GET', path: '/api/x', status: 404, detail: 'not found' });
+          throw new UnifiApiError({ kind: 'status', method: 'GET', path: '/api/x', status: 404, detail: 'not found' });
         },
       }),
     ]);
