@@ -68,6 +68,20 @@ describe('downsample', () => {
     expect(out[1]).toEqual({ time: 15, a: 5 });
   });
 
+  it('keeps a field the first point of a bucket lacks', () => {
+    const out = downsample(
+      [
+        { time: 0 },
+        { time: 10 },
+        { time: 20, latency: 4 },
+        { time: 30, latency: 8 },
+        { time: 40 },
+      ] as Array<{ time: number; latency?: number }>,
+      3,
+    );
+    expect(out[1]?.latency).toBe(6);
+  });
+
   it('returns a short series untouched and rejects a cap below two points', () => {
     expect(downsample(series.slice(0, 5), 200)).toEqual(series.slice(0, 5));
     expect(downsample([], 200)).toEqual([]);
@@ -181,8 +195,42 @@ describe('unifi_top_apps', () => {
     ];
     const r = (await call('unifi_top_apps')) as Apps;
     expect(r.apps).toHaveLength(10);
-    expect(r.apps[0]?.name).toBe(`app ${900_014 & 0xffff}`);
+    expect(r.apps[0]?.name).toBe('app 900014');
     expect(r.categories).toEqual([]);
+  });
+
+  it('tries the raw id first, then the decoded one, and merges only what names the same entry', async () => {
+    const { deps, call } = setup();
+    deps.legacy.siteDpi = async () => [
+      {
+        by_app: [
+          { app: 3, cat: 0, rx_bytes: 10, tx_bytes: 0 },
+          { app: (4 << 16) | 3, cat: 4, rx_bytes: 5, tx_bytes: 0 },
+          { app: 70_000, cat: 9, rx_bytes: 2, tx_bytes: 0 },
+          { app: 70_000 + 65_536, cat: 9, rx_bytes: 1, tx_bytes: 0 },
+        ],
+      },
+    ];
+    const r = (await call('unifi_top_apps')) as Apps;
+    expect(r.apps.map((a) => [a.name, a.bytes])).toEqual([
+      ['ICQ', 15],
+      ['app 70000', 2],
+      ['app 135536', 1],
+    ]);
+  });
+
+  it('falls back to app/category ids with a note when the DPI catalogue is unavailable', async () => {
+    const { deps, call } = setup();
+    deps.official.listDpiApps = async () => {
+      throw new Error('catalogue down');
+    };
+    deps.legacy.siteDpi = async () => [
+      { by_app: [{ app: 3, cat: 0, rx_bytes: 1, tx_bytes: 1 }], by_cat: [{ cat: 0, rx_bytes: 1, tx_bytes: 1 }] },
+    ];
+    const r = (await call('unifi_top_apps')) as Apps;
+    expect(r.apps[0]?.name).toBe('app 3');
+    expect(r.categories[0]?.name).toBe('Instant messengers');
+    expect(r.note).toMatch(/catalogue/i);
   });
 
   it('asks stat/stadpi for one client and reads only that client', async () => {

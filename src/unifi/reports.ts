@@ -5,7 +5,8 @@ const isNumber = (v: unknown): v is number => typeof v === 'number' && Number.is
 
 function averageBucket<T extends { time: number }>(bucket: T[]): T {
   const out: Record<string, unknown> = { ...bucket[0] };
-  for (const key of Object.keys(out)) {
+  const keys = new Set(bucket.flatMap((p) => Object.keys(p)));
+  for (const key of keys) {
     const values = bucket.map((p) => (p as Record<string, unknown>)[key]).filter(isNumber);
     if (values.length > 0) out[key] = values.reduce((a, b) => a + b, 0) / values.length;
   }

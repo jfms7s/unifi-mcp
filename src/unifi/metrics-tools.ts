@@ -81,8 +81,6 @@ function pickInterval(spanMs: number): ReportInterval {
   return spanMs <= 2 * DAY_MS ? '5minutes' : spanMs <= 31 * DAY_MS ? 'hourly' : 'daily';
 }
 
-const hex = (id: number) => id & 0xffff;
-
 interface Count {
   rx: number;
   tx: number;
@@ -94,12 +92,12 @@ function addTo(map: Map<number, Count>, id: number, rx: number, tx: number, cat?
   map.set(id, { rx: have.rx + rx, tx: have.tx + tx, cat: have.cat ?? cat });
 }
 
-/** Sums DPI rows by application and by category. An application id carries its category in the high 16 bits. */
+/** Sums DPI rows by raw application id and by category. */
 function tally(rows: DpiRow[]) {
   const apps = new Map<number, Count>();
   const cats = new Map<number, Count>();
   for (const row of rows) {
-    for (const a of row.by_app ?? []) addTo(apps, hex(a.app ?? 0), a.rx_bytes, a.tx_bytes, a.cat);
+    for (const a of row.by_app ?? []) addTo(apps, a.app ?? 0, a.rx_bytes, a.tx_bytes, a.cat);
     for (const c of row.by_cat ?? []) addTo(cats, c.cat, c.rx_bytes, c.tx_bytes);
   }
   return { apps, cats };
@@ -200,17 +198,34 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
           rows = (await legacy.stationDpi(site.ref, [match.found.mac])).filter((r) => r.mac?.toLowerCase() === mac);
         }
         const { apps, cats } = tally(rows);
-        const [appNames, catNames] = await Promise.all([official.listDpiApps(), official.listDpiCategories()]);
-        const appName = new Map(appNames.map((n) => [n.id, n.name]));
-        const catName = new Map(catNames.map((n) => [n.id, n.name]));
+        const [appNames, catNames] = await Promise.all([
+          official.listDpiApps().then((n) => ({ names: n }), () => ({ names: undefined })),
+          official.listDpiCategories().then((n) => ({ names: n }), () => ({ names: undefined })),
+        ]);
+        const appName = new Map((appNames.names ?? []).map((n) => [n.id, n.name]));
+        const catName = new Map((catNames.names ?? []).map((n) => [n.id, n.name]));
         const bytes = (c: Count) => c.rx + c.tx;
+        // The id may be the catalogue id or carry the category in its high 16 bits; try it raw, then decoded.
+        const resolved = new Map<string, Count & { name: string }>();
+        for (const [raw, c] of apps) {
+          const catalogueId = appName.has(raw) ? raw : appName.has(raw & 0xffff) ? raw & 0xffff : undefined;
+          const key = catalogueId === undefined ? `raw:${raw}` : `id:${catalogueId}`;
+          const have = resolved.get(key);
+          resolved.set(key, {
+            name: catalogueId === undefined ? `app ${raw}` : (appName.get(catalogueId) as string),
+            rx: (have?.rx ?? 0) + c.rx,
+            tx: (have?.tx ?? 0) + c.tx,
+            cat: have?.cat ?? c.cat,
+          });
+        }
+        const topApps = [...resolved.values()].sort((x, y) => bytes(y) - bytes(x)).slice(0, TOP_N);
         return compact({
           site: site.name,
           scope: target === undefined ? 'site' : 'client',
           client: target,
-          apps: topByBytes(apps).map(([id, c]) =>
+          apps: topApps.map((c) =>
             compact({
-              name: appName.get(id) ?? `app ${id}`,
+              name: c.name,
               category: c.cat === undefined ? undefined : (catName.get(c.cat) ?? `category ${c.cat}`),
               bytes: bytes(c),
               rxBytes: c.rx,
@@ -223,9 +238,17 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
             rxBytes: c.rx,
             txBytes: c.tx,
           })),
-          note: rows.every((r) => !r.by_app?.length && !r.by_cat?.length)
-            ? 'The console returned no DPI data (DPI may be off, or nothing has been classified yet)'
-            : undefined,
+          note:
+            [
+              rows.every((r) => !r.by_app?.length && !r.by_cat?.length)
+                ? 'The console returned no DPI data (DPI may be off, or nothing has been classified yet)'
+                : undefined,
+              appNames.names === undefined || catNames.names === undefined
+                ? 'The DPI catalogue could not be read, so unnamed ids show as app <id> or category <id>'
+                : undefined,
+            ]
+              .filter(Boolean)
+              .join('; ') || undefined,
         });
       },
     }),
