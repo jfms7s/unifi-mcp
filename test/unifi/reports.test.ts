@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { UnifiApiError } from '../../src/http/errors.js';
 import { downsample } from '../../src/unifi/reports.js';
 import { createReadTools } from '../../src/unifi/read-tools.js';
 import { FIXTURE_NOW, caller, readDeps } from './fixtures.js';
@@ -180,7 +181,12 @@ describe('unifi_traffic_report', () => {
   it('a client report passes on the note when the official client list failed', async () => {
     const { deps, call } = setup();
     deps.official.listClients = async () => {
-      throw new Error('official API timed out');
+      throw new UnifiApiError({
+        kind: 'timeout',
+        method: 'GET',
+        path: '/clients',
+        detail: 'official API timed out',
+      });
     };
     const r = (await call('unifi_traffic_report', {
       scope: 'client',
@@ -349,7 +355,12 @@ describe('unifi_top_apps', () => {
   it("a client's top apps pass on the note when the official client list failed", async () => {
     const { deps, call } = setup();
     deps.official.listClients = async () => {
-      throw new Error('official API timed out');
+      throw new UnifiApiError({
+        kind: 'timeout',
+        method: 'GET',
+        path: '/clients',
+        detail: 'official API timed out',
+      });
     };
     const r = (await call('unifi_top_apps', { client: '02:00:00:00:00:8f' })) as Apps;
     expect(r.scope).toBe('client');

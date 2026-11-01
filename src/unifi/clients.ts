@@ -1,4 +1,4 @@
-import { describeError } from '../http/errors.js';
+import { UnifiApiError, describeError } from '../http/errors.js';
 import type { KnownClient, LegacyApi } from './legacy.js';
 import type { OfficialApi } from './official.js';
 import { sameId } from './lookup.js';
@@ -34,14 +34,15 @@ export interface LoadedClients {
   note?: string;
 }
 
-/** Why the client tools carry legacy-only records: the official list failed. */
+/** Why the client tools carry legacy-only records: the official list failed with a UniFi error. */
 export const officialClientsNote = (error: unknown) =>
   `the official client list didn't answer (${describeError(error)}); guest actions are unavailable until it does`;
 
 /**
  * rest/user (everyone ever seen) + stat/sta (who is connected) + network names
- * + official ids. A failing official list degrades to legacy-only records and
- * a note rather than failing every client tool.
+ * + official ids. An official list failing with a UniFi error degrades to
+ * legacy-only records and a note rather than failing every client tool; any
+ * other error (a bug) is thrown.
  */
 export async function loadClients(
   { legacy, official }: { legacy: LegacyApi; official: OfficialApi },
@@ -52,7 +53,10 @@ export async function loadClients(
     legacy.networkConf(site.ref),
     official.listClients(site.id).then(
       (clients) => ({ clients }),
-      (error: unknown) => ({ clients: [], note: officialClientsNote(error) }),
+      (error: unknown) => {
+        if (!(error instanceof UnifiApiError)) throw error;
+        return { clients: [], note: officialClientsNote(error) };
+      },
     ),
   ]);
   const officialClients = officialResult.clients;

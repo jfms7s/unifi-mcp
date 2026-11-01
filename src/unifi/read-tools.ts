@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { describeError } from '../http/errors.js';
+import { UnifiApiError, describeError } from '../http/errors.js';
 import { defineTool, type ToolDefinition } from '../mcp/types.js';
 import {
   clientDetail,
@@ -84,8 +84,9 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
   const now = deps.now ?? Date.now;
 
   /**
-   * Connected clients by type from the official list; if it fails, from
-   * stat/sta (wired or wireless), with the same note the client tools give.
+   * Connected clients by type from the official list; if it fails with a
+   * UniFi error, from stat/sta (wired or wireless), with the same note the
+   * client tools give. Any other error (a bug) is thrown.
    */
   type ClientCounts = { total: number; wired: number; wireless: number; other: number };
   const clientCounts = (site: Site): Promise<{ counts: ClientCounts; note?: string }> =>
@@ -98,6 +99,7 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
         };
       },
       async (error: unknown) => {
+        if (!(error instanceof UnifiApiError)) throw error;
         const stations = await legacy.stations(site.ref);
         const wired = stations.filter((s) => s.is_wired).length;
         return {

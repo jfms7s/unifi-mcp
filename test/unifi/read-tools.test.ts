@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { UnifiApiError } from '../../src/http/errors.js';
 import { createReadTools } from '../../src/unifi/read-tools.js';
 import { FIXTURE_NOW, caller, readDeps, syntheticLog } from './fixtures.js';
 
@@ -123,7 +124,12 @@ describe('unifi_overview', () => {
   it('a failing official client list counts the connected clients from stat/sta, with the note', async () => {
     const { deps, call } = setup();
     deps.official.listClients = async () => {
-      throw new Error('official API timed out');
+      throw new UnifiApiError({
+        kind: 'timeout',
+        method: 'GET',
+        path: '/clients',
+        detail: 'official API timed out',
+      });
     };
     const overview = (await call('unifi_overview')) as Shape & { clientsNote: string };
     expect(overview.clients).toEqual({ total: 31, wired: 17, wireless: 14, other: 0 });
@@ -131,6 +137,16 @@ describe('unifi_overview', () => {
       /official client list didn't answer .*guest actions are unavailable/,
     );
     expect(overview.devices).toMatchObject({ total: 4 });
+  });
+
+  it('a bug (not a UniFi error) in the official client list is not hidden behind the fallback', async () => {
+    const { deps, call } = setup();
+    deps.official.listClients = async () => {
+      throw new TypeError('cannot read properties of undefined');
+    };
+    await expect(call('unifi_overview')).rejects.toThrow(TypeError);
+    await expect(call('unifi_list_clients')).rejects.toThrow(/cannot read properties of undefined/);
+    await expect(call('unifi_get_client', { client: '02:00:00:00:00:05' })).rejects.toThrow(TypeError);
   });
 
   it('has no client note while the official client list answers', async () => {
@@ -429,7 +445,12 @@ describe('official client join', () => {
   it('a failing official client list leaves legacy-only records and a note', async () => {
     const { deps, call } = setup();
     deps.official.listClients = async () => {
-      throw new Error('official API timed out');
+      throw new UnifiApiError({
+        kind: 'timeout',
+        method: 'GET',
+        path: '/clients',
+        detail: 'official API timed out',
+      });
     };
     const list = (await call('unifi_list_clients')) as { total: number; note: string };
     expect(list.total).toBe(31);
