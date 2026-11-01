@@ -2,6 +2,7 @@ import { HttpResponse, http } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { createLegacyApi, type LegacyApi } from '../../src/unifi/legacy.js';
 import { liveFixture } from '../fixtures/live.js';
+import { FLEX_MAC, GW_MAC, LIVE_LINKS, statDevice } from './topology.js';
 import {
   LEGACY,
   failure,
@@ -228,6 +229,7 @@ describe('legacy API maps rows for tools', () => {
         networkId: 'net-1',
         wired: false,
         blocked: false,
+        connected: true,
         firstSeen: 10,
         lastSeen: 30,
       },
@@ -239,6 +241,7 @@ describe('legacy API maps rows for tools', () => {
         networkId: undefined,
         wired: undefined,
         blocked: true,
+        connected: false,
         firstSeen: undefined,
         lastSeen: undefined,
       },
@@ -250,10 +253,64 @@ describe('legacy API maps rows for tools', () => {
         networkId: undefined,
         wired: undefined,
         blocked: false,
+        connected: false,
         firstSeen: undefined,
         lastSeen: undefined,
       },
     ]);
+  });
+
+  it('knownClients places an offline client where rest/user last saw it (R15)', async () => {
+    server.use(
+      http.get(`${LEGACY}/rest/user`, () =>
+        HttpResponse.json(liveFixture('legacy-rest-user') as never),
+      ),
+      http.get(`${LEGACY}/stat/sta`, () =>
+        HttpResponse.json(liveFixture('legacy-stat-sta') as never),
+      ),
+    );
+    const known = await legacy().knownClients(REF);
+    // The second data-archive: offline, last seen wired on device-2 port 7, on pi-cluster.
+    const offline = known.find((c) => c.ip === '192.168.0.194')!;
+    expect(offline).toMatchObject({
+      connected: false,
+      networkId: '6ae51197aa840627805aa50a',
+      uplinkMac: '02:00:00:00:00:02',
+      uplinkPort: 7,
+    });
+    // A connected client keeps the live station's uplink.
+    expect(known.find((c) => c.name === 'client-22')).toMatchObject({
+      connected: true,
+      uplinkMac: '02:00:00:00:00:02',
+      uplinkPort: 7,
+    });
+    // An offline wireless client gets its AP but no port.
+    const wifi = known.find((c) => c.ip === '192.168.11.146')!;
+    expect(wifi).toMatchObject({ connected: false, uplinkMac: '02:00:00:00:00:03' });
+    expect(wifi.uplinkPort).toBeUndefined();
+  });
+
+  it('deviceLinks reads each device uplink from stat/device, last_uplink when offline (R15)', async () => {
+    const specs = LIVE_LINKS.map((l) => (l.mac === FLEX_MAC ? { ...l, offline: true } : l));
+    server.use(
+      http.get(`${LEGACY}/stat/device`, () => HttpResponse.json(statDevice(specs) as never)),
+    );
+    expect(await legacy().deviceLinks(REF)).toEqual([
+      { mac: GW_MAC, name: 'Gateway CGU' },
+      { mac: '02:00:00:00:00:02', name: 'device-2', uplinkMac: GW_MAC, uplinkPort: 3 },
+      { mac: FLEX_MAC, name: 'device-4', uplinkMac: GW_MAC, uplinkPort: 4 },
+      { mac: '02:00:00:00:00:03', name: 'device-3', uplinkMac: FLEX_MAC, uplinkPort: 8 },
+    ]);
+  });
+
+  it('deviceLinks: a row without its mac is a changed endpoint', async () => {
+    const body = statDevice(LIVE_LINKS) as { data: Record<string, unknown>[] };
+    delete body.data[1]!.mac;
+    server.use(
+      http.get(`${LEGACY}/stat/device`, () => HttpResponse.json(body as never)),
+      sysinfoHandler(),
+    );
+    expect((await failure(legacy().deviceLinks(REF))).kind).toBe('endpoint-changed');
   });
 
   it('report posts the attrs and range in ms and keeps the requested attributes', async () => {

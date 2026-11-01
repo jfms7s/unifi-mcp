@@ -8,12 +8,21 @@ import {
   guarded,
   loadProtectedScope,
   touchesProtected,
+  type DeviceLink,
   type ProtectedScope,
   type Target,
 } from '../../src/unifi/guard.js';
 import { confirmInput } from '../../src/unifi/inputs.js';
 import type { KnownClient } from '../../src/unifi/legacy.js';
 import { readDeps } from './fixtures.js';
+import {
+  AP_MAC,
+  DAISY_CHAIN,
+  FLEX_MAC,
+  LIVE_LINKS,
+  PI_SWITCH_MAC,
+  type LinkSpec,
+} from './topology.js';
 
 const PI_CLUSTER = '80ec407d-e455-4a87-8b26-846881ebf07f';
 const PI_CLUSTER_LEGACY = '6ae51197aa840627805aa50a';
@@ -177,6 +186,19 @@ describe('touchesProtected leans to confirm on targets it cannot place', () => {
     const ghost: KnownClient = { id: 'g', mac: '02:00:00:00:99:98', name: 'ghost', blocked: false };
     expect(touchesProtected({ kind: 'client', ipOrMac: ghost.mac }, scope, [ghost])).toMatch(
       /can't place/,
+    );
+  });
+
+  it('a known client with a non-IPv4 address and no network', () => {
+    const v6: KnownClient = {
+      id: 'v6',
+      mac: '02:00:00:00:99:97',
+      name: 'v6only',
+      ip: 'fd00::5',
+      blocked: false,
+    };
+    expect(touchesProtected({ kind: 'client', ipOrMac: v6.mac }, scope, [v6])).toMatch(
+      /can't place client v6only/,
     );
   });
 
@@ -404,5 +426,134 @@ describe('guarded through the MCP SDK argument parsing', () => {
       blocked: true,
       warning: expect.stringContaining(WARNING),
     });
+  });
+});
+
+// Ruling R15: ports and devices are placed by the devices' own uplinks
+// (stat/device), not only by which switch port a client reports.
+describe('touchesProtected with device uplinks (R15)', () => {
+  const AP = 'e33e2aae-6aed-34d1-91ee-782990063b83';
+  const links = (specs: LinkSpec[]): DeviceLink[] =>
+    specs.map(({ mac, name, uplinkMac, uplinkPort }) => ({ mac, name, uplinkMac, uplinkPort }));
+  const chain = links(DAISY_CHAIN);
+  const live = links(LIVE_LINKS);
+  const port = (deviceId: string, portIdx: number): Target => ({ kind: 'port', deviceId, portIdx });
+
+  it('daisy chain: the Flex port feeding the k3s switch is protected', () => {
+    expect(touchesProtected(port(SWITCH_DEFAULT, 5), scope, clients)).toBeUndefined();
+    expect(touchesProtected(port(SWITCH_DEFAULT, 5), scope, clients, chain)).toMatch(
+      /^port 5 on device-4 feeds device-2, which carries .* on pi-cluster/,
+    );
+  });
+
+  it('daisy chain: restarting the Flex cuts the k3s switch off, so it is protected', () => {
+    expect(touchesProtected({ kind: 'device', id: SWITCH_DEFAULT }, scope, clients, chain)).toMatch(
+      /^device-4 feeds device-2, which carries .* on pi-cluster/,
+    );
+  });
+
+  it('daisy chain: Flex ports with only Default clients, or the AP, stay easy', () => {
+    expect(touchesProtected(port(SWITCH_DEFAULT, 2), scope, clients, chain)).toBeUndefined();
+    expect(touchesProtected(port(SWITCH_DEFAULT, 8), scope, clients, chain)).toBeUndefined();
+  });
+
+  it('three deep: gateway → Flex → k3s switch → a second switch with a k3s node', () => {
+    const deep: DeviceLink[] = [
+      ...chain,
+      { mac: '02:00:00:00:00:aa', name: 'closet', uplinkMac: PI_SWITCH_MAC, uplinkPort: 8 },
+    ];
+    const node: KnownClient = {
+      id: 'n',
+      mac: '02:00:00:00:99:01',
+      name: 'k3s-closet',
+      ip: '192.168.0.150',
+      blocked: false,
+      uplinkMac: '02:00:00:00:00:aa',
+      uplinkPort: 2,
+    };
+    expect(touchesProtected(port(SWITCH_PI, 8), scope, [...clients, node], deep)).toMatch(
+      /^port 8 on device-2 feeds closet, which carries k3s-closet/,
+    );
+  });
+
+  it('an AP carrying a pi-cluster wireless client protects the port that feeds it', () => {
+    const wifi: KnownClient = {
+      id: 'w',
+      mac: '02:00:00:00:99:02',
+      name: 'pi-wifi',
+      ip: '192.168.0.160',
+      networkId: PI_CLUSTER_LEGACY,
+      blocked: false,
+      wired: false,
+      uplinkMac: AP_MAC,
+    };
+    expect(touchesProtected(port(SWITCH_DEFAULT, 8), scope, clients, live)).toBeUndefined();
+    expect(touchesProtected(port(SWITCH_DEFAULT, 8), scope, [...clients, wifi], live)).toMatch(
+      /feeds device-3, which carries pi-wifi \(192\.168\.0\.160\) on pi-cluster/,
+    );
+    expect(touchesProtected({ kind: 'device', id: AP }, scope, [...clients, wifi], live)).toMatch(
+      /^device-3 carries pi-wifi/,
+    );
+  });
+
+  it('an offline k3s node still protects its last port and switch', () => {
+    const offline: KnownClient = {
+      id: 'o',
+      mac: '02:00:00:00:99:03',
+      name: 'k3s-off',
+      ip: '192.168.0.170',
+      networkId: PI_CLUSTER_LEGACY,
+      blocked: false,
+      connected: false,
+      uplinkMac: FLEX_MAC,
+      uplinkPort: 6,
+    };
+    expect(touchesProtected(port(SWITCH_DEFAULT, 6), scope, [...clients, offline], live)).toMatch(
+      /port 6 on device-4 feeds k3s-off/,
+    );
+    expect(
+      touchesProtected({ kind: 'device', id: SWITCH_DEFAULT }, scope, [...clients, offline], live),
+    ).toMatch(/^device-4 carries k3s-off/);
+  });
+
+  it('an offline client remembered on a port does not make it "occupied"', () => {
+    const old: KnownClient = {
+      id: 'x',
+      mac: '02:00:00:00:99:04',
+      name: 'old-laptop',
+      ip: '192.168.10.240',
+      blocked: false,
+      connected: false,
+      uplinkMac: PI_SWITCH_MAC,
+      uplinkPort: 8,
+    };
+    expect(touchesProtected(port(SWITCH_PI, 8), scope, [...clients, old], live)).toMatch(
+      /could be its uplink/,
+    );
+  });
+
+  it('a port feeding a device is occupied, so a non-carrying downstream device stays easy', () => {
+    // Gateway ports are always protected; the Flex port 8 feeds only the AP.
+    expect(touchesProtected(port(SWITCH_DEFAULT, 8), scope, clients, live)).toBeUndefined();
+  });
+
+  it('an uplink loop in the data does not hang', () => {
+    const loop: DeviceLink[] = [
+      { mac: FLEX_MAC, name: 'device-4', uplinkMac: PI_SWITCH_MAC, uplinkPort: 8 },
+      { mac: PI_SWITCH_MAC, name: 'device-2', uplinkMac: FLEX_MAC, uplinkPort: 5 },
+    ];
+    expect(touchesProtected(port(SWITCH_DEFAULT, 5), scope, clients, loop)).toMatch(/pi-cluster/);
+  });
+
+  it('guarded passes the uplinks through', async () => {
+    const run = vi.fn(async () => ({ done: true }));
+    const out = await guarded(
+      { level: 'easy', target: port(SWITCH_DEFAULT, 5), preview: async () => ({}), run },
+      scope,
+      clients,
+      chain,
+    );
+    expect(run).not.toHaveBeenCalled();
+    expect(out).toMatchObject({ warning: expect.stringMatching(/feeds device-2/) });
   });
 });

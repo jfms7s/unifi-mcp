@@ -3,6 +3,7 @@ import type { UnifiHttpClient } from '../http/client.js';
 import { createEndpointGuard, type EndpointGuard } from './endpoint-guard.js';
 import {
   deviceBasicSchema,
+  deviceSchema,
   dpiSchema,
   firewallRuleSchema,
   healthSchema,
@@ -59,9 +60,19 @@ export interface KnownClient {
   wired?: boolean;
   firstSeen?: number;
   lastSeen?: number;
-  /** MAC of the switch (wired) or AP (wireless) the connected client hangs off. */
+  /** Whether stat/sta lists it now; false means the fields below are what rest/user last saw. */
+  connected?: boolean;
+  /** MAC of the switch (wired) or AP (wireless) the client hangs off, or last hung off when offline. */
   uplinkMac?: string;
   /** Switch port, for a wired client. */
+  uplinkPort?: number;
+}
+
+/** Where a device hangs: the MAC of its parent and the parent's port (stat/device `uplink`). */
+export interface DeviceLink {
+  mac: string;
+  name?: string;
+  uplinkMac?: string;
   uplinkPort?: number;
 }
 
@@ -93,6 +104,8 @@ export interface LegacyApi {
   health(ref: string): Promise<Health[]>;
   stations(ref: string): Promise<Station[]>;
   devicesBasic(ref: string): Promise<DeviceBasic[]>;
+  /** Each device's parent and parent port, from stat/device (last_uplink for an offline device). */
+  deviceLinks(ref: string): Promise<DeviceLink[]>;
   /** `stations` spares a second stat/sta read when the caller already has it. */
   knownClients(ref: string, stations?: Station[]): Promise<KnownClient[]>;
   portForwards(ref: string): Promise<PortForward[]>;
@@ -117,6 +130,27 @@ function nonEmpty(value: string | undefined): string | undefined {
   return value ? value : undefined;
 }
 
+/**
+ * Where a client hangs: the live station when it is connected, else where
+ * rest/user last saw it, so an offline k3s node still marks its switch port.
+ */
+function uplinkOf(
+  user: User,
+  station: Station | undefined,
+): Pick<KnownClient, 'uplinkMac' | 'uplinkPort'> {
+  if (station) {
+    return {
+      uplinkMac: nonEmpty(station.sw_mac) ?? nonEmpty(station.ap_mac),
+      uplinkPort: station.sw_port,
+    };
+  }
+  return {
+    uplinkMac: nonEmpty(user.last_uplink_mac),
+    // A wireless client's remembered "port" is not a switch port.
+    uplinkPort: user.is_wired === false ? undefined : user.last_uplink_remote_port,
+  };
+}
+
 function toKnownClient(user: User, station: Station | undefined): KnownClient {
   return {
     id: user._id,
@@ -137,8 +171,8 @@ function toKnownClient(user: User, station: Station | undefined): KnownClient {
     wired: station?.is_wired ?? user.is_wired,
     firstSeen: user.first_seen,
     lastSeen: station?.last_seen ?? user.last_seen,
-    uplinkMac: nonEmpty(station?.sw_mac) ?? nonEmpty(station?.ap_mac),
-    uplinkPort: station?.sw_port,
+    connected: station !== undefined,
+    ...uplinkOf(user, station),
   };
 }
 
@@ -181,6 +215,18 @@ export function createLegacyApi(client: UnifiHttpClient, guard?: EndpointGuard):
     health: (ref) => rows(ref, 'stat/health', healthSchema),
     stations: (ref) => rows(ref, 'stat/sta', stationSchema),
     devicesBasic: (ref) => rows(ref, 'stat/device-basic', deviceBasicSchema),
+    async deviceLinks(ref) {
+      const devices = await rows(ref, 'stat/device', deviceSchema);
+      return devices.map((d) => {
+        const up = d.uplink?.uplink_mac ? d.uplink : d.last_uplink;
+        return {
+          mac: d.mac,
+          name: nonEmpty(d.name),
+          uplinkMac: nonEmpty(up?.uplink_mac),
+          uplinkPort: up?.uplink_remote_port,
+        };
+      });
+    },
     async knownClients(ref, known) {
       const [users, stations] = await Promise.all([
         rows(ref, 'rest/user', userSchema),

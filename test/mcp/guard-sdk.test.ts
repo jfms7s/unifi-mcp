@@ -2,51 +2,13 @@
 // zod shape (src/mcp/server.ts registerTool), not a direct handler call. Pins
 // that an SDK or zod upgrade can't start coercing `confirm` or forwarding
 // unknown keys, either of which would let a guarded change run unconfirmed.
-// Every confirm-level tool gets its own describe block here.
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { describe, expect, it, vi, type Mock } from 'vitest';
+// Real confirm-level tools are pinned in their own test files with test/helpers/sdk.ts.
+import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { createServer } from '../../src/mcp/server.js';
 import { defineTool } from '../../src/mcp/types.js';
-import { guarded, type ProtectedScope } from '../../src/unifi/guard.js';
+import { guarded } from '../../src/unifi/guard.js';
 import { confirmInput } from '../../src/unifi/inputs.js';
-
-async function connect(tools: Parameters<typeof createServer>[0]) {
-  const server = createServer(tools);
-  const [ct, st] = InMemoryTransport.createLinkedPair();
-  const client = new Client({ name: 't', version: '0' });
-  await Promise.all([client.connect(ct), server.connect(st)]);
-  return client;
-}
-
-/** Everything a confirm-level tool must refuse to treat as a confirmation. */
-export const LOOSE_CONFIRMS: unknown[] = ['true', 1, 'yes', {}, [true], false, null, 'false', 0];
-
-/** Each loose confirm either errors at the SDK or returns the preview; none reaches `run`. */
-export async function expectRejectsLooseConfirm(
-  client: Client,
-  name: string,
-  args: Record<string, unknown>,
-  spy: Mock,
-) {
-  for (const confirm of LOOSE_CONFIRMS) {
-    const r = await client.callTool({ name, arguments: { ...args, confirm } });
-    const text = JSON.stringify(r.content);
-    const refused = r.isError === true || text.includes('confirm: true');
-    expect(refused, `${name} confirm=${JSON.stringify(confirm)}: ${text}`).toBe(true);
-    expect(spy, `${name} ran on confirm=${JSON.stringify(confirm)}`).not.toHaveBeenCalled();
-  }
-}
-
-const emptyScope: ProtectedScope = {
-  networkIds: new Set(),
-  subnets: [],
-  gatewayDeviceIds: new Set(),
-  uplinkDeviceIds: new Set(),
-  devices: new Map(),
-  networkNames: new Map(),
-};
+import { connect, emptyScope, expectRejectsLooseConfirm } from '../helpers/sdk.js';
 
 function stubTool() {
   const run = vi.fn(async () => ({ done: true }));
@@ -59,7 +21,7 @@ function stubTool() {
     annotations: { readOnlyHint: false },
     handler: async (args) => {
       seen.push(args);
-      return guarded({ level: 'confirm', confirm: args.confirm, preview, run }, emptyScope, []);
+      return guarded({ level: 'confirm', confirm: args.confirm, preview, run }, emptyScope(), []);
     },
   });
   return { tool, run, preview, seen };
@@ -112,12 +74,8 @@ describe('guard through the MCP SDK: stub confirm-level tool', () => {
       name: 'unifi_stub',
       arguments: { target: 'x', confirm: true, force: true, yes: true },
     });
-    expect(seen).toHaveLength(2);
-    for (const args of seen) {
-      expect(Object.keys(args).sort()).not.toContain('force');
-      expect(args).not.toHaveProperty('yes');
-      expect(args).not.toHaveProperty('confirmed');
-    }
+    // Exactly the declared keys arrive; force/yes/confirmed are stripped.
+    expect(seen).toEqual([{ target: 'x' }, { target: 'x', confirm: true }]);
   });
 
   it('unknown keys are no substitute for confirm', async () => {

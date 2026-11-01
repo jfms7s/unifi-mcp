@@ -1,4 +1,4 @@
-import type { KnownClient } from './legacy.js';
+import type { DeviceLink, KnownClient } from './legacy.js';
 import type { ReadDeps } from './read-common.js';
 import { isGatewayModel } from './shape.js';
 import type { Site } from './sites.js';
@@ -19,6 +19,8 @@ export interface ProtectedScope {
   /** Protected network id (official and legacy) → name, for the reason text. */
   networkNames: Map<string, string>;
 }
+
+export type { DeviceLink };
 
 export type Target =
   | { kind: 'network'; id: string }
@@ -216,6 +218,41 @@ function protectedBehind(
   );
 }
 
+/**
+ * Protected clients a device (or one of its ports) carries: hanging off it
+ * directly, or off any device further down its uplink chain. `via` names the
+ * first device down the chain when the clients are not directly on it.
+ */
+function carriedBy(
+  devMac: string | undefined,
+  port: number | undefined,
+  scope: ProtectedScope,
+  clients: KnownClient[],
+  links: DeviceLink[],
+  seen = new Set<string>(),
+): { behind: KnownClient[]; via?: string } {
+  const m = devMac === undefined ? undefined : mac(devMac);
+  // `seen` stops a loop in the uplink data from recursing forever.
+  if (m === undefined || seen.has(m)) return { behind: [] };
+  seen.add(m);
+  const direct = protectedBehind(m, port, scope, clients);
+  if (direct.length) return { behind: direct };
+  const children = links.filter(
+    (l) => sameMac(l.uplinkMac, m) && (port === undefined || l.uplinkPort === port),
+  );
+  for (const child of children) {
+    const below = carriedBy(child.mac, undefined, scope, clients, links, seen);
+    if (below.behind.length) return { behind: below.behind, via: linkName(child, scope) };
+  }
+  return { behind: [] };
+}
+
+function linkName(link: DeviceLink, scope: ProtectedScope): string {
+  if (link.name) return link.name;
+  for (const d of scope.devices.values()) if (sameMac(d.mac, link.mac)) return d.name;
+  return link.mac;
+}
+
 function describeBehind(behind: KnownClient[], scope: ProtectedScope): string {
   const nets = [...new Set(behind.map((c) => clientNetwork(c, scope)))].join(', ');
   const shown = behind.slice(0, 3).map(clientLabel).join(', ');
@@ -225,15 +262,19 @@ function describeBehind(behind: KnownClient[], scope: ProtectedScope): string {
 
 /**
  * Why a change to `target` could cut unifi-mcp off from the console, or
- * undefined when it can't. Pure: everything it knows comes from the scope and
- * the client list. When it can't tell (an address it can't place, a switch
- * port with no known client on a switch that carries a protected network),
- * it says so rather than letting the change through as easy.
+ * undefined when it can't. Pure: everything it knows comes from the scope,
+ * the client list (where each client hangs, or last hung when offline) and
+ * the device uplinks (`links`, from stat/device), which place a port that
+ * feeds another switch or AP further down the chain. When it can't tell (an
+ * address it can't place, a switch port with nothing known on it on a switch
+ * that carries a protected network), it says so rather than letting the
+ * change through as easy.
  */
 export function touchesProtected(
   target: Target,
   scope: ProtectedScope,
   clients: KnownClient[],
+  links: DeviceLink[] = [],
 ): string | undefined {
   switch (target.kind) {
     case 'network': {
@@ -282,8 +323,8 @@ export function touchesProtected(
       if (c) {
         const net = clientNetwork(c, scope);
         if (net !== undefined) return `client ${clientLabel(c)} is on ${net}, a protected network`;
-        if (c.networkId === undefined && c.ip === undefined) {
-          return cantPlace(`client ${c.name}, which has neither a network nor an IP,`);
+        if (c.networkId === undefined && (c.ip === undefined || ipv4(c.ip) === undefined)) {
+          return cantPlace(`client ${c.name}, which has neither a network nor an IPv4 address,`);
         }
         return undefined;
       }
@@ -301,12 +342,12 @@ export function touchesProtected(
         return cantPlace(`device "${target.id}", which unifi-mcp does not know,`);
       if (isIn(scope.gatewayDeviceIds, d))
         return `${d.name} is the gateway, unifi-mcp's way into the console`;
-      const behind = protectedBehind(d.mac, undefined, scope, clients);
-      if (isIn(scope.uplinkDeviceIds, d) || behind.length) {
-        return behind.length
-          ? `${d.name} carries ${describeBehind(behind, scope)}`
-          : `${d.name} carries clients of a protected network`;
+      const { behind, via } = carriedBy(d.mac, undefined, scope, clients, links);
+      if (behind.length) {
+        const what = describeBehind(behind, scope);
+        return via ? `${d.name} feeds ${via}, which carries ${what}` : `${d.name} carries ${what}`;
       }
+      if (isIn(scope.uplinkDeviceIds, d)) return `${d.name} carries clients of a protected network`;
       return undefined;
     }
 
@@ -320,14 +361,22 @@ export function touchesProtected(
       const where = `port ${target.portIdx} on ${d.name}`;
       if (isIn(scope.gatewayDeviceIds, d))
         return `${where}: a port on the gateway, unifi-mcp's way into the console`;
-      const onPort = protectedBehind(d.mac, target.portIdx, scope, clients);
-      if (onPort.length) return `${where} feeds ${describeBehind(onPort, scope)}`;
+      const onPort = carriedBy(d.mac, target.portIdx, scope, clients, links);
+      if (onPort.behind.length) {
+        const what = describeBehind(onPort.behind, scope);
+        return onPort.via
+          ? `${where} feeds ${onPort.via}, which carries ${what}`
+          : `${where} feeds ${what}`;
+      }
       const carries =
         isIn(scope.uplinkDeviceIds, d) ||
-        protectedBehind(d.mac, undefined, scope, clients).length > 0;
-      const anyoneOnPort = clients.some(
-        (c) => sameMac(c.uplinkMac, d.mac) && c.uplinkPort === target.portIdx,
-      );
+        carriedBy(d.mac, undefined, scope, clients, links).behind.length > 0;
+      // Only what is there now: a client remembered on the port may have left it.
+      const anyoneOnPort =
+        clients.some(
+          (c) =>
+            c.connected !== false && sameMac(c.uplinkMac, d.mac) && c.uplinkPort === target.portIdx,
+        ) || links.some((l) => sameMac(l.uplinkMac, d.mac) && l.uplinkPort === target.portIdx);
       if (carries && !anyoneOnPort) {
         return `${where} has no known client and ${d.name} carries a protected network: it could be its uplink`;
       }
@@ -337,7 +386,7 @@ export function touchesProtected(
 }
 
 /**
- * Runs a change only at the level it deserves. `easy` runs at once unless the
+ * Runs a change only at the level it deserves (`links` as for touchesProtected). `easy` runs at once unless the
  * target touches a protected network, which raises it to `confirm`. At
  * `confirm`, a call without the literal `confirm: true` gets the preview
  * (built by `preview`, which must not write) and `run` is never called. A
@@ -353,9 +402,10 @@ export async function guarded<T>(
   },
   scope: ProtectedScope,
   clients: KnownClient[],
+  links: DeviceLink[] = [],
 ): Promise<T | GuardPreview | { result: T; warning: string }> {
   const reason =
-    args.target === undefined ? undefined : touchesProtected(args.target, scope, clients);
+    args.target === undefined ? undefined : touchesProtected(args.target, scope, clients, links);
   const warning = reason === undefined ? undefined : `${CUT_OFF_WARNING} ${reason}`;
   const level: Guard = warning === undefined ? args.level : 'confirm';
 

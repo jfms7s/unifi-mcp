@@ -107,6 +107,20 @@ export const deviceBasicSchema = z.object({
 });
 export type DeviceBasic = z.infer<typeof deviceBasicSchema>;
 
+const uplinkSchema = z.object({
+  uplink_mac: z.string().optional(),
+  uplink_remote_port: z.number().optional(),
+});
+
+/** stat/device, read only for where each device hangs (R15). An offline device keeps only `last_uplink`. */
+export const deviceSchema = z.object({
+  mac: z.string(),
+  name: z.string().optional(),
+  uplink: uplinkSchema.optional(),
+  last_uplink: uplinkSchema.optional(),
+});
+export type Device = z.infer<typeof deviceSchema>;
+
 /** rest/user: every client the console has ever seen. */
 export const userSchema = z.object({
   _id: z.string(),
@@ -120,6 +134,9 @@ export const userSchema = z.object({
   first_seen: z.number().optional(),
   last_seen: z.number().optional(),
   last_connection_network_id: z.string().optional(),
+  /** Where the client was last seen: the switch or AP, and the switch port (wired). */
+  last_uplink_mac: z.string().optional(),
+  last_uplink_remote_port: z.number().optional(),
 });
 export type User = z.infer<typeof userSchema>;
 
