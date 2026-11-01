@@ -97,6 +97,46 @@ describe('secret keys: no false positives', () => {
   });
 });
 
+describe('secret keys: wider coverage (r1)', () => {
+  it('redacts privateKey, apiKey, *token and sharedKey strings, any case', () => {
+    const value = { privateKey: 'a1', APIKEY: 'a2', authToken: 'a3', token: 'a4', radiusSharedKey: 'a5' };
+    expect(Object.values(redact(value) as object).every((v) => v === '<redacted>')).toBe(true);
+    expect(secretsIn(value).sort()).toEqual(['a1', 'a2', 'a3', 'a4', 'a5']);
+  });
+
+  it('redacts any x_ string, but not an x_ boolean or number', () => {
+    const value = { x_iapp_key: 's1', x_whatever: 's2', x_enabled: true, x_count: 4 };
+    expect(redact(value)).toEqual({
+      x_iapp_key: '<redacted>',
+      x_whatever: '<redacted>',
+      x_enabled: true,
+      x_count: 4,
+    });
+    expect(secretsIn(value).sort()).toEqual(['s1', 's2']);
+  });
+
+  it('an array of strings under a secret key is secret', () => {
+    const value = { passphrases: ['p1'], wpaPsk: ['p2', 'p3'], names: ['lan'] };
+    expect(redact({ ...value, psk: ['p4'] })).toMatchObject({ psk: '<redacted>', names: ['lan'] });
+    expect(secretsIn({ psk: ['p4', 'p5'] }).sort()).toEqual(['p4', 'p5']);
+    expect(diff({ psk: ['a'] }, { psk: ['b'] })).toEqual({ psk: 'changed' });
+    expect(JSON.stringify(diff({ token: ['a'] }, { token: ['b', 'c'] }))).not.toMatch(/"[abc]"/);
+  });
+
+  it('an object under a secret key is redacted whole', () => {
+    const value = { secret: { value: 's1', nested: { k: 's2' } }, apiKey: { id: 7, v: 's3' } };
+    expect(redact(value)).toEqual({ secret: '<redacted>', apiKey: '<redacted>' });
+    expect(secretsIn(value).sort()).toEqual(['s1', 's2', 's3']);
+    expect(diff({ secret: { value: 'a' } }, { secret: { value: 'b' } })).toEqual({ secret: 'changed' });
+    expect(diff({ secret: { value: 'a' } }, {})).toEqual({ secret: 'removed' });
+  });
+
+  it('still leaves the old false positives alone', () => {
+    const value = { sortKey: 'name', pskMode: 'WPA2', keyCount: 2, tokenCount: 3, pskEnabled: false, key: 7 };
+    expect(redact(value)).toEqual(value);
+  });
+});
+
 describe('merge', () => {
   it('replaces a nested object whose mode changes, merges one whose mode stays', () => {
     const base = { d: { mode: 'SERVER', range: 1, lease: 2 } };

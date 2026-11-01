@@ -54,13 +54,18 @@ export async function loadPostureInput(
   opts: { newClientDays: number; threatDays: number },
 ): Promise<PostureInput> {
   const now = (deps.now ?? Date.now)();
-  // The WAN list only names the External zone's networks: without it the zone
-  // rules still run (a WAN id is still the internet by its zone), with a note.
+  // The WAN list only names the External zone's networks: if the console fails
+  // it, the zone rules still run (a WAN id is still the internet by its zone),
+  // with a note.
   const wans = deps.official.listWans(site.id).then(
     (list) => ({ wans: list.map((w) => ({ id: w.id, name: w.name })) }),
-    (error: unknown) => ({
-      note: `WAN names were unavailable (${error instanceof Error ? error.message : String(error)}); WAN networks are shown by id`,
-    }),
+    (error: unknown) => {
+      // Only a failed console call degrades; any other error (a bug) is still thrown.
+      if (!(error instanceof UnifiApiError)) throw error;
+      return {
+        note: `WAN names were unavailable (${error.message}); WAN networks are shown by id`,
+      };
+    },
   );
   const firewall: Promise<FirewallView> = Promise.all([
     deps.official.listFirewallZones(site.id),

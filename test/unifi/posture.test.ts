@@ -395,6 +395,19 @@ describe('a firewall endpoint that changed (M5)', () => {
     expect(out.note).toMatch(/^WAN names were unavailable/);
   });
 
+  it('a listWans failure that is not a UniFi API error is not swallowed', async () => {
+    const deps = readDeps();
+    deps.official = {
+      ...deps.official,
+      listWans: async () => {
+        throw new TypeError('bug in the WAN parser');
+      },
+    };
+    await expect(
+      loadPostureInput(deps, await deps.sites.resolve(), { newClientDays: 7, threatDays: 7 }),
+    ).rejects.toThrow('bug in the WAN parser');
+  });
+
   it('unifi_list_firewall reports the collection that failed and lists the rest', async () => {
     const out = (await caller(createReadTools(withBroken('listAcl', '/acl-rules')))(
       'unifi_list_firewall',

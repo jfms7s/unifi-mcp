@@ -67,12 +67,24 @@ interface Classified {
 
 const label = (p: Param): string | undefined => p?.name || p?.id;
 
-/** An RFC 1918 IPv4 address: 10/8, 172.16/12, 192.168/16. */
+/**
+ * A LAN-side address: RFC 1918 (10/8, 172.16/12, 192.168/16), CGNAT and
+ * Tailscale (100.64/10), IPv4 link-local (169.254/16), and IPv6 ULA (fd00::/8)
+ * and link-local (fe80::/10).
+ */
 function isPrivate(ip: string): boolean {
   const m = /^(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/.exec(ip);
-  if (!m) return false;
-  const [a, b] = [Number(m[1]), Number(m[2])];
-  return a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168);
+  if (m) {
+    const [a, b] = [Number(m[1]), Number(m[2])];
+    return (
+      a === 10 ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) ||
+      (a === 100 && b >= 64 && b <= 127) ||
+      (a === 169 && b === 254)
+    );
+  }
+  return /^fd[0-9a-f]{0,2}:/i.test(ip) || /^fe[89ab][0-9a-f]?:/i.test(ip);
 }
 
 /** `name (ip)` for a LAN address a known client holds, else the address. */

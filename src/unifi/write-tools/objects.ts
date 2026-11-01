@@ -15,17 +15,48 @@ export const REDACTED = '<redacted>';
 
 /**
  * Secret keys, matched case-insensitively on the whole key or its suffix
- * (`passphrase`, `x_passphrase`, `adminPassword`, `radiusSecret`, `wpaPsk`).
- * `key` itself is matched only whole, so `sortKey` and `keyCount` are not secrets.
+ * (`passphrase`, `x_passphrase`, `adminPassword`, `radiusSecret`, `wpaPsk`,
+ * `privateKey`, `authToken`). `key` itself is matched only whole, so `sortKey`
+ * and `keyCount` are not secrets.
  */
-const SECRET_SUFFIXES = ['passphrase', 'password', 'secret', 'psk', 'wpakey', 'presharedkey'];
+const SECRET_SUFFIXES = [
+  'passphrase',
+  'password',
+  'secret',
+  'psk',
+  'wpakey',
+  'presharedkey',
+  'privatekey',
+  'apikey',
+  'sharedkey',
+  'token',
+];
 
-/** Only a string is a secret: a `pskEnabled` boolean or a `passphraseLength` number is shown. */
-const isSecret = (key: string, value: unknown): boolean => {
-  if (typeof value !== 'string') return false;
+const secretName = (key: string): boolean => {
   const k = key.toLowerCase();
   return k === 'key' || SECRET_SUFFIXES.some((s) => k.endsWith(s));
 };
+
+const isStrings = (v: unknown): v is string[] =>
+  Array.isArray(v) && v.every((x) => typeof x === 'string');
+
+/**
+ * A secret value: a string under a secret name or any `x_` key, or an array of
+ * strings or an object under a secret name (redacted whole). A boolean or
+ * number never is: a `pskEnabled` or a `passphraseLength` is shown.
+ */
+const isSecret = (key: string, value: unknown): boolean => {
+  if (typeof value === 'string') return secretName(key) || key.toLowerCase().startsWith('x_');
+  return (isStrings(value) || isPlain(value)) && secretName(key);
+};
+
+/** Every string inside a value, for a secret held as an array or object. */
+function stringsIn(value: unknown, found: string[]): void {
+  if (typeof value === 'string') {
+    if (value) found.push(value);
+  } else if (Array.isArray(value)) value.forEach((v) => stringsIn(v, found));
+  else if (isPlain(value)) Object.values(value).forEach((v) => stringsIn(v, found));
+}
 
 /** Nested objects whose variant these fields pick are replaced, not merged. */
 const DISCRIMINATORS = ['type', 'mode', 'management'];
@@ -77,7 +108,7 @@ export function secretsIn(value: unknown, found: string[] = []): string[] {
   if (Array.isArray(value)) value.forEach((v) => secretsIn(v, found));
   else if (isPlain(value)) {
     for (const [k, v] of Object.entries(value)) {
-      if (isSecret(k, v) && v) found.push(v as string);
+      if (isSecret(k, v)) stringsIn(v, found);
       else secretsIn(v, found);
     }
   }
@@ -95,14 +126,17 @@ export function diff(before: Plain, after: Plain, prefix = ''): Record<string, C
     const b = before[key];
     const a = after[key];
     const path = prefix + key;
+    if (isSecret(key, a) || isSecret(key, b)) {
+      if (!same(a, b)) out[path] = a == null ? 'removed' : 'changed';
+      continue;
+    }
     if (isPlain(b) && isPlain(a)) {
       Object.assign(out, diff(b, a, `${path}.`));
       continue;
     }
     if (same(a, b)) continue;
     const [rb, ra] = [redact(b), redact(a)];
-    if (isSecret(key, a) || isSecret(key, b)) out[path] = a == null ? 'removed' : 'changed';
-    else out[path] = same(rb, ra) ? 'changed' : { before: rb ?? null, after: ra ?? null };
+    out[path] = same(rb, ra) ? 'changed' : { before: rb ?? null, after: ra ?? null };
   }
   return out;
 }
