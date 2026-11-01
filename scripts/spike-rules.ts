@@ -64,3 +64,12 @@ export function pickClient(candidates: Candidate[]): Candidate | undefined {
 export function isVerifiedUnblocked(blocked: boolean | undefined): boolean {
   return blocked === false;
 }
+
+/**
+ * Wraps `run` so it starts at most once: every caller, early or late, gets the
+ * first call's promise and waits for the same run to finish.
+ */
+export function once<T>(run: () => Promise<T>): () => Promise<T> {
+  let started: Promise<T> | undefined;
+  return () => (started ??= run());
+}

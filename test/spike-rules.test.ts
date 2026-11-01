@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   isSafeTarget,
   isVerifiedUnblocked,
+  once,
   parseIpv4,
   pickClient,
   withNetwork,
@@ -69,5 +70,40 @@ describe('spike unblock verification', () => {
     expect(isVerifiedUnblocked(false)).toBe(true);
     expect(isVerifiedUnblocked(true)).toBe(false);
     expect(isVerifiedUnblocked(undefined)).toBe(false);
+  });
+});
+
+describe('once', () => {
+  it('two concurrent callers wait for one run', async () => {
+    let runs = 0;
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const shared = once(async () => {
+      runs++;
+      await gate;
+      return 'done';
+    });
+    let secondDone = false;
+    const first = shared();
+    const second = shared().then((v) => ((secondDone = true), v));
+    await Promise.resolve();
+    expect(secondDone).toBe(false);
+    release();
+    expect(await Promise.all([first, second])).toEqual(['done', 'done']);
+    expect(runs).toBe(1);
+  });
+
+  it('a caller arriving mid-run awaits it, and later callers get the same result', async () => {
+    let finished = false;
+    const shared = once(async () => {
+      await new Promise((r) => setTimeout(r, 10));
+      finished = true;
+      return false;
+    });
+    void shared();
+    const late = await shared();
+    expect(finished).toBe(true);
+    expect(late).toBe(false);
+    expect(await shared()).toBe(false);
   });
 });

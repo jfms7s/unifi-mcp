@@ -15,7 +15,7 @@ import { loadConfig } from '../src/config.js';
 import { createUnifiHttpClient } from '../src/http/client.js';
 import { describeError, UnifiApiError } from '../src/http/errors.js';
 import { createLegacyApi, type LegacyApi } from '../src/unifi/legacy.js';
-import { isVerifiedUnblocked, pickClient, withNetwork } from './spike-rules.js';
+import { isVerifiedUnblocked, once, pickClient, withNetwork } from './spike-rules.js';
 
 const REF = 'default';
 const LOCATE_SECONDS = 10;
@@ -64,28 +64,33 @@ async function unblock(api: LegacyApi, mac: string): Promise<boolean> {
   return false;
 }
 
-/** Runs once: the first of normal exit or a signal wins. */
-const cleanups: (() => Promise<void>)[] = [];
-let cleaned = false;
-async function runCleanups(): Promise<void> {
-  if (cleaned) return;
-  cleaned = true;
-  for (const cleanup of cleanups) await cleanup();
+/** Each cleanup resolves true when it left nothing for the owner to fix by hand. */
+const cleanups: (() => Promise<boolean>)[] = [];
+/** One run shared by the normal path, the signal handlers and main's catch; false means a client may still be blocked. */
+const runCleanups = once(async (): Promise<boolean> => {
+  let safe = true;
+  for (const cleanup of cleanups) safe = (await cleanup()) && safe;
+  return safe;
+});
+/** Waits for the shared cleanup run, then exits with `code`, or 2 when it left a client blocked. */
+async function exitAfterCleanup(code: number): Promise<never> {
+  return process.exit((await runCleanups()) ? code : 2);
 }
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {
     console.error(`${signal}: undoing changes before exit`);
-    void runCleanups().finally(() => process.exit(130));
+    void exitAfterCleanup(130);
   });
 }
 
 async function locateTest(api: LegacyApi, mac: string): Promise<boolean> {
   // A timed-out set-locate may still have landed, so unset-locate is always sent, once.
   let unset = false;
-  const undo = async (): Promise<void> => {
-    if (unset) return;
+  const undo = async (): Promise<boolean> => {
+    if (unset) return true;
     unset = true;
     await step('unset-locate', () => api.cmd(REF, 'devmgr', { cmd: 'unset-locate', mac }));
+    return true;
   };
   cleanups.push(undo);
   const set = await step('set-locate', () => api.cmd(REF, 'devmgr', { cmd: 'set-locate', mac }));
@@ -98,19 +103,19 @@ async function locateTest(api: LegacyApi, mac: string): Promise<boolean> {
 }
 
 async function blockTest(api: LegacyApi, mac: string, label: string): Promise<boolean> {
-  const undo = async (): Promise<void> => {
-    if (await unblock(api, mac)) return;
-    console.error(`UNBLOCK FAILED for ${label} — owner must unblock ${mac} in the UniFi app`);
-    process.exit(2);
-  };
-  cleanups.push(undo);
   let ok = false;
   try {
+    // Registered just before the command goes out: a reply that times out may still have landed.
+    cleanups.push(async () => {
+      if (await unblock(api, mac)) return true;
+      console.error(`UNBLOCK FAILED for ${label} — owner must unblock ${mac} in the UniFi app`);
+      return false;
+    });
     ok = await step('block-sta', () => api.cmd(REF, 'stamgr', { cmd: 'block-sta', mac }));
     if (ok)
       console.log(`rest/user blocked after block-sta: ${String(await blockedState(api, mac))}`);
   } finally {
-    await runCleanups();
+    if (!(await runCleanups())) process.exit(2);
   }
   return ok;
 }
@@ -141,6 +146,5 @@ async function main(): Promise<void> {
 
 main().catch(async (error: unknown) => {
   console.error(`spike failed: ${describeError(error)}`);
-  await runCleanups();
-  process.exit(1);
+  await exitAfterCleanup(1);
 });
