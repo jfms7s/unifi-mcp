@@ -247,6 +247,29 @@ function carriedBy(
   return { behind: [] };
 }
 
+/**
+ * A device stat/device listed without a parent (no uplink_mac, now or last)
+ * that carries a protected client. Every adopted device but the gateway has
+ * one, so a missing parent means the data is incomplete or the field moved:
+ * then any port or device could be its way up, and the guard says so.
+ */
+function unplacedCarrier(
+  exceptMac: string | undefined,
+  scope: ProtectedScope,
+  clients: KnownClient[],
+  links: DeviceLink[],
+): string | undefined {
+  for (const l of links) {
+    if (l.uplinkMac !== undefined || sameMac(l.mac, exceptMac)) continue;
+    if (scope.gatewayDeviceIds.has(mac(l.mac) ?? l.mac.toLowerCase())) continue;
+    const { behind } = carriedBy(l.mac, undefined, scope, clients, links);
+    if (behind.length) {
+      return `${linkName(l, scope)}, which carries ${describeBehind(behind, scope)} and has no uplink unifi-mcp can read`;
+    }
+  }
+  return undefined;
+}
+
 function linkName(link: DeviceLink, scope: ProtectedScope): string {
   if (link.name) return link.name;
   for (const d of scope.devices.values()) if (sameMac(d.mac, link.mac)) return d.name;
@@ -348,7 +371,8 @@ export function touchesProtected(
         return via ? `${d.name} feeds ${via}, which carries ${what}` : `${d.name} carries ${what}`;
       }
       if (isIn(scope.uplinkDeviceIds, d)) return `${d.name} carries clients of a protected network`;
-      return undefined;
+      const lost = unplacedCarrier(d.mac, scope, clients, links);
+      return lost && `${d.name} could be upstream of ${lost}`;
     }
 
     case 'port': {
@@ -380,13 +404,15 @@ export function touchesProtected(
       if (carries && !anyoneOnPort) {
         return `${where} has no known client and ${d.name} carries a protected network: it could be its uplink`;
       }
-      return undefined;
+      const lost = anyoneOnPort ? undefined : unplacedCarrier(d.mac, scope, clients, links);
+      return lost && `${where} has nothing known on it and could feed ${lost}`;
     }
   }
 }
 
 /**
- * Runs a change only at the level it deserves (`links` as for touchesProtected). `easy` runs at once unless the
+ * Runs a change only at the level it deserves (`links` as for
+ * touchesProtected). `easy` runs at once unless the
  * target touches a protected network, which raises it to `confirm`. At
  * `confirm`, a call without the literal `confirm: true` gets the preview
  * (built by `preview`, which must not write) and `run` is never called. A

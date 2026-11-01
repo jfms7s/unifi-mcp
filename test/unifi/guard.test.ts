@@ -545,6 +545,23 @@ describe('touchesProtected with device uplinks (R15)', () => {
     expect(touchesProtected(port(SWITCH_DEFAULT, 5), scope, clients, loop)).toMatch(/pi-cluster/);
   });
 
+  it('a carrying device with no readable uplink leaves empty ports and other devices guarded', () => {
+    // stat/device lists device-2 but without uplink_mac: the data moved or is incomplete.
+    const lost = links(
+      LIVE_LINKS.map((l) => (l.mac === PI_SWITCH_MAC ? { ...l, uplinkMac: undefined } : l)),
+    );
+    expect(touchesProtected(port(SWITCH_DEFAULT, 5), scope, clients, lost)).toMatch(
+      /^port 5 on device-4 has nothing known on it and could feed device-2, which carries .* on pi-cluster and has no uplink/,
+    );
+    expect(touchesProtected({ kind: 'device', id: SWITCH_DEFAULT }, scope, clients, lost)).toMatch(
+      /^device-4 could be upstream of device-2/,
+    );
+    // A port with a client on it now is not that uplink.
+    expect(touchesProtected(port(SWITCH_DEFAULT, 2), scope, clients, lost)).toBeUndefined();
+    // With every uplink readable, the same port is easy.
+    expect(touchesProtected(port(SWITCH_DEFAULT, 5), scope, clients, live)).toBeUndefined();
+  });
+
   it('guarded passes the uplinks through', async () => {
     const run = vi.fn(async () => ({ done: true }));
     const out = await guarded(
