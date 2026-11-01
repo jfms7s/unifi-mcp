@@ -1,0 +1,51 @@
+{
+  "name": "unifi-mcp",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsc",
+    "lint": "eslint src test",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "prepublishOnly": "npm run build"
+  },
+  "license": "MIT",
+  "description": "MCP server for a UniFi network: diagnosis, metrics, threat summary, posture audit, guarded changes",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "unifi-mcp": "dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "express": "^5.2.1",
+    "undici": "^7.30.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^20.19.43",
+    "eslint": "^9.39.5",
+    "msw": "^2.15.0",
+    "prettier": "^3.9.7",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^4.1.11"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jfms7s/unifi-mcp.git"
+  },
+  "keywords": [
+    "mcp",
+    "unifi",
+    "network"
+  ]
+}

@@ -1,0 +1,15 @@
+// Typechecking config, separate from tsconfig.json purely because the build
+// needs rootDir: "src" to emit dist/ with a flat layout. Adding test/** to the
+// base config's include would drag rootDir up to the repo root and emit
+// dist/src/... instead, breaking the package's "main" and the Dockerfile's
+// CMD. So the base config stays the build's, and this one -- which emits
+// nothing -- is what `npm run typecheck` uses.
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "include": ["src/**/*", "test/**/*", "*.config.ts"]
+}
