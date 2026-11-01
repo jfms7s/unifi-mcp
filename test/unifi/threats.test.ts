@@ -199,6 +199,40 @@ describe('summariseThreats on synthetic entries', () => {
     ]);
   });
 
+  it('a block picks its LAN side by address: a private DST is inbound, else a private SRC is outbound', () => {
+    const lanIp = forwards[0]!.fwd;
+    const known = clients.find((c) => c.ip === lanIp)!.name;
+    const ip = (a: string) => ({ id: a, name: a });
+    const block = (id: string, src: string, dst: string) =>
+      entry(id, 'TRAFFIC_BLOCKED', { TRIGGER: ip('Block C'), SRC_IP: ip(src), DST_IP: ip(dst) }, 'MEDIUM');
+    const log = [
+      block('b1', '198.51.100.7', lanIp),
+      block('b2', lanIp, '203.0.113.1'),
+      block('b3', lanIp, '203.0.113.2'),
+      block('b4', '10.0.0.5', '172.16.0.9'),
+      block('b5', '172.31.0.4', '198.51.100.8'),
+      block('b6', '198.51.100.9', '203.0.113.3'),
+    ];
+    const s = summary({}, log);
+    expect(s.groups.map((g) => [g.lanSide, g.count, g.topRemotes.map((r) => r.ip)])).toEqual([
+      [`Block C, outbound from ${known} (${lanIp})`, 2, ['203.0.113.1', '203.0.113.2']],
+      ['Block C -> 172.16.0.9', 1, ['10.0.0.5']],
+      ['Block C -> 203.0.113.3', 1, ['198.51.100.9']],
+      [`Block C -> ${known} (${lanIp})`, 1, ['198.51.100.7']],
+      ['Block C, outbound from 172.31.0.4', 1, ['198.51.100.8']],
+    ]);
+    expect(s.totalEvents).toBe(log.length);
+    expect(s.groups.reduce((n, g) => n + g.count, 0)).toBe(log.length);
+    const cut = summary({ maxGroups: 2 }, log);
+    expect(cut.groups.reduce((n, g) => n + g.count, 0) + (cut.tail?.events ?? 0)).toBe(log.length);
+  });
+
+  it('on the capture, every event is in a group or the tail', () => {
+    const s = summary({ maxGroups: 3 });
+    expect(s.totalEvents).toBe(4516);
+    expect(s.groups.reduce((n, g) => n + g.count, 0) + (s.tail?.events ?? 0)).toBe(4516);
+  });
+
   it('orders ties by lanSide, then direction, and equal remotes by IP', () => {
     const remote = (ip: string) => ({ id: ip, name: ip });
     const s = summary({}, [

@@ -17,7 +17,9 @@ export interface ThreatGroup {
   direction: Direction;
   /**
    * The LAN client (inbound, outbound), the firewall rule and the LAN address
-   * it blocked (`<trigger> -> <client> (<ip>)`, blocked), or the log key (other).
+   * it blocked (blocked: `<trigger> -> <client> (<ip>)` on the way in or within
+   * the LAN, `<trigger>, outbound from <client> (<ip>)` on the way out), or the
+   * log key (other).
    */
   lanSide: string;
   count: number;
@@ -65,6 +67,14 @@ interface Classified {
 
 const label = (p: Param): string | undefined => p?.name || p?.id;
 
+/** An RFC 1918 IPv4 address: 10/8, 172.16/12, 192.168/16. */
+function isPrivate(ip: string): boolean {
+  const m = /^(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/.exec(ip);
+  if (!m) return false;
+  const [a, b] = [Number(m[1]), Number(m[2])];
+  return a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168);
+}
+
 /** `name (ip)` for a LAN address a known client holds, else the address. */
 function lanAddress(ip: string, clients: KnownClient[]): string {
   const name = clients.find((k) => k.ip === ip)?.name;
@@ -90,17 +100,28 @@ function classify(e: SyslogEntry, clients: KnownClient[]): Classified {
     return { direction: 'outbound', lanSide, lanId: lan?.id ?? lanSide, remote: label(p.DST_IP) };
   }
   if (e.key === 'TRAFFIC_BLOCKED') {
-    // By rule, then by the LAN address it blocked, so one rule over many hosts reads apart.
+    // By rule, then by the LAN address it blocked, so one rule over many hosts
+    // reads apart. A private DST is the LAN side (inbound, or LAN to LAN);
+    // else a private SRC is, and the block stopped it going out.
     const trigger = p.TRIGGER?.name ?? 'firewall';
     const dst = p.DST_IP?.id;
-    const lan = label(p.DST_CLIENT);
-    const target = lan && dst ? `${lan} (${dst})` : (lan ?? (dst ? lanAddress(dst, clients) : undefined));
-    const lanSide = target ? `${trigger} -> ${target}` : trigger;
+    const src = p.SRC_IP?.id;
+    const outbound = !(dst && isPrivate(dst)) && src !== undefined && isPrivate(src);
+    const [ip, client, remote] = outbound
+      ? [src, label(p.SRC_CLIENT), label(p.DST_IP)]
+      : [dst, label(p.DST_CLIENT), label(p.SRC_IP)];
+    const target =
+      client && ip ? `${client} (${ip})` : (client ?? (ip ? lanAddress(ip, clients) : undefined));
+    const lanSide = !target
+      ? trigger
+      : outbound
+        ? `${trigger}, outbound from ${target}`
+        : `${trigger} -> ${target}`;
     return {
       direction: 'blocked',
       lanSide,
-      lanId: `${p.TRIGGER?.id ?? trigger}\u0000${dst ?? ''}`,
-      remote: label(p.SRC_IP),
+      lanId: `${p.TRIGGER?.id ?? trigger}\u0000${outbound ? 'out' : 'in'}\u0000${ip ?? ''}`,
+      remote,
     };
   }
   return { direction: 'other', lanSide: e.key, lanId: e.key, remote: label(p.SRC_IP) ?? label(p.DST_IP) };
