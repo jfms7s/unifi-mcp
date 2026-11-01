@@ -20,10 +20,12 @@ export type FirewallView =
   | {
       zones: FirewallZone[];
       policies: FirewallPolicy[];
-      /** Official networks (and WANs), to name a zone's networks; ids are shown without. */
+      /** Official networks, to name a zone's networks; ids are shown without. */
       networks?: Array<{ id: string; name: string }>;
+      /** Official WANs: the External zone's networks, the internet in a filter. */
+      wans?: Array<{ id: string; name: string }>;
     }
-  /** Zone-Based Firewall is off: why the zone rules could not run. */
+  /** Why the zone rules could not run: Zone-Based Firewall is off, or an endpoint changed. */
   | { unavailable: string };
 
 /** Everything the audit reads, fetched once by `loadPostureInput` so the rules stay pure. */
@@ -54,14 +56,21 @@ export async function loadPostureInput(
     deps.official.listFirewallZones(site.id),
     deps.official.listFirewallPolicies(site.id),
     deps.official.listNetworks(site.id),
+    deps.official.listWans(site.id),
   ]).then(
-    ([zones, policies, networks]) => ({
+    ([zones, policies, networks, wans]) => ({
       zones,
       policies,
       networks: networks.map((n) => ({ id: n.id, name: n.name })),
+      wans: wans.map((w) => ({ id: w.id, name: w.name })),
     }),
     (error: unknown) => {
-      if (error instanceof UnifiApiError && error.kind === 'zbf-disabled')
+      // ZBF off, or a firewall endpoint this firmware moved: the zone rules are
+      // skipped with the reason, and every other rule still runs.
+      if (
+        error instanceof UnifiApiError &&
+        (error.kind === 'zbf-disabled' || error.kind === 'endpoint-changed')
+      )
         return { unavailable: error.message };
       throw error;
     },
@@ -203,42 +212,61 @@ function trust(zone: FirewallZone | undefined): number {
 
 const LESS_TRUSTED = /hotspot|guest|iot|dmz|untrusted|camera|cctv/i;
 
-/** A network by its name or legacy purpose: 1 for IoT, guest and the like, else 3 (a LAN). */
+/** A network by its name or legacy purpose: 0 for a WAN, 1 for IoT, guest and the like, else 3 (a LAN). */
 function networkTrust(name: string, input: PostureInput): number {
   const purpose = input.networks.find((n) => n.name === name)?.purpose;
+  if (purpose === 'wan') return 0;
   return LESS_TRUSTED.test(name) || purpose === 'guest' ? 1 : 3;
 }
 
 type ZoneData = Extract<FirewallView, { zones: FirewallZone[] }>;
 
 function viewNames(fw: ZoneData): FirewallNames {
+  const named = [...(fw.networks ?? []), ...(fw.wans ?? [])];
   return {
     zone: (id) => fw.zones.find((z) => z.id === id)?.name,
-    network: (id) => fw.networks?.find((n) => n.id === id)?.name,
+    network: (id) => named.find((n) => n.id === id)?.name,
     list: () => undefined,
   };
 }
 
-/** A side's networks when a NETWORK filter names them, else undefined (the zone decides). */
+/** A side's network ids when a NETWORK filter names them, else undefined (the zone decides). */
 function filteredNetworks(side: FirewallPolicy['source']): string[] | undefined {
   const f = side.trafficFilter;
   if (f?.type !== 'NETWORK' || !f.networkFilter || f.networkFilter.matchOpposite) return undefined;
   return f.networkFilter.networkIds.length ? f.networkFilter.networkIds : undefined;
 }
 
-/** How trusted a side is, and its label: by its networks when a filter names them, else by zone. */
-function side(p: FirewallPolicy['source'], fw: ZoneData, input: PostureInput) {
+/**
+ * How trusted a side is, and its label. A NETWORK filter is judged within its
+ * zone: a source is no more trusted than its zone or its least trusted
+ * network, a destination is as trusted as its most trusted network. An id that
+ * resolves to no network (or WAN) takes the zone's trust.
+ */
+function side(
+  p: FirewallPolicy['source'],
+  role: 'source' | 'destination',
+  fw: ZoneData,
+  input: PostureInput,
+) {
   const names = viewNames(fw);
   const zone = fw.zones.find((z) => z.id === p.zoneId);
-  const nets = filteredNetworks(p)?.map((id) => names.network(id) ?? id);
-  if (nets) {
-    return {
-      known: true,
-      trust: Math.min(...nets.map((n) => networkTrust(n, input))),
-      label: nets.join(', '),
-    };
-  }
-  return { known: zone !== undefined, trust: trust(zone), label: zone?.name ?? 'unknown zone' };
+  const zoneTrust = trust(zone);
+  const ids = filteredNetworks(p);
+  if (!ids)
+    return { known: zone !== undefined, trust: zoneTrust, label: zone?.name ?? 'unknown zone' };
+  const nets = ids.map((id) => {
+    const name = names.network(id);
+    if (name === undefined) return { label: id, trust: zoneTrust, unresolved: true };
+    const wan = fw.wans?.some((w) => w.id === id);
+    return { label: name, trust: wan ? 0 : networkTrust(name, input) };
+  });
+  const trusts = nets.map((n) => n.trust);
+  return {
+    known: zone !== undefined || nets.every((n) => !n.unresolved),
+    trust: role === 'source' ? Math.min(zoneTrust, ...trusts) : Math.max(...trusts),
+    label: nets.map((n) => n.label).join(', '),
+  };
 }
 
 const RETURN_STATES = new Set(['ESTABLISHED', 'RELATED']);
@@ -261,8 +289,8 @@ function policyFindings(input: PostureInput): Finding[] {
   const fw = input.firewall;
   const out: Finding[] = [];
   for (const p of userAllows(fw.policies)) {
-    const src = side(p.source, fw, input);
-    const dst = side(p.destination, fw, input);
+    const src = side(p.source, 'source', fw, input);
+    const dst = side(p.destination, 'destination', fw, input);
     const pair = `${src.label} → ${dst.label}`;
     const object = p.name ?? p.id;
     const from = src.trust;
@@ -304,7 +332,7 @@ function mixedTrustFindings(input: PostureInput): Finding[] {
   for (const zone of fw.zones) {
     const nets = zone.networkIds.map((id) => names.network(id) ?? id);
     const low = nets.filter((n) => networkTrust(n, input) === 1);
-    const lan = nets.filter((n) => networkTrust(n, input) !== 1);
+    const lan = nets.filter((n) => networkTrust(n, input) > 1);
     if (low.length === 0 || lan.length === 0) continue;
     const openDefault = fw.policies.find(
       (p) =>

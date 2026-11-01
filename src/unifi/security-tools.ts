@@ -11,7 +11,7 @@ import {
 } from './firewall-view.js';
 import type { FirewallRule, NetworkConf, WlanConf } from './legacy.js';
 import { sameText } from './lookup.js';
-import type { AclRule, FirewallPolicy, TrafficList } from './official.js';
+import type { AclRule, FirewallPolicy, FirewallZone, TrafficList } from './official.js';
 import { auditPosture, loadPostureInput, skippedRules } from './posture.js';
 import { EVENT_CEILING, READ, coverageNote, type ReadDeps } from './read-common.js';
 import { compact, cut, iso, renderMessage } from './shape.js';
@@ -104,7 +104,7 @@ export function createSecurityTools(deps: ReadDeps): ToolDefinition[] {
     defineTool({
       name: 'unifi_posture_audit',
       description:
-        'Audit the security posture and list findings (severity, object, why), HIGH first: port forwards open to any source with the inbound threats against their target; WiFi with no encryption, WPA2-only where an AP supports WPA3, or a guest SSID not isolated; zone policies that let a less trusted zone or network into a more trusted one; ALLOW policies matching any → any; networks of different trust sharing one zone (IoT in Internal); user-defined policies repeated as copies; IDS/IPS off or detect-only; clients first seen in the last newClientDays; devices with firmware updates. Rules that cannot run (e.g. zone rules while Zone-Based Firewall is off) are listed under skipped with the reason. WPS is not checked: the console config does not expose it.',
+        'Audit the security posture and list findings (severity, object, why), HIGH first: port forwards open to any source with the inbound threats against their target; WiFi with no encryption, WPA2-only where an AP supports WPA3, or a guest SSID not isolated; zone policies that let a less trusted zone or network into a more trusted one; ALLOW policies matching any → any; networks of different trust sharing one zone (IoT in Internal); user-defined policies repeated as copies; IDS/IPS off or detect-only; clients first seen in the last newClientDays; devices with firmware updates. Rules that cannot run (e.g. zone rules while Zone-Based Firewall is off or a firewall endpoint changed) are listed under skipped with the reason. WPS is not checked: the console config does not expose it.',
       inputSchema: {
         site: siteInput,
         newClientDays: z
@@ -148,18 +148,26 @@ export function createSecurityTools(deps: ReadDeps): ToolDefinition[] {
     defineTool({
       name: 'unifi_list_firewall',
       description:
-        'The firewall as readable one-line rules ("Internal → External: BLOCK from 192.168.10.3 to 203.0.113.1 \"name\""): zones with their networks, zone policies (UniFi\'s own tagged (system); the same rule in several zone pairs is one row listing the pairs, and duplicates says how many user-defined policies are copies), ACL rules, DNS policies and traffic matching lists. While Zone-Based Firewall is off, says so and lists the old-style rules instead, read-only.',
+        'The firewall as readable one-line rules ("Internal → External: BLOCK from 192.168.1.10 to 203.0.113.1 \"name\""): zones with their networks, zone policies (UniFi\'s own tagged (system); the same rule in several zone pairs is one row listing the pairs, and duplicates says how many user-defined policies are copies), ACL rules, DNS policies and traffic matching lists. While Zone-Based Firewall is off, says so and lists the old-style rules instead, read-only. A collection whose endpoint changed (new firmware) is named under unavailable with the error; the rest are still listed.',
       inputSchema: { site: siteInput },
       annotations: READ,
       handler: async ({ site: wanted }) => {
         const site = await sites.resolve(wanted);
+        // A collection whose endpoint moved (new firmware) is reported, not fatal.
+        const unavailable: Record<string, string> = {};
+        const settle = <T>(name: string, read: Promise<T>, fallback: T): Promise<T> =>
+          read.catch((error: unknown) => {
+            if (!(error instanceof UnifiApiError && error.kind === 'endpoint-changed')) throw error;
+            unavailable[name] = error.message;
+            return fallback;
+          });
         const [networks, officialNets, wans, acl, dns, traffic] = await Promise.all([
-          legacy.networkConf(site.ref),
-          official.listNetworks(site.id),
-          official.listWans(site.id),
-          official.listAcl(site.id),
-          official.listDnsPolicies(site.id),
-          official.listTrafficLists(site.id),
+          settle('legacyNetworks', legacy.networkConf(site.ref), []),
+          settle('networks', official.listNetworks(site.id), []),
+          settle('wans', official.listWans(site.id), []),
+          settle('aclRules', official.listAcl(site.id), []),
+          settle('dnsPolicies', official.listDnsPolicies(site.id), []),
+          settle('trafficMatchingLists', official.listTrafficLists(site.id), []),
         ]);
         const legacyName = namesOf(networks);
         const officialName = new Map([...officialNets, ...wans].map((n) => [n.id, n.name]));
@@ -169,47 +177,53 @@ export function createSecurityTools(deps: ReadDeps): ToolDefinition[] {
           network: networkName,
           list: (id) => traffic.find((l) => l.id === id)?.name,
         };
-        const others = {
-          aclRules: acl.map((r) => aclRow(r, names)),
-          dnsPolicies: dns.map((d) => `${dnsRecord(d)}${d.enabled ? '' : ' (disabled)'}`),
-          trafficMatchingLists: traffic.map(listRow),
-        };
+        const others = () => ({
+          aclRules: unavailable.aclRules ? undefined : acl.map((r) => aclRow(r, names)),
+          dnsPolicies: unavailable.dnsPolicies
+            ? undefined
+            : dns.map((d) => `${dnsRecord(d)}${d.enabled ? '' : ' (disabled)'}`),
+          trafficMatchingLists: unavailable.trafficMatchingLists ? undefined : traffic.map(listRow),
+          unavailable: Object.keys(unavailable).length ? unavailable : undefined,
+        });
+        let zones: FirewallZone[] | undefined;
+        let policies: FirewallPolicy[] | undefined;
         try {
-          const [zones, policies] = await Promise.all([
-            official.listFirewallZones(site.id),
-            official.listFirewallPolicies(site.id),
+          [zones, policies] = await Promise.all([
+            settle('zones', official.listFirewallZones(site.id), undefined),
+            settle('policies', official.listFirewallPolicies(site.id), undefined),
           ]);
-          names.zone = (id) => zones.find((z) => z.id === id)?.name;
-          return compact({
-            site: site.name,
-            zones: zones.map(
-              (z) =>
-                `${z.name}: ${z.networkIds.map((id) => networkName(id) ?? id).join(', ') || '(no networks)'}`,
-            ),
-            policies: policyRows(policies, names),
-            duplicates: duplicateNote(policies, names),
-            ...others,
-          });
         } catch (error) {
           if (!(error instanceof UnifiApiError && error.kind === 'zbf-disabled')) throw error;
           const rules = await legacy.firewallRules(site.ref);
-          return {
+          return compact({
             site: site.name,
             zoneBasedFirewall: error.message,
             legacy: {
               label: LEGACY_RULES_LABEL,
               rules: rules.map((r) => legacyRuleLine(r, legacyName)),
             },
-            ...others,
-          };
+            ...others(),
+          });
         }
+        const zoneList = zones;
+        if (zoneList) names.zone = (id) => zoneList.find((z) => z.id === id)?.name;
+        return compact({
+          site: site.name,
+          zones: zoneList?.map(
+            (z) =>
+              `${z.name}: ${z.networkIds.map((id) => networkName(id) ?? id).join(', ') || '(no networks)'}`,
+          ),
+          policies: policies && policyRows(policies, names),
+          duplicates: policies && duplicateNote(policies, names),
+          ...others(),
+        });
       },
     }),
 
     defineTool({
       name: 'unifi_list_port_forwards',
       description:
-        'Port forwards as one line each ("Synology: WAN 61119 → 192.168.10.3:6690 tcp_udp from any"), whether enabled, and the client behind the LAN address (matched by IP).',
+        'Port forwards as one line each ("NAS: WAN 8443 → 192.168.1.10:443 tcp from any"), whether enabled, and the client behind the LAN address (matched by IP).',
       inputSchema: { site: siteInput },
       annotations: READ,
       handler: async ({ site: wanted }) => {

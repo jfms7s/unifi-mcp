@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest';
+import { UnifiApiError } from '../../src/http/errors.js';
 import type { FirewallPolicy, FirewallZone } from '../../src/unifi/official.js';
 import {
   auditPosture,
@@ -241,6 +242,137 @@ describe('zone and policy rules', () => {
 
   it('nothing is skipped when the firewall was read', () => {
     expect(skippedRules({ ...live, firewall: { zones, policies: [] } })).toEqual([]);
+  });
+});
+
+describe('zone-allow-to-trusted judges a NETWORK filter within its zone (I1)', () => {
+  const Z = {
+    internal: '2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0',
+    external: 'c266752b-f8ea-4d9e-8dc9-3658eb20eb50',
+    hotspot: 'd2e63b8f-895d-4976-a0cd-d4173c1f1698',
+  };
+  const NET = {
+    default: '50edfc66-8b84-4f92-8753-9d69a080a695',
+    iot: 'f1b4fdb6-c787-4421-92bb-56d55e0ea95a',
+    wan1: '984ca476-c888-45ec-b042-a67b1991ed98',
+  };
+  const nets = (...networkIds: string[]) => ({
+    type: 'NETWORK',
+    networkFilter: { matchOpposite: false, networkIds },
+  });
+  const allow = (
+    name: string,
+    source: FirewallPolicy['source'],
+    destination: FirewallPolicy['destination'],
+  ): FirewallPolicy => ({
+    id: `p-${name}`,
+    name,
+    enabled: true,
+    action: { type: 'ALLOW' },
+    source,
+    destination,
+    ipProtocolScope: { ipVersion: 'IPV4_AND_IPV6' },
+    metadata: { origin: 'USER_DEFINED' },
+  });
+  const found = (...policies: FirewallPolicy[]) =>
+    byRule(
+      audit({ firewall: { ...(live.firewall as object), policies } as PostureInput['firewall'] }),
+      'zone-allow-to-trusted',
+    );
+
+  it('the loader names the WANs too, so a WAN id in a filter is the internet', () => {
+    const { wans } = live.firewall as { wans: Array<{ id: string; name: string }> };
+    expect(wans).toContainEqual({ id: NET.wan1, name: 'Internet 1' });
+  });
+
+  it('a destination is as trusted as its most trusted network: Hotspot → Internal[IoT, Default]', () => {
+    const p = allow(
+      'hotspot-in',
+      { zoneId: Z.hotspot },
+      { zoneId: Z.internal, trafficFilter: nets(NET.iot, NET.default) },
+    );
+    expect(found(p).map((f) => [f.object, f.severity])).toEqual([['hotspot-in', 'MEDIUM']]);
+  });
+
+  it('a source is no more trusted than its zone: Hotspot[Default] → Internal', () => {
+    const p = allow(
+      'hotspot-as-lan',
+      { zoneId: Z.hotspot, trafficFilter: nets(NET.default) },
+      { zoneId: Z.internal },
+    );
+    expect(found(p).map((f) => [f.object, f.severity])).toEqual([['hotspot-as-lan', 'MEDIUM']]);
+  });
+
+  it('a WAN network is the internet: External[Internet 1] → Internal is HIGH', () => {
+    const p = allow(
+      'wan-in',
+      { zoneId: Z.external, trafficFilter: nets(NET.wan1) },
+      { zoneId: Z.internal },
+    );
+    const [f] = found(p);
+    expect(f).toMatchObject({ object: 'wan-in', severity: 'HIGH' });
+    expect(f!.why).toContain('Internet 1 → Internal');
+  });
+
+  it("an id that does not resolve takes its zone's trust, never a LAN's", () => {
+    const p = allow(
+      'unknown-in',
+      { zoneId: Z.external, trafficFilter: nets('00000000-0000-4000-8000-0000000000ff') },
+      { zoneId: Z.internal },
+    );
+    expect(found(p).map((f) => [f.object, f.severity])).toEqual([['unknown-in', 'HIGH']]);
+  });
+});
+
+describe('a firewall endpoint that changed (M5)', () => {
+  const changed = (path: string) =>
+    new UnifiApiError({ kind: 'endpoint-changed', method: 'GET', path, detail: '404 Not Found' });
+  const withBroken = (key: keyof ReturnType<typeof readDeps>['official'], path: string) => {
+    const deps = readDeps();
+    deps.official = {
+      ...deps.official,
+      [key]: async () => {
+        throw changed(path);
+      },
+    };
+    return deps;
+  };
+
+  it('posture keeps its other findings and skips the zone rules with the reason', async () => {
+    const deps = withBroken('listFirewallPolicies', '/firewall/policies');
+    const input = await loadPostureInput(deps, await deps.sites.resolve(), {
+      newClientDays: 7,
+      threatDays: 7,
+    });
+    expect(byRule(auditPosture(input), 'port-forward-open')).toHaveLength(3);
+    const skipped = skippedRules(input);
+    expect(skipped.map((s) => s.rule)).toEqual([
+      'zone-allow-to-trusted',
+      'policy-any-any',
+      'zone-mixed-trust',
+      'duplicate-policies',
+    ]);
+    expect(skipped[0]!.note).toContain('UniFi endpoint changed for GET /firewall/policies');
+  });
+
+  it('unifi_list_firewall reports the collection that failed and lists the rest', async () => {
+    const out = (await caller(createReadTools(withBroken('listAcl', '/acl-rules')))(
+      'unifi_list_firewall',
+    )) as { unavailable: Record<string, string>; zones: string[]; policies: string[] };
+    expect(out.unavailable).toEqual({
+      aclRules: expect.stringContaining('UniFi endpoint changed for GET /acl-rules'),
+    });
+    expect(out.zones).toHaveLength(6);
+    expect(out.policies).toHaveLength(21);
+  });
+
+  it("unifi_list_firewall without the zone policies still lists the zones' neighbours", async () => {
+    const out = (await caller(
+      createReadTools(withBroken('listFirewallPolicies', '/firewall/policies')),
+    )('unifi_list_firewall')) as Record<string, unknown> & { unavailable: Record<string, string> };
+    expect(Object.keys(out.unavailable)).toEqual(['policies']);
+    expect(out.policies).toBeUndefined();
+    expect(out.aclRules).toEqual([]);
   });
 });
 
