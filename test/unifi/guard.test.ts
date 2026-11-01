@@ -153,6 +153,67 @@ describe('touchesProtected: the Review Focus 2 matrix', () => {
       /pi-cluster/,
     );
   });
+
+  it('a network target given by name, in any case', () => {
+    expect(touches({ kind: 'network', id: 'PI-Cluster' })).toMatch(/pi-cluster/);
+    expect(touches({ kind: 'network', id: 'iot' })).toBeUndefined();
+  });
+});
+
+describe('touchesProtected leans to confirm on targets it cannot place', () => {
+  it.each<[string, Target]>([
+    ['a client MAC the console does not know', { kind: 'client', ipOrMac: '02:00:00:ff:ff:ff' }],
+    ['a client given by name', { kind: 'client', ipOrMac: 'client-22' }],
+    ['a client given by IPv6', { kind: 'client', ipOrMac: 'fd00::17' }],
+    ['a malformed client value', { kind: 'client', ipOrMac: '192.168.0' }],
+    ['a device id unifi-mcp does not know', { kind: 'device', id: 'no-such-device' }],
+    ['a device MAC unifi-mcp does not know', { kind: 'device', id: '02:00:00:00:ff:01' }],
+    ['a port on an unknown device', { kind: 'port', deviceId: 'no-such-device', portIdx: 1 }],
+  ])('%s', (_, target) => {
+    expect(touches(target)).toMatch(/can't place .* so it may be on a protected network/);
+  });
+
+  it('a known client with neither network nor IP', () => {
+    const ghost: KnownClient = { id: 'g', mac: '02:00:00:00:99:98', name: 'ghost', blocked: false };
+    expect(touchesProtected({ kind: 'client', ipOrMac: ghost.mac }, scope, [ghost])).toMatch(
+      /can't place/,
+    );
+  });
+
+  it('an unknown IPv4 client outside every protected subnet is placed, so stays easy', () => {
+    expect(touches({ kind: 'client', ipOrMac: '192.168.11.200' })).toBeUndefined();
+  });
+});
+
+describe('loadProtectedScope refuses a protected network it cannot place', () => {
+  it.each([
+    ['no ip_subnet', (n: Record<string, unknown>) => void delete n.ip_subnet],
+    ['an unparseable ip_subnet', (n: Record<string, unknown>) => void (n.ip_subnet = 'fd00::/64')],
+  ])('%s', async (_, mutate) => {
+    const deps = readDeps();
+    const site = await deps.sites.resolve();
+    const nets = await deps.legacy.networkConf(site.ref);
+    const broken = nets.map((n) => {
+      if (n.name !== 'pi-cluster') return n;
+      const copy = { ...n } as Record<string, unknown>;
+      mutate(copy);
+      return copy as typeof n;
+    });
+    const legacy = { ...deps.legacy, networkConf: async () => broken };
+    await expect(loadProtectedScope(['pi-cluster'], { ...deps, legacy }, site)).rejects.toThrow(
+      /pi-cluster.*subnet/,
+    );
+  });
+
+  it('a protected network with no legacy row at all', async () => {
+    const deps = readDeps();
+    const site = await deps.sites.resolve();
+    const nets = (await deps.legacy.networkConf(site.ref)).filter((n) => n.name !== 'pi-cluster');
+    const legacy = { ...deps.legacy, networkConf: async () => nets };
+    await expect(loadProtectedScope(['pi-cluster'], { ...deps, legacy }, site)).rejects.toThrow(
+      /pi-cluster.*subnet/,
+    );
+  });
 });
 
 describe('guarded', () => {
@@ -229,6 +290,24 @@ describe('guarded', () => {
       );
       expect(run, JSON.stringify(confirm)).not.toHaveBeenCalled();
     }
+  });
+
+  it('a result that already has a warning is wrapped, not overwritten', async () => {
+    const out = await guarded(
+      {
+        level: 'easy',
+        target: protectedTarget,
+        confirm: true,
+        preview: async () => ({}),
+        run: async () => ({ warning: 'console said so' }),
+      },
+      scope,
+      clients,
+    );
+    expect(out).toEqual({
+      result: { warning: 'console said so' },
+      warning: expect.stringContaining(WARNING),
+    });
   });
 
   it('a non-object result is wrapped so the warning still shows', async () => {

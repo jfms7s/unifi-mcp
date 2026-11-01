@@ -8,7 +8,7 @@ import {
   type PostureInput,
 } from '../../src/unifi/posture.js';
 import { createReadTools } from '../../src/unifi/read-tools.js';
-import { FIXTURE_NOW, caller, readDeps } from './fixtures.js';
+import { FIXTURE_NOW, caller, liveLog, readDeps } from './fixtures.js';
 
 let live: PostureInput;
 
@@ -117,6 +117,19 @@ describe('wifi-weak', () => {
     ]);
   });
 
+  it('flags WEP and WPA1 as HIGH, WPA/WPA2 mixed (auto) as MEDIUM', () => {
+    const wlans = [
+      { ...ssid(), name: 'old', security: 'wep' },
+      { ...ssid(), name: 'tkip', wpa_mode: 'wpa1' },
+      { ...ssid(), name: 'mixed', wpa_mode: 'auto' },
+    ];
+    expect(byRule(audit({ wlans }), 'wifi-weak').map((f) => [f.object, f.severity])).toEqual([
+      ['old', 'HIGH'],
+      ['tkip', 'HIGH'],
+      ['mixed', 'MEDIUM'],
+    ]);
+  });
+
   it('skips disabled SSIDs', () => {
     const wlans = [{ ...ssid(), enabled: false, security: 'open' }];
     expect(byRule(audit({ wlans }), 'wifi-weak')).toEqual([]);
@@ -213,6 +226,13 @@ describe('ips-off', () => {
 
   it('prevention mode is not a finding', () => {
     expect(byRule(audit({ settings: withMode('ips') }), 'ips-off')).toEqual([]);
+  });
+
+  it('an ips section without ips_mode is unknown, not off', () => {
+    const settings = live.settings.map((s) => (s.key === 'ips' ? { key: 'ips' } : s));
+    expect(byRule(audit({ settings }), 'ips-off')).toEqual([
+      expect.objectContaining({ severity: 'LOW', why: expect.stringContaining('unknown') }),
+    ]);
   });
 
   it('a console without the ips section is noted, not passed', () => {
@@ -325,6 +345,14 @@ describe('security tools', () => {
     expect(nets.networks.find((n) => n.name === 'Internet 1')).toEqual(
       expect.objectContaining({ purpose: 'wan', wanIp: '192.168.1.162' }),
     );
+  });
+
+  it('unifi_audit_log is newest first even when the log arrives oldest first', async () => {
+    const call = caller(createReadTools(readDeps({ log: [...liveLog()].reverse() })));
+    const out = (await call('unifi_audit_log')) as { entries: Array<{ time: string }> };
+    const times = out.entries.map((e) => e.time);
+    expect(times.length).toBeGreaterThan(1);
+    expect(times).toEqual([...times].sort().reverse());
   });
 
   it('unifi_audit_log lists AUDIT entries and filters by actor', async () => {

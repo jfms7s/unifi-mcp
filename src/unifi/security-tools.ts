@@ -293,7 +293,8 @@ export function createSecurityTools(deps: ReadDeps): ToolDefinition[] {
               sameText(e.parameters.ADMIN?.name, a.actor) ||
               sameText(e.parameters.ADMIN?.id, a.actor)),
         });
-        const { rows, truncated } = cut(scan.entries, a.limit);
+        const newestFirst = [...scan.entries].sort((x, y) => y.timestamp - x.timestamp);
+        const { rows, truncated } = cut(newestFirst, a.limit);
         return compact({
           site: site.name,
           range: { from: iso(range.from), to: iso(range.to) },

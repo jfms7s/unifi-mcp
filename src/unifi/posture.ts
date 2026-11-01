@@ -145,6 +145,15 @@ function wifiFindings(input: PostureInput): Finding[] {
       out.push({ rule: 'wifi-weak', severity, object: w.name, why });
     if (w.security === 'open') {
       finding('HIGH', 'no encryption: anyone in range can join it and read its traffic');
+    } else if (w.security === 'wep') {
+      finding('HIGH', 'WEP encryption is broken: its key can be recovered in minutes');
+    } else if (w.wpa_mode === 'wpa1') {
+      finding('HIGH', 'WPA1 (TKIP) only: an obsolete cipher; use WPA2 or WPA2/WPA3');
+    } else if (w.wpa_mode === 'auto') {
+      finding(
+        'MEDIUM',
+        'WPA/WPA2 mixed mode keeps TKIP enabled for old clients; use WPA2 or WPA2/WPA3',
+      );
     } else if (
       w.wpa_mode === 'wpa2' &&
       !w.wpa3_support &&
@@ -238,7 +247,17 @@ const ipsSetting = (settings: Setting[]) => settings.find((s) => s.key === 'ips'
 function ipsFindings(input: PostureInput): Finding[] {
   const s = ipsSetting(input.settings);
   if (!s) return [];
-  const mode = s.ips_mode ?? 'disabled';
+  if (s.ips_mode === undefined) {
+    return [
+      {
+        rule: 'ips-off',
+        severity: 'LOW',
+        object: 'IDS/IPS',
+        why: 'IDS/IPS mode unknown: the ips section has no ips_mode; check the setting in the UniFi UI, the firmware may have moved it',
+      },
+    ];
+  }
+  const mode = s.ips_mode;
   const finding = (severity: Severity, why: string) => [
     { rule: 'ips-off', severity, object: 'IDS/IPS', why },
   ];

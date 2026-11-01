@@ -133,8 +133,13 @@ export async function loadProtectedScope(
       scope.networkNames.set(id, name);
     }
     const cidr = l?.ip_subnet === undefined ? undefined : networkCidr(l.ip_subnet);
-    if (cidr && !scope.subnets.some((s) => s.cidr === cidr))
-      scope.subnets.push({ cidr, network: name });
+    // Without its subnet, an address on the network can't be placed and would read as easy.
+    if (cidr === undefined) {
+      throw new Error(
+        `Protected network "${name}" has no IPv4 subnet unifi-mcp can read (rest/networkconf ip_subnet${l?.ip_subnet ? ` is "${l.ip_subnet}"` : ' is missing'}), so addresses on it can't be placed; refusing to guard changes blind`,
+      );
+    }
+    if (!scope.subnets.some((s) => s.cidr === cidr)) scope.subnets.push({ cidr, network: name });
   }
 
   const gatewayMacs = new Set(
@@ -175,6 +180,8 @@ function clientNetwork(c: KnownClient, scope: ProtectedScope): string | undefine
   }
   return c.ip === undefined ? undefined : subnetOf(c.ip, scope)?.network;
 }
+
+const cantPlace = (what: string) => `can't place ${what} so it may be on a protected network`;
 
 const clientLabel = (c: KnownClient) => (c.ip ? `${c.name} (${c.ip})` : c.name);
 
@@ -230,7 +237,9 @@ export function touchesProtected(
 ): string | undefined {
   switch (target.kind) {
     case 'network': {
-      const name = scope.networkNames.get(target.id);
+      const name =
+        scope.networkNames.get(target.id) ??
+        [...scope.networkNames.values()].find((n) => n.toLowerCase() === target.id.toLowerCase());
       return name === undefined ? undefined : `it changes ${name}, a protected network`;
     }
 
@@ -264,15 +273,22 @@ export function touchesProtected(
     }
 
     case 'client': {
+      // With nothing protected there is nothing a client could be on.
+      if (scope.networkIds.size === 0) return undefined;
       const asMac = mac(target.ipOrMac);
+      const asIp = asMac ? undefined : ipv4(target.ipOrMac);
+      if (asMac === undefined && asIp === undefined) return cantPlace(`client "${target.ipOrMac}"`);
       const c = clients.find((k) => (asMac ? sameMac(k.mac, asMac) : k.ip === target.ipOrMac));
       if (c) {
         const net = clientNetwork(c, scope);
-        return net === undefined
-          ? undefined
-          : `client ${clientLabel(c)} is on ${net}, a protected network`;
+        if (net !== undefined) return `client ${clientLabel(c)} is on ${net}, a protected network`;
+        if (c.networkId === undefined && c.ip === undefined) {
+          return cantPlace(`client ${c.name}, which has neither a network nor an IP,`);
+        }
+        return undefined;
       }
-      const subnet = asMac ? undefined : subnetOf(target.ipOrMac, scope);
+      if (asMac) return cantPlace(`client ${target.ipOrMac}, which the console does not know,`);
+      const subnet = subnetOf(target.ipOrMac, scope);
       return subnet
         ? `${target.ipOrMac} is inside ${subnet.network} (${subnet.cidr}), a protected network`
         : undefined;
@@ -280,6 +296,9 @@ export function touchesProtected(
 
     case 'device': {
       const d = findDevice(target.id, scope);
+      // An unknown device could be the gateway itself.
+      if (d.id === undefined)
+        return cantPlace(`device "${target.id}", which unifi-mcp does not know,`);
       if (isIn(scope.gatewayDeviceIds, d))
         return `${d.name} is the gateway, unifi-mcp's way into the console`;
       const behind = protectedBehind(d.mac, undefined, scope, clients);
@@ -293,6 +312,11 @@ export function touchesProtected(
 
     case 'port': {
       const d = findDevice(target.deviceId, scope);
+      if (d.id === undefined) {
+        return cantPlace(
+          `port ${target.portIdx} on "${target.deviceId}", a device unifi-mcp does not know,`,
+        );
+      }
       const where = `port ${target.portIdx} on ${d.name}`;
       if (isIn(scope.gatewayDeviceIds, d))
         return `${where}: a port on the gateway, unifi-mcp's way into the console`;
@@ -343,7 +367,13 @@ export async function guarded<T>(
   }
   const result = await args.run();
   if (warning === undefined) return result;
-  if (result !== null && typeof result === 'object' && !Array.isArray(result))
+  // A result with its own `warning` is wrapped, never overwritten.
+  if (
+    result !== null &&
+    typeof result === 'object' &&
+    !Array.isArray(result) &&
+    !('warning' in result)
+  )
     return { ...result, warning };
   return { result, warning };
 }
