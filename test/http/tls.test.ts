@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { createServer as createHttpServer } from 'node:http';
 import { createServer, type Server } from 'node:https';
 import type { AddressInfo } from 'node:net';
 import { X509Certificate } from 'node:crypto';
@@ -31,9 +32,9 @@ afterAll(async () => {
   await new Promise<void>((resolve) => server.close(() => resolve()));
 });
 
-function clientWith(tls: TlsConfig) {
+function clientWith(tls: TlsConfig, url = baseUrl) {
   const config: UnifiMcpConfig = {
-    console: { baseUrl, apiKey: 'console-key', tls },
+    console: { baseUrl: url, apiKey: 'console-key', tls },
     readOnly: false,
     protectedNetworks: [],
     transport: 'stdio',
@@ -62,6 +63,59 @@ describe('console TLS pinning', () => {
     expect((error as UnifiApiError).message).toBe(
       `console certificate changed: expected ${other}, got ${pinned}`,
     );
+  });
+
+  it('does not follow a redirect off the pinned console', async () => {
+    let received: string | string[] | undefined | null = null;
+    const plain = createHttpServer((req, res) => {
+      received = req.headers['x-api-key'];
+      res.end('{}');
+    });
+    await new Promise<void>((resolve) => plain.listen(0, '127.0.0.1', resolve));
+    const plainOrigin = `http://127.0.0.1:${(plain.address() as AddressInfo).port}`;
+    const redirecting = createServer({ key, cert }, (_req, res) => {
+      res.writeHead(302, { Location: `${plainOrigin}/x?y=1` }).end();
+    });
+    await new Promise<void>((resolve) => redirecting.listen(0, '127.0.0.1', resolve));
+    try {
+      const port = (redirecting.address() as AddressInfo).port;
+      const error = await clientWith({ fingerprint: pinned }, `https://127.0.0.1:${port}`)
+        .request('official', 'GET', '/v1/info')
+        .catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(UnifiApiError);
+      expect((error as UnifiApiError).kind).toBe('endpoint-changed');
+      expect((error as UnifiApiError).detail).toBe(`unexpected redirect to ${plainOrigin}`);
+      expect(received).toBeNull();
+    } finally {
+      redirecting.closeAllConnections();
+      plain.closeAllConnections();
+      await new Promise<void>((resolve) => redirecting.close(() => resolve()));
+      await new Promise<void>((resolve) => plain.close(() => resolve()));
+    }
+  });
+
+  it('the pinned dispatcher refuses a plain-TCP connection', async () => {
+    let received = false;
+    const plain = createHttpServer((_req, res) => {
+      received = true;
+      res.end('{}');
+    });
+    await new Promise<void>((resolve) => plain.listen(0, '127.0.0.1', resolve));
+    try {
+      const port = (plain.address() as AddressInfo).port;
+      const error = await clientWith({ fingerprint: pinned }, `http://127.0.0.1:${port}`)
+        .request('official', 'GET', '/v1/info')
+        .catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(UnifiApiError);
+      expect((error as UnifiApiError).kind).toBe('unreachable');
+      expect((error as UnifiApiError).detail).toBe(
+        'refusing a plain-TCP connection to a console with a pinned certificate',
+      );
+      expect(received).toBe(false);
+    } finally {
+      plain.closeAllConnections();
+      await new Promise<void>((resolve) => plain.close(() => resolve()));
+    }
   });
 
   it('insecure accepts any cert', async () => {

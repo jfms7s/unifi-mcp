@@ -24,6 +24,7 @@ const viaMsw: FetchFn = (url, init) =>
     headers: init.headers,
     body: init.body,
     signal: init.signal,
+    redirect: init.redirect,
   });
 
 function config(overrides: Partial<UnifiMcpConfig> = {}): UnifiMcpConfig {
@@ -268,6 +269,34 @@ describe('createUnifiHttpClient', () => {
     expect(error.kind).toBe('endpoint-changed');
     expect(error.detail).toMatch(/not valid JSON/);
   });
+
+  it.each(['official', 'sitemanager'] as const)(
+    'refuses to follow a %s redirect and names only its origin',
+    async (api) => {
+      let followed = false;
+      const from =
+        api === 'sitemanager'
+          ? 'https://api.ui.com/v1/hosts'
+          : `${BASE}/proxy/network/integration/v1/hosts`;
+      server.use(
+        http.get(from, () =>
+          HttpResponse.text('', {
+            status: 302,
+            headers: { Location: 'http://elsewhere.test/steal?token=abc' },
+          }),
+        ),
+        http.get('http://elsewhere.test/steal', () => {
+          followed = true;
+          return HttpResponse.json({});
+        }),
+      );
+      const error = await failure(client.request(api, 'GET', '/v1/hosts'));
+      expect(error.kind).toBe('endpoint-changed');
+      expect(error.status).toBe(302);
+      expect(error.detail).toBe('unexpected redirect to http://elsewhere.test');
+      expect(followed).toBe(false);
+    },
+  );
 
   it('reports a network failure as unreachable', async () => {
     server.use(http.get(`${BASE}/proxy/network/integration/v1/sites`, () => HttpResponse.error()));

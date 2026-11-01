@@ -15,6 +15,8 @@ export class PinnedCertificateMismatch extends Error {
   }
 }
 
+const PLAIN_TCP_REFUSED = 'refusing a plain-TCP connection to a console with a pinned certificate';
+
 /**
  * A dispatcher for the console only. UniFi consoles serve a self-signed
  * certificate for an IP, so the chain and the hostname are never checked; with
@@ -29,10 +31,14 @@ export function createConsoleDispatcher(tls: ConsoleConnection['tls']): Dispatch
 
   return new Agent({
     connect(options, callback) {
+      // Fail closed: a pin means nothing over plain TCP, and the API key would travel in cleartext.
+      if (options.protocol !== 'https:') return callback(new Error(PLAIN_TCP_REFUSED), null);
       connector(options, (error, socket) => {
         if (error) return callback(error, null);
-        // A plain http:// console has no certificate to pin.
-        if (!(socket instanceof TLSSocket)) return callback(null, socket);
+        if (!(socket instanceof TLSSocket)) {
+          socket.destroy();
+          return callback(new Error(PLAIN_TCP_REFUSED), null);
+        }
         const actual = socket.getPeerCertificate().fingerprint256 ?? 'no certificate';
         if (actual === expected) return callback(null, socket);
         socket.destroy();

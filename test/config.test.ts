@@ -43,7 +43,23 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...base, UNIFI_URL: 'ftp://192.168.0.1' })).toThrow(
       new ConfigError('UNIFI_URL must use https:// (or http://)'),
     );
-    expect(loadConfig({ ...base, UNIFI_URL: 'http://192.168.0.1' }).console.baseUrl).toBe('http://192.168.0.1');
+    const insecure = { UNIFI_URL: 'http://192.168.0.1', UNIFI_API_KEY: 'k', UNIFI_TLS_INSECURE: 'true' };
+    expect(loadConfig(insecure).console.baseUrl).toBe('http://192.168.0.1');
+  });
+
+  it('rejects http:// when a fingerprint is set, since nothing could be pinned', () => {
+    expect(() => loadConfig({ ...base, UNIFI_URL: 'http://192.168.0.1' })).toThrow(
+      new ConfigError('UNIFI_URL must use https:// when UNIFI_TLS_FINGERPRINT is set'),
+    );
+  });
+
+  it('rejects credentials in UNIFI_URL', () => {
+    expect(() => loadConfig({ ...base, UNIFI_URL: 'https://admin:hunter2@192.168.0.1' })).toThrow(
+      new ConfigError('UNIFI_URL must not contain credentials'),
+    );
+    expect(() => loadConfig({ ...base, UNIFI_URL: 'https://admin@192.168.0.1' })).toThrow(
+      new ConfigError('UNIFI_URL must not contain credentials'),
+    );
   });
 
   it('strips trailing slashes', () => {

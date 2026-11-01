@@ -72,8 +72,14 @@ function readConnection(env: NodeJS.ProcessEnv): ConsoleConnection {
   if (url.protocol !== 'https:' && url.protocol !== 'http:') {
     throw new ConfigError('UNIFI_URL must use https:// (or http://)');
   }
+  // Undici puts the full URL in its connection errors, so userinfo would leak.
+  if (url.username || url.password) throw new ConfigError('UNIFI_URL must not contain credentials');
 
-  return { baseUrl: rawUrl.replace(/\/+$/, ''), apiKey, tls: readTls(env) };
+  const tls = readTls(env);
+  if ('fingerprint' in tls && url.protocol !== 'https:') {
+    throw new ConfigError('UNIFI_URL must use https:// when UNIFI_TLS_FINGERPRINT is set');
+  }
+  return { baseUrl: rawUrl.replace(/\/+$/, ''), apiKey, tls };
 }
 
 function readProtectedNetworks(env: NodeJS.ProcessEnv): string[] {

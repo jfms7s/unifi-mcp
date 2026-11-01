@@ -27,12 +27,15 @@ export interface FetchInit {
   headers: Record<string, string>;
   body?: string;
   signal: AbortSignal;
+  /** Always 'manual': fetch keeps X-API-KEY across a cross-origin redirect. */
+  redirect: 'manual';
   dispatcher?: Dispatcher;
 }
 
 export interface FetchResponse {
   ok: boolean;
   status: number;
+  headers: { get(name: string): string | null };
   text(): Promise<string>;
 }
 
@@ -112,6 +115,16 @@ function isZbfDisabled(status: number, parsed: unknown): boolean {
     typeof parsed === 'object' &&
     (parsed as { code?: unknown }).code === ZBF_NOT_CONFIGURED
   );
+}
+
+/** Origin only: a redirect target's path or query could carry anything. */
+function redirectDetail(location: string | null, requestUrl: string): string {
+  if (!location) return 'unexpected redirect';
+  try {
+    return `unexpected redirect to ${new URL(location, requestUrl).origin}`;
+  } catch {
+    return 'unexpected redirect';
+  }
 }
 
 function rootCause(error: unknown): unknown {
@@ -198,6 +211,7 @@ export function createUnifiHttpClient(
           headers,
           body: ro.body === undefined ? undefined : JSON.stringify(ro.body),
           signal: controller.signal,
+          redirect: 'manual',
           dispatcher,
         });
         raw = await response.text();
@@ -210,6 +224,10 @@ export function createUnifiHttpClient(
         throw fail('unreachable', inner instanceof Error ? inner.message : String(inner));
       }
 
+      if (response.status >= 300 && response.status < 400) {
+        const detail = redirectDetail(response.headers.get('location'), url);
+        throw fail('endpoint-changed', detail, response.status);
+      }
       const parsed = raw.trim() ? parseJson(raw) : undefined;
       if (!response.ok) {
         if (isZbfDisabled(response.status, parsed)) {
