@@ -14,21 +14,13 @@
 import { loadConfig } from '../src/config.js';
 import { createUnifiHttpClient } from '../src/http/client.js';
 import { describeError, UnifiApiError } from '../src/http/errors.js';
-import { createLegacyApi, type LegacyApi, type Station } from '../src/unifi/legacy.js';
+import { createLegacyApi, type LegacyApi } from '../src/unifi/legacy.js';
+import { isVerifiedUnblocked, pickClient, withNetwork } from './spike-rules.js';
 
 const REF = 'default';
 const LOCATE_SECONDS = 10;
 const UNBLOCK_RETRIES = 3;
 const RETRY_DELAY_MS = 2_000;
-const IDLE_BYTES_LIMIT = 5_000_000;
-const SAFE_NETWORKS = new Set(['IoT']);
-const PROTECTED_PREFIX = '192.168.0.';
-const DESKTOP_IP = '192.168.10.10';
-/** What a candidate must look like: a smart light, the least consequential thing to cut off. */
-const LIGHT = /nanoleaf|light|lamp|bulb/i;
-/** People's devices, network gear and anything safety-related are never touched. */
-const EXCLUDED =
-  /phone|iphone|android|pixel|galaxy|samsung|laptop|macbook|mac|workstation|pc|tablet|ipad|watch|ap|switch|gateway|router|camera|cam|doorbell|alarm|smoke|lock|heater|heat|power|meter|cluster|sensor|siren|water|gas|fire|medical/i;
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -48,76 +40,79 @@ async function step(label: string, run: () => Promise<void>): Promise<boolean> {
   }
 }
 
-function pickClient(stations: Station[], networkNames: Map<string, string>) {
-  const named = stations.map((station, index) => ({
-    station,
-    index,
-    network: (station.network_id && networkNames.get(station.network_id)) ?? station.network ?? '',
-  }));
-  return named.find(({ station: s, network }) => {
-    const text = `${s.hostname ?? ''} ${s.name ?? ''} ${s.oui ?? ''}`;
-    const ip = s.ip ?? '';
-    return (
-      (SAFE_NETWORKS.has(network) || s.is_guest === true) &&
-      !ip.startsWith(PROTECTED_PREFIX) &&
-      ip !== DESKTOP_IP &&
-      !s.is_wired &&
-      LIGHT.test(text) &&
-      !EXCLUDED.test(text) &&
-      (s.tx_bytes ?? 0) + (s.rx_bytes ?? 0) < IDLE_BYTES_LIMIT &&
-      s.blocked !== true
-    );
-  });
+/** rest/user's `blocked` for the MAC; undefined when it is missing or cannot be read. */
+async function blockedState(api: LegacyApi, mac: string): Promise<boolean | undefined> {
+  try {
+    return (await api.knownClients(REF)).find((c) => c.mac === mac)?.blocked;
+  } catch (error) {
+    console.log(`rest/user check: ${outcome(error)}`);
+    return undefined;
+  }
 }
 
-async function isBlocked(api: LegacyApi, mac: string): Promise<boolean | undefined> {
-  const user = (await api.knownClients(REF)).find((c) => c.mac === mac);
-  return user?.blocked;
-}
-
-/** unblock-sta with retries; the caller exits non-zero when this returns false. */
+/** unblock-sta, then confirm it in rest/user; retried, and only a confirmed unblock is success. */
 async function unblock(api: LegacyApi, mac: string): Promise<boolean> {
   for (let attempt = 0; attempt <= UNBLOCK_RETRIES; attempt++) {
     if (attempt > 0) await sleep(RETRY_DELAY_MS);
-    try {
-      await api.cmd(REF, 'stamgr', { cmd: 'unblock-sta', mac });
-      return true;
-    } catch (error) {
-      console.log(`unblock-sta attempt ${attempt + 1}: ${outcome(error)}`);
-    }
+    await step(`unblock-sta attempt ${attempt + 1}`, () =>
+      api.cmd(REF, 'stamgr', { cmd: 'unblock-sta', mac }),
+    );
+    const blocked = await blockedState(api, mac);
+    console.log(`rest/user blocked after unblock-sta: ${String(blocked)}`);
+    if (isVerifiedUnblocked(blocked)) return true;
   }
   return false;
 }
 
+/** Runs once: the first of normal exit or a signal wins. */
+const cleanups: (() => Promise<void>)[] = [];
+let cleaned = false;
+async function runCleanups(): Promise<void> {
+  if (cleaned) return;
+  cleaned = true;
+  for (const cleanup of cleanups) await cleanup();
+}
+for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+  process.on(signal, () => {
+    console.error(`${signal}: undoing changes before exit`);
+    void runCleanups().finally(() => process.exit(130));
+  });
+}
+
 async function locateTest(api: LegacyApi, mac: string): Promise<boolean> {
-  let ok = await step('set-locate', () => api.cmd(REF, 'devmgr', { cmd: 'set-locate', mac }));
-  if (!ok) return false;
-  try {
+  // A timed-out set-locate may still have landed, so unset-locate is always sent, once.
+  let unset = false;
+  const undo = async (): Promise<void> => {
+    if (unset) return;
+    unset = true;
+    await step('unset-locate', () => api.cmd(REF, 'devmgr', { cmd: 'unset-locate', mac }));
+  };
+  cleanups.push(undo);
+  const set = await step('set-locate', () => api.cmd(REF, 'devmgr', { cmd: 'set-locate', mac }));
+  if (set) {
     console.log(`locating for ${LOCATE_SECONDS}s`);
     await sleep(LOCATE_SECONDS * 1_000);
-  } finally {
-    ok =
-      (await step('unset-locate', () => api.cmd(REF, 'devmgr', { cmd: 'unset-locate', mac }))) &&
-      ok;
   }
-  return ok;
+  await undo();
+  return set;
 }
 
 async function blockTest(api: LegacyApi, mac: string, label: string): Promise<boolean> {
+  const undo = async (): Promise<void> => {
+    if (await unblock(api, mac)) return;
+    console.error(`UNBLOCK FAILED for ${label} — owner must unblock ${mac} in the UniFi app`);
+    process.exit(2);
+  };
+  cleanups.push(undo);
   let ok = false;
   try {
     ok = await step('block-sta', () => api.cmd(REF, 'stamgr', { cmd: 'block-sta', mac }));
-    if (ok) console.log(`rest/user blocked after block-sta: ${String(await isBlocked(api, mac))}`);
+    if (ok)
+      console.log(`rest/user blocked after block-sta: ${String(await blockedState(api, mac))}`);
   } finally {
-    if (!(await unblock(api, mac))) {
-      console.error(`UNBLOCK FAILED for ${label} — owner must unblock ${mac} in the UniFi app`);
-      process.exit(2);
-    }
-    console.log('unblock-sta: rc ok');
+    await runCleanups();
   }
-  const after = await isBlocked(api, mac);
-  console.log(`rest/user blocked after unblock-sta: ${String(after ?? false)}`);
-  return ok && after !== true;
+  return ok;
 }
 
 async function main(): Promise<void> {
@@ -129,7 +124,7 @@ async function main(): Promise<void> {
   ]);
 
   const ap = devices.find((d) => d.type === 'uap');
-  const target = pickClient(stations, new Map(networks.map((n) => [n._id, n.name])));
+  const target = pickClient(withNetwork(stations, new Map(networks.map((n) => [n._id, n.name]))));
   console.log(`access point: ${ap ? 'found' : 'none'}`);
   console.log(
     target
@@ -144,7 +139,8 @@ async function main(): Promise<void> {
   process.exit(allOk ? 0 : 1);
 }
 
-main().catch((error: unknown) => {
+main().catch(async (error: unknown) => {
   console.error(`spike failed: ${describeError(error)}`);
+  await runCleanups();
   process.exit(1);
 });
