@@ -605,6 +605,41 @@ describe('touchesProtected with device uplinks (R15)', () => {
     ).toMatch(/^device-4 could be upstream of device-2/);
   });
 
+  it('a protected client hanging off a device stat/device does not list counts as unplaced', () => {
+    const dangling: KnownClient = {
+      id: 'd',
+      mac: '02:00:00:00:99:06',
+      name: 'k3s-dangling',
+      ip: '192.168.0.181',
+      blocked: false,
+      connected: true,
+      uplinkMac: '02:00:00:00:00:ef',
+      uplinkPort: 1,
+    };
+    const all = [...clients, dangling];
+    expect(touchesProtected({ kind: 'device', id: SWITCH_DEFAULT }, scope, all, live)).toMatch(
+      /^device-4 could carry k3s-dangling \(192\.168\.0\.181\) on pi-cluster, which unifi-mcp can't place on any device/,
+    );
+    expect(touchesProtected(port(SWITCH_DEFAULT, 5), scope, all, live)).toMatch(
+      /^port 5 on device-4 has nothing known on it and could feed k3s-dangling/,
+    );
+    // Hanging off the gateway is placed: the gateway is listed even when stat/device is not.
+    const onGateway = {
+      ...dangling,
+      uplinkMac: [...scope.gatewayDeviceIds].find((g) => g.includes(':'))!,
+    };
+    expect(
+      touchesProtected(
+        { kind: 'device', id: SWITCH_DEFAULT },
+        scope,
+        [...clients, onGateway],
+        live,
+      ),
+    ).toBeUndefined();
+    // Without uplink data there is nothing to check the MAC against: the client counts as placed.
+    expect(touchesProtected(port(SWITCH_DEFAULT, 2), scope, all)).toBeUndefined();
+  });
+
   it('guarded passes the uplinks through', async () => {
     const run = vi.fn(async () => ({ done: true }));
     const out = await guarded(

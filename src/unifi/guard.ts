@@ -240,6 +240,10 @@ function carriedBy(
   return { behind: [] };
 }
 
+/** A device MAC that stat/device lists, or the gateway (which it may not). */
+const listed = (m: string, scope: ProtectedScope, links: DeviceLink[]) =>
+  links.some((p) => sameMac(p.mac, m)) || scope.gatewayDeviceIds.has(mac(m) ?? m.toLowerCase());
+
 /**
  * A device stat/device listed without a parent it can place (no uplink_mac,
  * now or last, or one naming a device stat/device does not list) that
@@ -253,10 +257,12 @@ function unplacedCarrier(
   clients: KnownClient[],
   links: DeviceLink[],
 ): string | undefined {
-  const listed = (m: string) =>
-    links.some((p) => sameMac(p.mac, m)) || scope.gatewayDeviceIds.has(mac(m) ?? m.toLowerCase());
   for (const l of links) {
-    if ((l.uplinkMac !== undefined && listed(l.uplinkMac)) || sameMac(l.mac, exceptMac)) continue;
+    if (
+      (l.uplinkMac !== undefined && listed(l.uplinkMac, scope, links)) ||
+      sameMac(l.mac, exceptMac)
+    )
+      continue;
     if (scope.gatewayDeviceIds.has(mac(l.mac) ?? l.mac.toLowerCase())) continue;
     const { behind } = carriedBy(l.mac, undefined, scope, clients, links);
     if (behind.length) {
@@ -268,12 +274,18 @@ function unplacedCarrier(
 
 /**
  * A protected client that hangs off no device unifi-mcp knows of (no switch
- * or AP MAC, live or remembered). It could be behind any device or port.
+ * or AP MAC, live or remembered, or, when uplinks are known, one naming a
+ * device stat/device does not list and that isn't the gateway). It could be
+ * behind any device or port.
  */
-function unplacedClient(scope: ProtectedScope, clients: KnownClient[]): string | undefined {
-  const lost = clients.filter(
-    (c) => c.uplinkMac === undefined && clientNetwork(c, scope) !== undefined,
-  );
+function unplacedClient(
+  scope: ProtectedScope,
+  clients: KnownClient[],
+  links: DeviceLink[],
+): string | undefined {
+  const placed = (c: KnownClient) =>
+    c.uplinkMac !== undefined && (links.length === 0 || listed(c.uplinkMac, scope, links));
+  const lost = clients.filter((c) => !placed(c) && clientNetwork(c, scope) !== undefined);
   return lost.length
     ? `${describeBehind(lost, scope)}, which unifi-mcp can't place on any device`
     : undefined;
@@ -382,7 +394,7 @@ export function touchesProtected(
       if (isIn(scope.uplinkDeviceIds, d)) return `${d.name} carries clients of a protected network`;
       const lost = unplacedCarrier(d.mac, scope, clients, links);
       if (lost) return `${d.name} could be upstream of ${lost}`;
-      const floating = unplacedClient(scope, clients);
+      const floating = unplacedClient(scope, clients, links);
       return floating && `${d.name} could carry ${floating}`;
     }
 
@@ -416,7 +428,8 @@ export function touchesProtected(
         return `${where} has no known client and ${d.name} carries a protected network: it could be its uplink`;
       }
       if (anyoneOnPort) return undefined;
-      const lost = unplacedCarrier(d.mac, scope, clients, links) ?? unplacedClient(scope, clients);
+      const lost =
+        unplacedCarrier(d.mac, scope, clients, links) ?? unplacedClient(scope, clients, links);
       return lost && `${where} has nothing known on it and could feed ${lost}`;
     }
   }
