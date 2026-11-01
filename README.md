@@ -17,21 +17,21 @@ The guard column says what a change needs before it runs:
 | Tool | Guard | What it does |
 |---|---|---|
 | `unifi_overview` | read | The "is anything wrong?" entry point: console, health per subsystem, devices and clients, recent HIGH events. |
-| `unifi_list_devices` | read | Devices with state, firmware, uptime, CPU and memory, uplink, ports up and PoE in use, and AP radios. |
+| `unifi_list_devices` | read | Devices with state, firmware, uptime, CPU and memory, and a summary: uplink (parent and port, `WAN` for the gateway, the last one for an offline device), ports up and PoE in use, and AP radios with channel and clients. |
 | `unifi_get_device` | read | One device in detail. |
 | `unifi_list_clients` | read | Clients, newest activity first; filter by network, offline, blocked. |
 | `unifi_get_client` | read | One client in detail. |
 | `unifi_wan_status` | read | WAN state, ISP, latency and drops. |
 | `unifi_vpn_status` | read | VPN servers and site-to-site tunnels. |
 | `unifi_events` | read | The event log, newest first, paged to a ceiling that is reported when hit. |
-| `unifi_threat_summary` | read | SECURITY log entries grouped and checked against port forwards. |
-| `unifi_posture_audit` | read | Security posture findings, HIGH first. |
-| `unifi_list_firewall` | read | Zones, zone policies, ACL rules, DNS policies and traffic matching lists as one-line rules; a rule repeated across zone pairs is one row. |
+| `unifi_threat_summary` | read | SECURITY log entries grouped and checked against port forwards; firewall blocks are grouped by rule and LAN address, inbound or outbound. |
+| `unifi_posture_audit` | read | Security posture findings, HIGH first; rules that could not run are listed under `skipped`. |
+| `unifi_list_firewall` | read | Zones, zone policies, ACL rules, DNS policies and traffic matching lists as one-line rules; a rule repeated across zone pairs is one row. A collection that cannot be read is named under `unavailable`; without the zones, policy sides read `zone <id prefix>`. |
 | `unifi_list_port_forwards` | read | Port forwards, enabled state and exposure. |
 | `unifi_list_wifi` | read | WiFi networks with security, network and guest flags. |
 | `unifi_list_networks` | read | Networks with VLAN, subnet, DHCP and isolation. |
 | `unifi_audit_log` | read | Who changed what and when; filter by `actor`. |
-| `unifi_traffic_report` | read | Traffic and client counts over time for the site, an AP, a client or the gateway. |
+| `unifi_traffic_report` | read | Traffic and client counts over time for the site, an AP, a client or the gateway. `device` must be an AP (scope `ap`) or a gateway (scope `gateway`); `client` is only for scope `client`. |
 | `unifi_top_apps` | read | Top applications and categories by traffic. |
 | `unifi_isp_metrics` | read | ISP latency, loss and uptime from Site Manager (needs `UNIFI_SITE_MANAGER_API_KEY`). |
 | `unifi_list_hosts` | read | Consoles on the Site Manager account (needs `UNIFI_SITE_MANAGER_API_KEY`). |
@@ -66,7 +66,7 @@ The guard column says what a change needs before it runs:
 | `unifi_create_acl_rule` | confirm if protected | Create a switch ACL rule. |
 | `unifi_update_acl_rule` | always confirm | Change a user-defined ACL rule. |
 | `unifi_delete_acl_rule` | always confirm | Delete a user-defined ACL rule. |
-| `unifi_create_dns_policy` | confirm if it names the console | Create a local DNS record or forward domain. When `UNIFI_URL` is a hostname, a record for it, or a forward of it or a parent domain, needs `confirm=true`. |
+| `unifi_create_dns_policy` | confirm if it names the console | Create a local DNS record or forward domain. When `UNIFI_URL` is a hostname, a record for it, or a forward of it or a parent domain, needs `confirm=true` (case and a trailing dot don't matter). |
 | `unifi_update_dns_policy` | always confirm | Change a DNS policy. |
 | `unifi_delete_dns_policy` | always confirm | Delete a DNS policy. |
 | `unifi_create_traffic_list` | none | Create a traffic matching list (IPv4, IPv6 or ports). |
@@ -78,6 +78,8 @@ The guard column says what a change needs before it runs:
 With a Site Manager key there are 58 tools (56 without). In read-only mode only the 19 read tools (17 without the key) are registered.
 
 The zone policy and zone tools and the blocklist need Zone-Based Firewall (UniFi UI, Settings → Policy Engine); while it is off they say so and change nothing, and `unifi_list_firewall` shows the old-style rules instead. System-defined policies and zones are UniFi's and are refused, as are the IPS auto-blocks, which the console lists without an id.
+
+If the console's official client list doesn't answer, the client tools (`unifi_list_clients`, `unifi_get_client`, the client scope of `unifi_traffic_report` and `unifi_top_apps`) fall back to the legacy client records and say so in a `note`, and `unifi_overview` counts the connected clients from the legacy station list (`clientsNote`). Block, unblock and reconnect still work; guest authorize and unauthorize refuse until the official list answers. If only the WAN list fails, `unifi_posture_audit` still runs its zone rules, shows WANs by id and says so in a `note`.
 
 ## Protected networks
 
@@ -130,7 +132,7 @@ docker run --rm -p 3000:3000 \
   -e UNIFI_API_KEY=your-api-key \
   -e UNIFI_TLS_FINGERPRINT=AA:BB:...:FF \
   -e UNIFI_MCP_TOKEN=a-long-random-secret \
-  ghcr.io/jfms7s/unifi-mcp:v0.2.0
+  ghcr.io/jfms7s/unifi-mcp:v0.3.0
 ```
 
 Pin a `vX.Y.Z` tag, not `latest`, so an upgrade is a decision you make.
