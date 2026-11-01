@@ -274,6 +274,53 @@ describe('unifi_unblock_ip', () => {
   });
 });
 
+describe('blocklist members compare as addresses, not strings (M7)', () => {
+  it('x and x/32 are the same address: blocking either when the other is listed is a no-op', async () => {
+    for (const [listed, ip] of [
+      ['198.51.100.7', '198.51.100.7/32'],
+      ['198.51.100.7/32', '198.51.100.7'],
+    ]) {
+      const { call, writes } = setup(existing('198.51.100.1', listed!));
+      expect(await call('unifi_block_ip', { ip: ip! }), ip).toMatchObject({ unchanged: true });
+      expect(writes).toEqual([]);
+    }
+  });
+
+  it('a CIDR with host bits set is its network: listed 203.0.113.0/24 already holds 203.0.113.9/24', async () => {
+    const { call, writes } = setup(existing('198.51.100.1', '203.0.113.0/24'));
+    expect(await call('unifi_block_ip', { ip: '203.0.113.9/24' })).toMatchObject({
+      unchanged: true,
+    });
+    expect(writes).toEqual([]);
+  });
+
+  it('a new CIDR is stored as its network, and a /32 as the bare address', async () => {
+    const { call, writes } = setup(existing('198.51.100.1'));
+    await call('unifi_block_ip', { ip: '203.0.113.9/24' });
+    await call('unifi_block_ip', { ip: '198.51.100.8/32' });
+    expect(writes.map((w) => (w.body as { items: unknown[] }).items.at(-1))).toEqual([
+      { type: 'SUBNET', value: '203.0.113.0/24' },
+      { type: 'IP_ADDRESS', value: '198.51.100.8' },
+    ]);
+  });
+
+  it('unblock finds the member however it is written', async () => {
+    const { call, writes } = setup(existing('198.51.100.1', '198.51.100.7', '203.0.113.0/24'));
+    await call('unifi_unblock_ip', { ip: '198.51.100.7/32' });
+    await call('unifi_unblock_ip', { ip: '203.0.113.200/24' });
+    expect(writes.map((w) => (w.body as { items: Array<{ value: string }> }).items)).toEqual([
+      [
+        { type: 'IP_ADDRESS', value: '198.51.100.1' },
+        { type: 'SUBNET', value: '203.0.113.0/24' },
+      ],
+      [
+        { type: 'IP_ADDRESS', value: '198.51.100.1' },
+        { type: 'IP_ADDRESS', value: '198.51.100.7' },
+      ],
+    ]);
+  });
+});
+
 describe('the ip input', () => {
   it.each(['example.com', '300.1.1.1', '2001:db8::1', '198.51.100.7/33', ''])(
     'refuses %j',

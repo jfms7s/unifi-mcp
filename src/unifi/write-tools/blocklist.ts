@@ -32,6 +32,25 @@ const reasonInput = z
 
 const itemFor = (ip: string) => ({ type: ip.includes('/') ? 'SUBNET' : 'IP_ADDRESS', value: ip });
 
+/**
+ * One spelling per member: `x/32` is `x`, and a CIDR's host bits are zeroed
+ * (203.0.113.9/24 is 203.0.113.0/24), so a member is found however it is
+ * written. A value that is not IPv4 is kept as it is.
+ */
+export function canonicalIp(value: string): string {
+  if (!IPV4_OR_CIDR.test(value)) return value;
+  const [address = '', bits] = value.split('/');
+  const prefix = bits === undefined ? 32 : Number(bits);
+  if (prefix === 32) return address;
+  const n = address.split('.').reduce((acc, octet) => acc * 256 + Number(octet), 0);
+  const network = prefix === 0 ? 0 : Math.floor(n / 2 ** (32 - prefix)) * 2 ** (32 - prefix);
+  const octets = [24, 16, 8, 0].map((shift) => Math.floor(network / 2 ** shift) % 256);
+  return `${octets.join('.')}/${prefix}`;
+}
+
+const sameMember = (item: { value?: unknown }, ip: string) =>
+  typeof item.value === 'string' && canonicalIp(item.value) === ip;
+
 interface Blocklist {
   list?: TrafficList;
   inbound?: FirewallPolicy & { id: string };
@@ -180,12 +199,13 @@ export function createBlocklistWriteTools(deps: WriteDeps): ToolDefinition[] {
   return [
     defineTool({
       name: 'unifi_block_ip',
-      description: `Block an IPv4 address or CIDR in both directions: adds it to the IPv4 traffic matching list "${BLOCKLIST}", which "${INBOUND}" (External → Internal) and "${OUTBOUND}" (Internal → External) BLOCK. The first call creates whichever of the three is missing and needs confirm: true once (it previews the creates). After that a block is easy, unless the address is inside a protected network (pi-cluster 192.168.0.0/24), which needs confirm. An address already listed is a no-op.`,
+      description: `Block an IPv4 address or CIDR in both directions: adds it to the IPv4 traffic matching list "${BLOCKLIST}", which "${INBOUND}" (External → Internal) and "${OUTBOUND}" (Internal → External) BLOCK. The first call creates whichever of the three is missing and needs confirm: true once (it previews the creates). After that a block is easy, unless it overlaps a protected network's subnet (UNIFI_MCP_PROTECTED_NETWORKS, pi-cluster by default) or is a wide range (a prefix shorter than /16); those need confirm. An address already listed (x and x/32 are one address) is a no-op.`,
       inputSchema: { site: siteInput, ip: ipInput, reason: reasonInput, confirm: confirmInput },
       annotations: write({ destructive: true, idempotent: true }),
-      handler: async ({ site: wanted, ip, reason, confirm }) => {
+      handler: async ({ site: wanted, ip: given, reason, confirm }) => {
+        const ip = canonicalIp(given);
         const { site, state, b } = await resolve(wanted);
-        const listed = b.list?.items.some((i) => i.value === ip) ?? false;
+        const listed = b.list?.items.some((i) => sameMember(i, ip)) ?? false;
         const complete =
           b.list !== undefined && b.inbound !== undefined && b.outbound !== undefined;
         if (complete && listed) {
@@ -301,16 +321,17 @@ export function createBlocklistWriteTools(deps: WriteDeps): ToolDefinition[] {
 
     defineTool({
       name: 'unifi_unblock_ip',
-      description: `Remove an IPv4 address or CIDR from the "${BLOCKLIST}" (one update of the list). Easy, unless the address is inside a protected network. The console can't hold an empty list, so removing the last address deletes the blocklist (both policies, then the list) and needs confirm: true; the next unifi_block_ip recreates it. An address not listed is a no-op.`,
+      description: `Remove an IPv4 address or CIDR from the "${BLOCKLIST}" (one update of the list). Easy, unless it overlaps a protected network's subnet (UNIFI_MCP_PROTECTED_NETWORKS, pi-cluster by default) or is a wide range (a prefix shorter than /16); those need confirm. The console can't hold an empty list, so removing the last address deletes the blocklist (both policies, then the list) and needs confirm: true; the next unifi_block_ip recreates it. An address not listed is a no-op.`,
       inputSchema: { site: siteInput, ip: ipInput, confirm: confirmInput },
       annotations: write({ destructive: true, idempotent: true }),
-      handler: async ({ site: wanted, ip, confirm }) => {
+      handler: async ({ site: wanted, ip: given, confirm }) => {
+        const ip = canonicalIp(given);
         const { site, b } = await resolve(wanted);
         const list = b.list;
-        if (!list || !list.items.some((i) => i.value === ip)) {
+        if (!list || !list.items.some((i) => sameMember(i, ip))) {
           return { unchanged: true, ip, note: `${ip} is not in the ${BLOCKLIST}` };
         }
-        const remaining = list.items.filter((i) => i.value !== ip);
+        const remaining = list.items.filter((i) => !sameMember(i, ip));
         const scope = await deps.scope();
         const why = confirmReason(ip, 'unblocks', scope);
         if (remaining.length > 0) {
