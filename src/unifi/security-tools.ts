@@ -141,7 +141,7 @@ export function createSecurityTools(deps: ReadDeps): ToolDefinition[] {
         const networkName = (id: string) => officialName.get(id) ?? legacyName(id);
         const others = {
           aclRules: acl.map((x) => x.name ?? x.id),
-          dnsPolicies: dns.map((x) => x.name ?? x.id),
+          dnsPolicies: dns.map((x) => x.domain ?? x.id),
           trafficMatchingLists: traffic.map((x) => x.name ?? x.id),
         };
         try {

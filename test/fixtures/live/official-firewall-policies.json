@@ -1,12 +1,3369 @@
 {
-  "status": 400,
-  "body": {
-    "statusCode": 400,
-    "statusName": "BAD_REQUEST",
-    "code": "api.firewall.zone-based-firewall-not-configured",
-    "message": "Zone Based Firewall is not configured",
-    "timestamp": "2026-11-01T11:29:40.435676Z",
-    "requestPath": "/integration/v1/sites/00000000-0000-4000-8000-000000000001/firewall/policies",
-    "requestId": "7452b254-a439-4cff-8fcb-e985d662c4f5"
-  }
+  "offset": 0,
+  "limit": 200,
+  "count": 98,
+  "totalCount": 98,
+  "data": [
+    {
+      "id": "a5043bbb-c63a-46d6-8952-93577166d2ab",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.3 to 203.0.113.1",
+      "index": 10000,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.1"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.3 to 203.0.113.2",
+      "index": 10001,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.2"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.3 to 203.0.113.3",
+      "index": 10002,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.2 to 203.0.113.4",
+      "index": 10003,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.2"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.4"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "id": "76dd8b39-54cc-4c97-9d42-8b7fe96c53e0",
+      "enabled": true,
+      "name": "Block Invalid Traffic",
+      "index": 30000,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "INVALID"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "d1510e6b-ed6f-4b92-bb65-b2efada0c267",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "a9c8aa26-6a69-469c-a67c-aebfe38c61b6",
+      "enabled": true,
+      "name": "Allow mDNS",
+      "index": 30000,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+        "trafficFilter": {
+          "type": "PORT",
+          "portFilter": {
+            "type": "PORTS",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "PORT_NUMBER",
+                "value": 5353
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "224.0.0.251"
+              },
+              {
+                "type": "IP_ADDRESS",
+                "value": "ff02::fb"
+              }
+            ]
+          },
+          "portFilter": {
+            "type": "PORTS",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "PORT_NUMBER",
+                "value": 5353
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6",
+        "protocolFilter": {
+          "type": "NAMED_PROTOCOL",
+          "protocol": {
+            "name": "UDP"
+          },
+          "matchOpposite": false
+        }
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "11e03b6a-cb70-40b7-858a-38c9b7fdb02e",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "2fcce27b-8ba0-4319-accc-fd5aa2bf52e6",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "0ec5e931-a37d-4702-8467-c713eaff39c8",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "destination": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "6ab9782a-60ae-4f01-ad8e-243932f6c46d",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "destination": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.1 to 192.168.10.3",
+      "index": 10000,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.1"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.2 to 192.168.10.3",
+      "index": 10001,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.2"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.3 to 192.168.10.3",
+      "index": 10002,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.4 to 192.168.10.2",
+      "index": 10003,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.4"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.2"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "id": "ded220bb-192e-4958-96fd-cff0260d9a6b",
+      "enabled": true,
+      "name": "Allow Port Forward Synology",
+      "index": 30000,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          },
+          "portFilter": {
+            "type": "PORTS",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "PORT_NUMBER",
+                "value": 6690
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocolFilter": {
+          "type": "PRESET",
+          "preset": {
+            "name": "TCP_UDP"
+          }
+        }
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "f303b4b2-871e-4789-a131-a51c3c6915c8",
+      "enabled": true,
+      "name": "Allow Port Forward PLEX",
+      "index": 30001,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          },
+          "portFilter": {
+            "type": "PORTS",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "PORT_NUMBER",
+                "value": 32400
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocolFilter": {
+          "type": "PRESET",
+          "preset": {
+            "name": "TCP_UDP"
+          }
+        }
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "2663e0a4-46b2-496d-a368-88584f3c1e14",
+      "enabled": true,
+      "name": "Allow Port Forward reverse",
+      "index": 30002,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          },
+          "portFilter": {
+            "type": "PORTS",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "PORT_NUMBER",
+                "value": 443
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4",
+        "protocolFilter": {
+          "type": "PRESET",
+          "preset": {
+            "name": "TCP_UDP"
+          }
+        }
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "31315dce-8cac-4bd9-8e1b-6a4b124e022c",
+      "enabled": true,
+      "name": "Allow Return Traffic",
+      "index": 30004,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "ESTABLISHED",
+        "RELATED"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "532e709e-e1f3-450e-9d5b-a6c25a8247ef",
+      "enabled": true,
+      "name": "Block Invalid Traffic",
+      "index": 30005,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "INVALID"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "1cb69545-b387-49a9-8aa6-856ad0ef7582",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.1 to 192.168.10.3",
+      "index": 10000,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.1"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.2 to 192.168.10.3",
+      "index": 10001,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.2"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.3 to 192.168.10.3",
+      "index": 10002,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.4 to 192.168.10.2",
+      "index": 10003,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.4"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.2"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.3 to 203.0.113.1",
+      "index": 10004,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.1"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.3 to 203.0.113.2",
+      "index": 10005,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.2"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.3 to 203.0.113.3",
+      "index": 10006,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.2 to 203.0.113.4",
+      "index": 10007,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.2"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.4"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "id": "b2853311-813f-419e-8342-1f3d0409586c",
+      "enabled": true,
+      "name": "Allow Return Traffic",
+      "index": 30001,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "ESTABLISHED",
+        "RELATED"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "5e24ddf7-807e-4417-98e6-755c5e683c5f",
+      "enabled": true,
+      "name": "Block Invalid Traffic",
+      "index": 30002,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "INVALID"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "ea37dc37-cea2-4239-ac9c-756d456c30ce",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "7ed524b3-a8b8-4e60-8720-6ba89e9c8844",
+      "enabled": true,
+      "name": "Allow Return Traffic",
+      "index": 30000,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "ESTABLISHED",
+        "RELATED"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "f55fdd28-5ba6-42dc-8b87-3b9cea88dcb8",
+      "enabled": true,
+      "name": "Block Invalid Traffic",
+      "index": 30001,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "INVALID"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "e2d2ef50-6d25-4426-8f16-0311717b1fb5",
+      "enabled": true,
+      "name": "Allow Neighbor Solicitations",
+      "index": 30002,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV6",
+        "protocolFilter": {
+          "type": "NAMED_PROTOCOL",
+          "protocol": {
+            "name": "ICMPV6"
+          },
+          "matchOpposite": false
+        }
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "f4db6c7c-d229-498d-aaff-3a68127e8873",
+      "enabled": true,
+      "name": "Allow Neighbor Advertisements",
+      "index": 30003,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV6",
+        "protocolFilter": {
+          "type": "NAMED_PROTOCOL",
+          "protocol": {
+            "name": "ICMPV6"
+          },
+          "matchOpposite": false
+        }
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "0a915425-2fe6-4edb-846d-4a5b994990cf",
+      "enabled": true,
+      "name": "Allow Link-Local DHCPv6",
+      "index": 30004,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "SUBNET",
+                "value": "fe80::/10"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+        "trafficFilter": {
+          "type": "PORT",
+          "portFilter": {
+            "type": "PORTS",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "PORT_NUMBER",
+                "value": 546
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV6",
+        "protocolFilter": {
+          "type": "NAMED_PROTOCOL",
+          "protocol": {
+            "name": "UDP"
+          },
+          "matchOpposite": false
+        }
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "5aaec77e-633e-454b-b410-a11f9a3d30d2",
+      "enabled": true,
+      "name": "Allow DHCPv6",
+      "index": 30005,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "PORT",
+          "portFilter": {
+            "type": "PORTS",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "PORT_NUMBER",
+                "value": 547
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+        "trafficFilter": {
+          "type": "PORT",
+          "portFilter": {
+            "type": "PORTS",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "PORT_NUMBER",
+                "value": 546
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV6",
+        "protocolFilter": {
+          "type": "NAMED_PROTOCOL",
+          "protocol": {
+            "name": "UDP"
+          },
+          "matchOpposite": false
+        }
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "a4d24571-b6c0-4d88-8a01-ee79f3e30783",
+      "enabled": true,
+      "name": "Allow Router Advertisements",
+      "index": 30006,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV6",
+        "protocolFilter": {
+          "type": "NAMED_PROTOCOL",
+          "protocol": {
+            "name": "ICMPV6"
+          },
+          "matchOpposite": false
+        }
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "4966f5f3-52bc-48f1-9e0c-2a53436e45ec",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.1 to 192.168.10.3",
+      "index": 10000,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.1"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.2 to 192.168.10.3",
+      "index": 10001,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.2"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.3 to 192.168.10.3",
+      "index": 10002,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.4 to 192.168.10.2",
+      "index": 10003,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.4"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.2"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "id": "bea054d9-4232-426e-9d2d-4e54c1ed01a3",
+      "enabled": true,
+      "name": "Allow Return Traffic",
+      "index": 30001,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "ESTABLISHED",
+        "RELATED"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "029d7d6e-5782-40e6-ab8f-8a427b46e386",
+      "enabled": true,
+      "name": "Block Invalid Traffic",
+      "index": 30002,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "INVALID"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "38529b58-b40f-4ee4-8721-718f77a387a1",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.1 to 192.168.10.3",
+      "index": 10000,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.1"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.2 to 192.168.10.3",
+      "index": 10001,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.2"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.3 to 192.168.10.3",
+      "index": 10002,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 203.0.113.4 to 192.168.10.2",
+      "index": 10003,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.4"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.2"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "id": "88cb75fe-3c6d-4fef-acd7-e8797f94f823",
+      "enabled": true,
+      "name": "Allow Return Traffic",
+      "index": 30001,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "ESTABLISHED",
+        "RELATED"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "9dce7b4d-afc4-4d2f-b61b-cce79c4bf713",
+      "enabled": true,
+      "name": "Block Invalid Traffic",
+      "index": 30002,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "INVALID"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "dd6b6a8a-0756-4192-a8ba-6e4d6b773577",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "411610dc-8cf1-48aa-ae82-5f821d11b138",
+      "enabled": true,
+      "name": "Allow Return Traffic",
+      "index": 30000,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "ESTABLISHED",
+        "RELATED"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "3ccfaf7f-6015-44c2-b4a4-1ea9ef3dbf93",
+      "enabled": true,
+      "name": "Block Invalid Traffic",
+      "index": 30001,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "INVALID"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "b50bd72d-85cd-4a7b-823b-b99718c9d357",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "destination": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "3840a90a-1043-4e7d-b753-9101c00ee3f8",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "e35084ec-28a0-4188-beb2-eecc8417665e",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "6a0ce665-2736-4e7e-beb7-e2b93bd5bb69",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "287678d1-cefc-4e79-8f3d-c80736241f7c",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "destination": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "109aa684-6961-4aeb-b360-093db364377d",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "destination": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "4b64b4b3-1cb0-44de-a5d7-c5d7525b5380",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.3 to 203.0.113.1",
+      "index": 10000,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.1"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.3 to 203.0.113.2",
+      "index": 10001,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.2"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.3 to 203.0.113.3",
+      "index": 10002,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.2 to 203.0.113.4",
+      "index": 10003,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.2"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.4"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "id": "811886b1-beb0-4e0f-b00e-36a0ad3cff70",
+      "enabled": true,
+      "name": "Block Invalid Traffic",
+      "index": 30000,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "INVALID"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "506c10a6-b78e-4952-85ae-cd8ac6cf44ab",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "9c454a4c-bc41-4c3d-a47a-a999deb18bdf",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "f0af54ce-e4fa-44f6-abf1-d3c71351acd5",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "e2320892-22ab-44a2-949b-4b32d97c7df2",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "destination": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "98d63b6f-0a4e-4555-9243-b3391e618af4",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "destination": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "4cc00928-2474-4f3e-8e97-28631efc579f",
+      "enabled": true,
+      "name": "Allow Return Traffic",
+      "index": 30000,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "ESTABLISHED",
+        "RELATED"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "24af96e6-feae-46a0-a65e-ce2575f397e4",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.3 to 203.0.113.1",
+      "index": 10000,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.1"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.3 to 203.0.113.2",
+      "index": 10001,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.2"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.3 to 203.0.113.3",
+      "index": 10002,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.3"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.3"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "enabled": true,
+      "name": "IPS Block Traffic from 192.168.10.2 to 203.0.113.4",
+      "index": 10003,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "192.168.10.2"
+              }
+            ]
+          }
+        }
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+        "trafficFilter": {
+          "type": "IP_ADDRESS",
+          "ipAddressFilter": {
+            "type": "IP_ADDRESSES",
+            "matchOpposite": false,
+            "items": [
+              {
+                "type": "IP_ADDRESS",
+                "value": "203.0.113.4"
+              }
+            ]
+          }
+        }
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      }
+    },
+    {
+      "id": "184e7bff-be75-4ec1-b87b-8128e1a07160",
+      "enabled": true,
+      "name": "Block Invalid Traffic",
+      "index": 30001,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "INVALID"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "c770bd6a-52bc-4d8d-b295-8960801b8c1f",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "e8276443-f41f-4918-ba25-8744474f5f2f",
+      "enabled": true,
+      "name": "Allow Return Traffic",
+      "index": 30000,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "ESTABLISHED",
+        "RELATED"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "d972ad12-e130-4d8b-81ae-e07e6619d28f",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "daeaed08-8599-47c6-bc5a-59d92bb6c9c0",
+      "enabled": true,
+      "name": "Allow Return Traffic",
+      "index": 30000,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "ESTABLISHED",
+        "RELATED"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "a56f598c-f64d-4998-a7c2-542466adbb96",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "a78f54a8-44e7-4dda-acb2-0ceae7192a67",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "destination": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "94e33fdf-3c25-43d7-b5f4-49616439bda5",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "destination": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "221a9ee8-2571-4e58-b24c-64f12db1a72d",
+      "enabled": true,
+      "name": "Allow Return Traffic",
+      "index": 30000,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "ESTABLISHED",
+        "RELATED"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "a7425bfb-6568-4dba-8f7a-6bb194d926ab",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "destination": {
+        "zoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "6502332b-a4eb-45a8-b715-7ef94b5279cc",
+      "enabled": true,
+      "name": "Block Invalid Traffic",
+      "index": 30000,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "INVALID"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "d8d05445-4840-426e-b4ce-c5c3f1e15bae",
+      "enabled": true,
+      "name": "Allow All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "destination": {
+        "zoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "aa78c0d8-5069-4afd-bb5c-d9f098bfd2c5",
+      "enabled": true,
+      "name": "Allow Return Traffic",
+      "index": 30000,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "ESTABLISHED",
+        "RELATED"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "1e8134e8-0836-4d4d-bd7a-5791951866ae",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "destination": {
+        "zoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "37d64ea6-62fd-4577-b847-b6076a4e309f",
+      "enabled": true,
+      "name": "Allow Return Traffic",
+      "index": 30000,
+      "action": {
+        "type": "ALLOW",
+        "allowReturnTraffic": true
+      },
+      "source": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "connectionStateFilter": [
+        "ESTABLISHED",
+        "RELATED"
+      ],
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "aea2497e-49ce-44a6-b3f6-a801c463202e",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "destination": {
+        "zoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "8209137e-f486-4924-a738-55ac828dd7ac",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "destination": {
+        "zoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "7bd4c52f-b82e-4aad-ba1e-d87a9b9430ec",
+      "enabled": true,
+      "name": "Block All Traffic",
+      "index": 2147483647,
+      "action": {
+        "type": "BLOCK"
+      },
+      "source": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "destination": {
+        "zoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e"
+      },
+      "ipProtocolScope": {
+        "ipVersion": "IPV4_AND_IPV6"
+      },
+      "loggingEnabled": false,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    }
+  ]
 }

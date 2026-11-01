@@ -11,11 +11,17 @@ import { createReadTools } from '../../src/unifi/read-tools.js';
 import { FIXTURE_NOW, caller, liveLog, readDeps } from './fixtures.js';
 
 let live: PostureInput;
+/** The same console read while Zone-Based Firewall was still off. */
+let zbfOff: PostureInput;
 
 beforeAll(async () => {
   const deps = readDeps();
   const site = await deps.sites.resolve();
   live = await loadPostureInput(deps, site, { newClientDays: 7, threatDays: 7 });
+  zbfOff = await loadPostureInput(readDeps({ zbfOff: true }), site, {
+    newClientDays: 7,
+    threatDays: 7,
+  });
 });
 
 const byRule = (findings: Finding[], rule: string) => findings.filter((f) => f.rule === rule);
@@ -142,7 +148,7 @@ describe('zone and policy rules', () => {
     { id: 'z-ext', name: 'External', networkIds: [] },
     { id: 'z-iot', name: 'IoT', networkIds: ['f1b4fdb6-c787-4421-92bb-56d55e0ea95a'] },
     { id: 'z-gw', name: 'Gateway', networkIds: [] },
-  ];
+  ].map((z) => ({ ...z, metadata: { origin: 'SYSTEM_DEFINED' } }));
   const policy = (
     p: Partial<FirewallPolicy> & { from: string; to: string; filtered?: boolean },
   ): FirewallPolicy => ({
@@ -152,6 +158,7 @@ describe('zone and policy rules', () => {
     action: p.action ?? { type: 'ALLOW' },
     source: { zoneId: p.from, ...(p.filtered ? { trafficFilter: { type: 'PORT' } } : {}) },
     destination: { zoneId: p.to },
+    ipProtocolScope: { ipVersion: 'IPV4_AND_IPV6' },
     metadata: { origin: 'USER_DEFINED' },
   });
   const run = (policies: FirewallPolicy[]) => audit({ firewall: { zones, policies } });
@@ -195,10 +202,10 @@ describe('zone and policy rules', () => {
     ).toEqual([]);
   });
 
-  it('both rules are skipped with a note while Zone-Based Firewall is off (the live console)', () => {
-    expect(byRule(audit(), 'zone-allow-to-trusted')).toEqual([]);
-    expect(byRule(audit(), 'policy-any-any')).toEqual([]);
-    const skipped = skippedRules(live);
+  it('both rules are skipped with a note while Zone-Based Firewall is off', () => {
+    expect(byRule(auditPosture(zbfOff), 'zone-allow-to-trusted')).toEqual([]);
+    expect(byRule(auditPosture(zbfOff), 'policy-any-any')).toEqual([]);
+    const skipped = skippedRules(zbfOff);
     expect(skipped.map((s) => s.rule)).toEqual(['zone-allow-to-trusted', 'policy-any-any']);
     expect(skipped[0]!.note).toContain('Zone-Based Firewall is not enabled');
   });
@@ -287,10 +294,10 @@ describe('ordering', () => {
 });
 
 describe('security tools', () => {
-  const setup = () => caller(createReadTools(readDeps()));
+  const setup = (opts: { zbfOff?: boolean } = {}) => caller(createReadTools(readDeps(opts)));
 
-  it('unifi_posture_audit returns findings and the ZBF note', async () => {
-    const out = (await setup()('unifi_posture_audit')) as {
+  it('unifi_posture_audit returns findings and the ZBF note while Zone-Based Firewall is off', async () => {
+    const out = (await setup({ zbfOff: true })('unifi_posture_audit')) as {
       findings: Finding[];
       skipped: Array<{ rule: string; note: string }>;
       counts: Record<string, number>;
@@ -300,8 +307,8 @@ describe('security tools', () => {
     expect(out.counts).toEqual({ HIGH: 3, MEDIUM: 4, LOW: 10 });
   });
 
-  it('unifi_list_firewall: the ZBF message and the legacy rules, read-only and readable', async () => {
-    const out = (await setup()('unifi_list_firewall')) as {
+  it('unifi_list_firewall with ZBF off: the ZBF message and the legacy rules, read-only and readable', async () => {
+    const out = (await setup({ zbfOff: true })('unifi_list_firewall')) as {
       zoneBasedFirewall: string;
       legacy: { label: string; rules: string[] };
     };

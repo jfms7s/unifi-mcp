@@ -72,7 +72,31 @@ export interface FakeConsole extends UnifiHttpClient {
  * A console that answers from the live fixtures. The system log honours the
  * posted range and paging, so a 24 h window really is 24 h of the capture.
  */
-export function fakeConsole(opts: { log?: RawEntry[] } = {}): FakeConsole {
+/** The firewall reads that answer zbf-disabled on a console with Zone-Based Firewall off. */
+const ZBF_PATHS = /\/firewall\/(zones|policies)(\/ordering)?$/;
+
+/**
+ * The fixture that answers a firewall ordering GET: the capture holds every
+ * zone pair, and the query names the pair.
+ */
+export function orderingFor(query: RequestOptions['query']): unknown {
+  const { pairs } = liveFixture('official-firewall-policies-ordering') as {
+    pairs: Array<{ sourceZoneId: string; destinationZoneId: string; ordering: unknown }>;
+  };
+  const pair = pairs.find(
+    (p) =>
+      p.sourceZoneId === query?.sourceFirewallZoneId &&
+      p.destinationZoneId === query?.destinationFirewallZoneId,
+  );
+  if (!pair) throw new Error(`no ordering fixture for ${JSON.stringify(query)}`);
+  return pair.ordering;
+}
+
+/**
+ * `zbfOff` answers the firewall reads with the 400 captured before Zone-Based
+ * Firewall was turned on (official-firewall-zbf-disabled).
+ */
+export function fakeConsole(opts: { log?: RawEntry[]; zbfOff?: boolean } = {}): FakeConsole {
   const log = opts.log ?? liveLog();
   const calls: string[] = [];
 
@@ -97,7 +121,15 @@ export function fakeConsole(opts: { log?: RawEntry[] } = {}): FakeConsole {
           data: inRange.slice(start, start + body.pageSize),
         } as T;
       }
-      const fixture = liveFixture(fixtureName(api, path)) as { status?: number; body?: unknown };
+      const name = fixtureName(api, path);
+      if (name === 'official-firewall-policies-ordering' && !opts.zbfOff) {
+        return orderingFor(o.query) as T;
+      }
+      const fixture = (
+        opts.zbfOff && api === 'official' && ZBF_PATHS.test(path)
+          ? liveFixture('official-firewall-zbf-disabled')
+          : liveFixture(name)
+      ) as { status?: number; body?: unknown };
       // A captured error response ({ status, body }) fails the way the real client does.
       if (typeof fixture.status === 'number' && isZbfDisabled(fixture.status, fixture.body)) {
         throw new UnifiApiError({
@@ -114,9 +146,9 @@ export function fakeConsole(opts: { log?: RawEntry[] } = {}): FakeConsole {
 }
 
 export function readDeps(
-  opts: { log?: RawEntry[]; sitemanager?: boolean; now?: number } = {},
+  opts: { log?: RawEntry[]; sitemanager?: boolean; now?: number; zbfOff?: boolean } = {},
 ): ReadDeps & { console: FakeConsole } {
-  const console_ = fakeConsole({ log: opts.log });
+  const console_ = fakeConsole({ log: opts.log, zbfOff: opts.zbfOff });
   const now = opts.now ?? FIXTURE_NOW;
   return {
     console: console_,

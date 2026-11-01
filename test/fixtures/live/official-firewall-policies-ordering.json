@@ -1,0 +1,403 @@
+{
+  "pairs": [
+    {
+      "sourceZoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e",
+      "destinationZoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e",
+      "destinationZoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e",
+      "destinationZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e",
+      "destinationZoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e",
+      "destinationZoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e",
+      "destinationZoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+      "destinationZoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+      "destinationZoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+      "destinationZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+      "destinationZoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+      "destinationZoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+      "destinationZoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+      "destinationZoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+      "destinationZoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+      "destinationZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+      "destinationZoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+      "destinationZoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+      "destinationZoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+      "destinationZoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+      "destinationZoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+      "destinationZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+      "destinationZoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+      "destinationZoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+      "destinationZoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+      "destinationZoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+      "destinationZoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+      "destinationZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+      "destinationZoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+      "destinationZoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+      "destinationZoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+      "destinationZoneId": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+      "destinationZoneId": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+      "destinationZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+      "destinationZoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+      "destinationZoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    },
+    {
+      "sourceZoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+      "destinationZoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+      "ordering": {
+        "orderedFirewallPolicyIds": {
+          "beforeSystemDefined": [],
+          "afterSystemDefined": []
+        }
+      }
+    }
+  ]
+}

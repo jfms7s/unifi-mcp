@@ -359,35 +359,163 @@ export const namedObjectSchema = z.object({
 });
 export type NamedObject = z.infer<typeof namedObjectSchema>;
 
-/** One side of a zone policy: its zone, and a filter that narrows it (absent means any). */
-const policySideSchema = z.object({
-  zoneId: z.string().optional(),
-  trafficFilter: z.unknown().optional(),
+/** Whether UniFi or a user made an object: `SYSTEM_DEFINED` ones are UniFi's to manage. */
+const originSchema = z.object({ origin: z.string() });
+
+/** An address match: `IP_ADDRESS` / `SUBNET` (`value`) or `IP_ADDRESS_RANGE` (`start`, `stop`). */
+const ipMatchSchema = z.object({
+  type: z.string(),
+  value: z.string().optional(),
+  start: z.string().optional(),
+  stop: z.string().optional(),
+});
+/** A port match: `PORT_NUMBER` (`value`) or `PORT_NUMBER_RANGE` (`start`, `stop`). */
+const portMatchSchema = z.object({
+  type: z.string(),
+  value: z.number().optional(),
+  start: z.number().optional(),
+  stop: z.number().optional(),
 });
 
-export const firewallPolicySchema = namedObjectSchema.extend({
-  action: z.object({ type: z.string() }).optional(),
-  source: policySideSchema.optional(),
-  destination: policySideSchema.optional(),
+/**
+ * What narrows one side of a zone policy (absent means the whole zone). The
+ * filter kinds unifi-mcp places (`NETWORK`, `IP_ADDRESS`) are typed; the rest
+ * (`PORT`, `MAC_ADDRESS`, `REGION`, `DOMAIN`, ...) are only named in output.
+ */
+export const policyFilterSchema = z.object({
+  type: z.string(),
+  networkFilter: z
+    .object({ networkIds: z.array(z.string()), matchOpposite: z.boolean().optional() })
+    .optional(),
+  ipAddressFilter: z
+    .object({
+      /** `IP_ADDRESSES` (items) or `TRAFFIC_MATCHING_LIST` (trafficMatchingListId). */
+      type: z.string(),
+      matchOpposite: z.boolean().optional(),
+      items: z.array(ipMatchSchema).optional(),
+      trafficMatchingListId: z.string().optional(),
+    })
+    .optional(),
+  portFilter: z
+    .object({
+      type: z.string(),
+      matchOpposite: z.boolean().optional(),
+      items: z.array(portMatchSchema).optional(),
+      trafficMatchingListId: z.string().optional(),
+    })
+    .optional(),
+});
+export type PolicyFilter = z.infer<typeof policyFilterSchema>;
+
+const policySideSchema = z.object({
+  zoneId: z.string(),
+  trafficFilter: policyFilterSchema.optional(),
+});
+
+export const firewallPolicySchema = z.object({
+  /** The console sends IPS auto-blocks without one, so the API can't address them. */
+  id: z.string().optional(),
+  name: z.string(),
+  enabled: z.boolean(),
+  index: z.number().optional(),
+  action: z.object({ type: z.string() }),
+  source: policySideSchema,
+  destination: policySideSchema,
   /** Set on policies that only match some connection states (e.g. return traffic). */
   connectionStateFilter: z.array(z.string()).optional(),
-  ipProtocolScope: z.object({ protocolFilter: z.unknown().optional() }).optional(),
-  metadata: z.object({ origin: z.string().optional() }).optional(),
+  ipProtocolScope: z.object({
+    ipVersion: z.string(),
+    protocolFilter: z
+      .object({
+        type: z.string(),
+        matchOpposite: z.boolean().optional(),
+        protocol: z.object({ name: z.string() }).optional(),
+        preset: z.object({ name: z.string() }).optional(),
+        protocolNumber: z.number().optional(),
+      })
+      .optional(),
+  }),
+  metadata: originSchema,
 });
 export type FirewallPolicy = z.infer<typeof firewallPolicySchema>;
 
-export const firewallZoneSchema = namedObjectSchema.extend({
-  networkIds: z.array(z.string()).optional(),
+export const firewallZoneSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  networkIds: z.array(z.string()),
+  metadata: originSchema,
 });
 export type FirewallZone = z.infer<typeof firewallZoneSchema>;
+
+/** One endpoint of an ACL rule: `NETWORKS`, `IP_ADDRESSES_OR_SUBNETS`, `PORTS`, or a MAC endpoint. */
+export const aclEndpointSchema = z.object({
+  type: z.string(),
+  networkIds: z.array(z.string()).optional(),
+  ipAddressesOrSubnets: z.array(z.string()).optional(),
+  portFilter: z.array(z.number()).optional(),
+  macAddresses: z.array(z.string()).optional(),
+});
+export type AclEndpoint = z.infer<typeof aclEndpointSchema>;
+
+export const aclRuleSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  /** `IPV4` or `MAC`. */
+  type: z.string(),
+  action: z.string(),
+  enabled: z.boolean(),
+  index: z.number().optional(),
+  sourceFilter: aclEndpointSchema.nullish(),
+  destinationFilter: aclEndpointSchema.nullish(),
+  metadata: originSchema,
+});
+export type AclRule = z.infer<typeof aclRuleSchema>;
+
+/** DNS policies have no name: a record is its type, domain and value. */
+export const dnsPolicySchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  enabled: z.boolean(),
+  domain: z.string().optional(),
+  ipv4Address: z.string().optional(),
+  ipv6Address: z.string().optional(),
+  ipAddress: z.string().optional(),
+  targetDomain: z.string().optional(),
+  mailServerDomain: z.string().optional(),
+  serverDomain: z.string().optional(),
+  text: z.string().optional(),
+});
+export type DnsPolicy = z.infer<typeof dnsPolicySchema>;
+
+const listItemValue = z.union([z.string(), z.number()]);
+/** `IPV4_ADDRESSES`, `IPV6_ADDRESSES` or `PORTS`, with what it matches. */
+export const trafficListSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.string(),
+  items: z.array(
+    z.object({
+      type: z.string(),
+      value: listItemValue.optional(),
+      start: listItemValue.optional(),
+      stop: listItemValue.optional(),
+    }),
+  ),
+});
+export type TrafficList = z.infer<typeof trafficListSchema>;
+
+/** A created object: unifi-mcp reads only its id. */
+export const createdSchema = z.object({ id: z.string() });
 
 export const dpiNameSchema = z.object({ id: z.number(), name: z.string() });
 export type DpiName = z.infer<typeof dpiNameSchema>;
 
+/** A policy the API can't name (an IPS auto-block) is a null in the ordering. */
+const orderedIds = z.array(z.string().nullable());
 export const policyOrderingSchema = z.object({
   orderedFirewallPolicyIds: z.object({
-    beforeSystemDefined: z.array(z.string()),
-    afterSystemDefined: z.array(z.string()),
+    beforeSystemDefined: orderedIds,
+    afterSystemDefined: orderedIds,
   }),
 });
 export type PolicyOrdering = z.infer<typeof policyOrderingSchema>;
@@ -445,6 +573,9 @@ export const siteManagerEnvelope = <T extends z.ZodType>(item: T) =>
  */
 export const fullObjectSchema = z.looseObject({ id: z.string(), name: z.string() });
 export type FullObject = z.infer<typeof fullObjectSchema>;
+/** As FullObject, for objects without a name (DNS policies). */
+export const anyObjectSchema = z.looseObject({ id: z.string() });
+export type AnyObject = z.infer<typeof anyObjectSchema>;
 
 /** `Hotspot voucher details`: the fields unifi-mcp shows. */
 export const voucherSchema = z.object({

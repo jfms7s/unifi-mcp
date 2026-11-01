@@ -109,7 +109,7 @@ describe('official list calls parse the live fixtures', () => {
   });
 
   it('firewall calls name the Policy Engine when Zone-Based Firewall is off', async () => {
-    const zbf = liveFixture('official-firewall-zones') as { status: number; body: unknown };
+    const zbf = liveFixture('official-firewall-zbf-disabled') as { status: number; body: unknown };
     server.use(
       http.get(`${S}/firewall/zones`, () =>
         HttpResponse.json(zbf.body as never, { status: zbf.status }),
@@ -125,6 +125,66 @@ describe('official list calls parse the live fixtures', () => {
       const error = await failure(call(official()));
       expect(error.kind).toBe('zbf-disabled');
       expect(error.message).toContain('Settings → Policy Engine');
+    }
+  });
+});
+
+describe('firewall reads with Zone-Based Firewall on (the live capture)', () => {
+  const page = (name: string) => liveFixture(name) as Page;
+  const serve = (path: string, body: unknown) =>
+    server.use(http.get(`${S}${path}`, () => HttpResponse.json(body as never)));
+
+  it('zones: six system zones, Internal holding Default, IoT and pi-cluster', async () => {
+    serve('/firewall/zones', page('official-firewall-zones'));
+    const zones = await official().listFirewallZones(SITE_ID);
+    expect(zones.map((z) => z.name)).toEqual(['Dmz', 'Gateway', 'External', 'Hotspot', 'Vpn', 'Internal']);
+    expect(zones.every((z) => z.metadata.origin === 'SYSTEM_DEFINED')).toBe(true);
+    expect(zones.find((z) => z.name === 'Internal')!.networkIds).toEqual([
+      '50edfc66-8b84-4f92-8753-9d69a080a695',
+      'f1b4fdb6-c787-4421-92bb-56d55e0ea95a',
+      '80ec407d-e455-4a87-8b26-846881ebf07f',
+    ]);
+  });
+
+  it('policies: all 98, the 32 IPS auto-blocks without an id', async () => {
+    serve('/firewall/policies', page('official-firewall-policies'));
+    const policies = await official().listFirewallPolicies(SITE_ID);
+    expect(policies).toHaveLength(98);
+    const user = policies.filter((p) => p.metadata.origin === 'USER_DEFINED');
+    expect(user).toHaveLength(32);
+    expect(user.every((p) => p.id === undefined && p.name.startsWith('IPS Block Traffic'))).toBe(true);
+    expect(policies.filter((p) => p.id !== undefined)).toHaveLength(66);
+  });
+
+  it('ordering: an id-less policy is a null in the console answer, kept as null', async () => {
+    const pairs = (liveFixture('official-firewall-policies-ordering') as {
+      pairs: Array<{ sourceZoneId: string; destinationZoneId: string; ordering: unknown }>;
+    }).pairs;
+    const extExt = pairs.find((p) => p.sourceZoneId === p.destinationZoneId && p.sourceZoneId === 'c266752b-f8ea-4d9e-8dc9-3658eb20eb50')!;
+    serve('/firewall/policies/ordering', extExt.ordering);
+    const ordering = await official().firewallOrdering(SITE_ID, extExt);
+    expect(ordering.orderedFirewallPolicyIds.beforeSystemDefined).toEqual(Array(8).fill(null));
+  });
+
+  it('a policy missing a used field (metadata, action, a zone) is endpoint-changed', async () => {
+    const [first] = page('official-firewall-policies').data;
+    for (const drop of ['metadata', 'action', 'source', 'name', 'enabled']) {
+      const row = { ...first! };
+      delete row[drop];
+      serve('/firewall/policies', { offset: 0, limit: 200, count: 1, totalCount: 1, data: [row] });
+      const error = await failure(official().listFirewallPolicies(SITE_ID));
+      expect(error.kind, drop).toBe('endpoint-changed');
+    }
+  });
+
+  it('a zone without networkIds or metadata is endpoint-changed', async () => {
+    const [first] = page('official-firewall-zones').data;
+    for (const drop of ['networkIds', 'metadata', 'id']) {
+      const row = { ...first! };
+      delete row[drop];
+      serve('/firewall/zones', { offset: 0, limit: 200, count: 1, totalCount: 1, data: [row] });
+      const error = await failure(official().listFirewallZones(SITE_ID));
+      expect(error.kind, drop).toBe('endpoint-changed');
     }
   });
 });

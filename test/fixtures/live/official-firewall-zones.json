@@ -1,12 +1,69 @@
 {
-  "status": 400,
-  "body": {
-    "statusCode": 400,
-    "statusName": "BAD_REQUEST",
-    "code": "api.firewall.zone-based-firewall-not-configured",
-    "message": "Zone Based Firewall is not configured",
-    "timestamp": "2026-11-01T11:29:40.411516492Z",
-    "requestPath": "/integration/v1/sites/00000000-0000-4000-8000-000000000001/firewall/zones",
-    "requestId": "8ded9c64-9450-465f-8de4-eb77a68d8649"
-  }
+  "offset": 0,
+  "limit": 200,
+  "count": 6,
+  "totalCount": 6,
+  "data": [
+    {
+      "id": "990f0147-6ad8-4bc3-b4d5-17635a4d9c1e",
+      "name": "Dmz",
+      "networkIds": [],
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "b775bac7-f1c0-4956-ae2b-4635a130ed12",
+      "name": "Gateway",
+      "networkIds": [],
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": false
+      }
+    },
+    {
+      "id": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
+      "name": "External",
+      "networkIds": [
+        "984ca476-c888-45ec-b042-a67b1991ed98",
+        "71e7ee20-439e-4eb7-822a-4d801cb23c14"
+      ],
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": false
+      }
+    },
+    {
+      "id": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
+      "name": "Hotspot",
+      "networkIds": [],
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    },
+    {
+      "id": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
+      "name": "Vpn",
+      "networkIds": [],
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": false
+      }
+    },
+    {
+      "id": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
+      "name": "Internal",
+      "networkIds": [
+        "50edfc66-8b84-4f92-8753-9d69a080a695",
+        "f1b4fdb6-c787-4421-92bb-56d55e0ea95a",
+        "80ec407d-e455-4a87-8b26-846881ebf07f"
+      ],
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      }
+    }
+  ]
 }

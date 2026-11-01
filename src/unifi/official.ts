@@ -2,7 +2,11 @@ import type { z } from 'zod';
 import { UnifiApiError } from '../http/errors.js';
 import type { QueryParams, UnifiHttpClient } from '../http/client.js';
 import {
+  aclRuleSchema,
+  anyObjectSchema,
+  createdSchema,
   deviceStatsSchema,
+  dnsPolicySchema,
   dpiNameSchema,
   firewallPolicySchema,
   firewallZoneSchema,
@@ -13,9 +17,13 @@ import {
   officialNetworkSchema,
   officialPage,
   policyOrderingSchema,
+  trafficListSchema,
   wanSchema,
   wifiBroadcastSchema,
+  type AclRule,
+  type AnyObject,
   type DeviceStats,
+  type DnsPolicy,
   type DpiName,
   type FirewallPolicy,
   type FirewallZone,
@@ -25,6 +33,7 @@ import {
   type OfficialDevice,
   type OfficialNetwork,
   type PolicyOrdering,
+  type TrafficList,
   type Voucher,
   type Wan,
   type WifiBroadcast,
@@ -34,7 +43,10 @@ import {
 } from './schemas.js';
 
 export type {
+  AclRule,
+  AnyObject,
   DeviceStats,
+  DnsPolicy,
   DpiName,
   FirewallPolicy,
   FirewallZone,
@@ -44,10 +56,28 @@ export type {
   OfficialDevice,
   OfficialNetwork,
   PolicyOrdering,
+  TrafficList,
   Voucher,
   Wan,
   WifiBroadcast,
 };
+
+/** The firewall objects the official API creates, updates and deletes by id. */
+export type FirewallObjectKind = 'policy' | 'zone' | 'acl' | 'dns' | 'traffic-list';
+
+const FIREWALL_PATHS: Record<FirewallObjectKind, string> = {
+  policy: '/firewall/policies',
+  zone: '/firewall/zones',
+  acl: '/acl-rules',
+  dns: '/dns/policies',
+  'traffic-list': '/traffic-matching-lists',
+};
+
+/** A zone pair's user-defined policies, by id, around the system-defined ones. */
+export interface PolicyOrder {
+  beforeSystemDefined: string[];
+  afterSystemDefined: string[];
+}
 
 export interface OfficialApi {
   listDevices(siteId: string): Promise<OfficialDevice[]>;
@@ -60,9 +90,9 @@ export interface OfficialApi {
   listS2sTunnels(siteId: string): Promise<NamedObject[]>;
   listDpiApps(): Promise<DpiName[]>;
   listDpiCategories(): Promise<DpiName[]>;
-  listAcl(siteId: string): Promise<NamedObject[]>;
-  listDnsPolicies(siteId: string): Promise<NamedObject[]>;
-  listTrafficLists(siteId: string): Promise<NamedObject[]>;
+  listAcl(siteId: string): Promise<AclRule[]>;
+  listDnsPolicies(siteId: string): Promise<DnsPolicy[]>;
+  listTrafficLists(siteId: string): Promise<TrafficList[]>;
   /** Rejects with a `zbf-disabled` error while Zone-Based Firewall is off. */
   listFirewallZones(siteId: string): Promise<FirewallZone[]>;
   /** Rejects with a `zbf-disabled` error while Zone-Based Firewall is off. */
@@ -100,6 +130,24 @@ export interface OfficialApi {
   /** The official PUT replaces the broadcast: send the whole object. */
   updateWifi(siteId: string, wifiId: string, body: object): Promise<void>;
   deleteWifi(siteId: string, wifiId: string): Promise<void>;
+  /** A firewall object whole, every field kept, for a GET-merge-PUT update. */
+  getFirewallObject(siteId: string, kind: FirewallObjectKind, id: string): Promise<AnyObject>;
+  /** Resolves to the new object's id; an answer without one is endpoint-changed. */
+  createFirewallObject(siteId: string, kind: FirewallObjectKind, body: object): Promise<string>;
+  /** The official PUT replaces the object: send the whole thing. */
+  updateFirewallObject(
+    siteId: string,
+    kind: FirewallObjectKind,
+    id: string,
+    body: object,
+  ): Promise<void>;
+  deleteFirewallObject(siteId: string, kind: FirewallObjectKind, id: string): Promise<void>;
+  /** Replaces a zone pair's user-defined order: every user-defined policy, exactly once. */
+  reorderFirewallPolicies(
+    siteId: string,
+    zones: { sourceZoneId: string; destinationZoneId: string },
+    order: PolicyOrder,
+  ): Promise<void>;
   /** `filter` uses the official filter syntax, e.g. `expired.eq(true)`. */
   listVouchers(siteId: string, filter?: string): Promise<Voucher[]>;
   createVouchers(siteId: string, body: VoucherRequest): Promise<Voucher[]>;
@@ -179,7 +227,7 @@ export function createOfficialApi(client: UnifiHttpClient): OfficialApi {
 
   /** A write whose answer unifi-mcp reads: a missing used field is endpoint-changed. */
   async function sendParsed<T>(
-    method: 'POST' | 'DELETE',
+    method: 'POST' | 'PUT' | 'DELETE',
     path: string,
     schema: z.ZodType<T>,
     opts: { body?: unknown; query?: QueryParams } = {},
@@ -200,6 +248,8 @@ export function createOfficialApi(client: UnifiHttpClient): OfficialApi {
   const network = (s: string, n: string) => site(s, `/networks/${encodeURIComponent(n)}`);
   const wifi = (s: string, w: string) => site(s, `/wifi/broadcasts/${encodeURIComponent(w)}`);
   const vouchers = (s: string) => site(s, '/hotspot/vouchers');
+  const firewallObject = (s: string, kind: FirewallObjectKind, id: string) =>
+    site(s, `${FIREWALL_PATHS[kind]}/${encodeURIComponent(id)}`);
 
   return {
     listDevices: (s) => list(site(s, '/devices'), officialDeviceSchema),
@@ -213,9 +263,9 @@ export function createOfficialApi(client: UnifiHttpClient): OfficialApi {
     listS2sTunnels: (s) => list(site(s, '/vpn/site-to-site-tunnels'), namedObjectSchema),
     listDpiApps: () => list('/v1/dpi/applications', dpiNameSchema),
     listDpiCategories: () => list('/v1/dpi/categories', dpiNameSchema),
-    listAcl: (s) => list(site(s, '/acl-rules'), namedObjectSchema),
-    listDnsPolicies: (s) => list(site(s, '/dns/policies'), namedObjectSchema),
-    listTrafficLists: (s) => list(site(s, '/traffic-matching-lists'), namedObjectSchema),
+    listAcl: (s) => list(site(s, '/acl-rules'), aclRuleSchema),
+    listDnsPolicies: (s) => list(site(s, '/dns/policies'), dnsPolicySchema),
+    listTrafficLists: (s) => list(site(s, '/traffic-matching-lists'), trafficListSchema),
     listFirewallZones: (s) => list(site(s, '/firewall/zones'), firewallZoneSchema),
     listFirewallPolicies: (s) => list(site(s, '/firewall/policies'), firewallPolicySchema),
     firewallOrdering: (s, zones) =>
@@ -254,6 +304,27 @@ export function createOfficialApi(client: UnifiHttpClient): OfficialApi {
     },
     async deleteWifi(s, w) {
       await send('DELETE', wifi(s, w));
+    },
+    getFirewallObject: (s, kind, id) => get(firewallObject(s, kind, id), anyObjectSchema),
+    async createFirewallObject(s, kind, body) {
+      return (await sendParsed('POST', site(s, FIREWALL_PATHS[kind]), createdSchema, { body })).id;
+    },
+    async updateFirewallObject(s, kind, id, body) {
+      await send('PUT', firewallObject(s, kind, id), body);
+    },
+    async deleteFirewallObject(s, kind, id) {
+      await send('DELETE', firewallObject(s, kind, id));
+    },
+    async reorderFirewallPolicies(s, zones, order) {
+      await send(
+        'PUT',
+        site(s, '/firewall/policies/ordering'),
+        { orderedFirewallPolicyIds: order },
+        {
+          sourceFirewallZoneId: zones.sourceZoneId,
+          destinationFirewallZoneId: zones.destinationZoneId,
+        },
+      );
     },
     listVouchers: (s, filter) => list(vouchers(s), voucherSchema, filter),
     async createVouchers(s, body) {
