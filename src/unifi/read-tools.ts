@@ -1,13 +1,20 @@
 import { z } from 'zod';
 import { describeError } from '../http/errors.js';
 import { defineTool, type ToolDefinition } from '../mcp/types.js';
-import { clientDetail, clientRow, loadClients, type ClientRecord } from './clients.js';
+import {
+  clientDetail,
+  clientRow,
+  loadClients,
+  officialClientsNote,
+  type ClientRecord,
+} from './clients.js';
 import { limitInput, parseTime, siteInput } from './inputs.js';
 import { ambiguous, findClient, findDevice, hasText, sameId, sameText } from './lookup.js';
 import type { LegacyDevice } from './legacy.js';
 import type { OfficialDevice } from './official.js';
 import { EVENT_CEILING, DAY_MS, READ, coverageNote, severityRank, type ReadDeps } from './read-common.js';
 import { compact, cut, isGatewayModel, modelName } from './shape.js';
+import type { Site } from './sites.js';
 import { createEventTools } from './event-tools.js';
 import { createMetricsTools } from './metrics-tools.js';
 import { createSecurityTools } from './security-tools.js';
@@ -76,11 +83,35 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
   const { official, legacy, syslog, sites } = deps;
   const now = deps.now ?? Date.now;
 
+  /**
+   * Connected clients by type from the official list; if it fails, from
+   * stat/sta (wired or wireless), with the same note the client tools give.
+   */
+  type ClientCounts = { total: number; wired: number; wireless: number; other: number };
+  const clientCounts = (site: Site): Promise<{ counts: ClientCounts; note?: string }> =>
+    official.listClients(site.id).then(
+      (clients) => {
+        const count = (type: string) => clients.filter((c) => c.type === type).length;
+        const [wired, wireless] = [count('WIRED'), count('WIRELESS')];
+        return {
+          counts: { total: clients.length, wired, wireless, other: clients.length - wired - wireless },
+        };
+      },
+      async (error: unknown) => {
+        const stations = await legacy.stations(site.ref);
+        const wired = stations.filter((s) => s.is_wired).length;
+        return {
+          counts: { total: stations.length, wired, wireless: stations.length - wired, other: 0 },
+          note: officialClientsNote(error),
+        };
+      },
+    );
+
   return [
     defineTool({
       name: 'unifi_overview',
       description:
-        'The "is anything wrong?" entry point: console model and Network version, health per subsystem (WAN, LAN, WLAN, VPN), devices online/offline/upgradable, client counts, and how many HIGH or VERY_HIGH events the last 24 hours logged.',
+        'The "is anything wrong?" entry point: console model and Network version, health per subsystem (WAN, LAN, WLAN, VPN), devices online/offline/upgradable, client counts (from stat/sta with clientsNote when the official client list fails), and how many HIGH or VERY_HIGH events the last 24 hours logged.',
       inputSchema: { site: siteInput },
       annotations: READ,
       handler: async ({ site: wanted }) => {
@@ -90,7 +121,7 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
           legacy.sysinfo(site.ref),
           legacy.health(site.ref),
           official.listDevices(site.id),
-          official.listClients(site.id),
+          clientCounts(site),
           syslog.scan(site.ref, {
             from: to - DAY_MS,
             to,
@@ -101,7 +132,6 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
         const gateway = devices.find((d) => isGatewayModel(d.model));
         const offline = devices.filter((d) => OFFLINE_STATES.has(d.state));
         const online = devices.filter((d) => d.state === 'ONLINE');
-        const countType = (type: string) => clients.filter((c) => c.type === type).length;
         return compact({
           site: site.name,
           console: compact({
@@ -130,12 +160,8 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
             upgradable: devices.filter((d) => d.firmwareUpdatable).length,
           },
           offlineDevices: offline.length > 0 ? offline.map((d) => d.name) : undefined,
-          clients: {
-            total: clients.length,
-            wired: countType('WIRED'),
-            wireless: countType('WIRELESS'),
-            other: clients.length - countType('WIRED') - countType('WIRELESS'),
-          },
+          clients: clients.counts,
+          clientsNote: clients.note,
           recentHighEvents: recent.entries.length,
           ...(recent.truncatedAt === undefined
             ? {}

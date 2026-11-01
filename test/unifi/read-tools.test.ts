@@ -120,6 +120,24 @@ describe('unifi_overview', () => {
     expect(overview.offlineDevices).toEqual([devices[2]!.name]);
   });
 
+  it('a failing official client list counts the connected clients from stat/sta, with the note', async () => {
+    const { deps, call } = setup();
+    deps.official.listClients = async () => {
+      throw new Error('official API timed out');
+    };
+    const overview = (await call('unifi_overview')) as Shape & { clientsNote: string };
+    expect(overview.clients).toEqual({ total: 31, wired: 17, wireless: 14, other: 0 });
+    expect(overview.clientsNote).toMatch(
+      /official client list didn't answer .*guest actions are unavailable/,
+    );
+    expect(overview.devices).toMatchObject({ total: 4 });
+  });
+
+  it('has no client note while the official client list answers', async () => {
+    const { call } = setup();
+    expect(await call('unifi_overview')).not.toHaveProperty('clientsNote');
+  });
+
   it('counts every HIGH event the log holds for the window', async () => {
     const { call } = setup({ log: syntheticLog(1500) });
     const overview = (await call('unifi_overview')) as { recentHighEvents: number };

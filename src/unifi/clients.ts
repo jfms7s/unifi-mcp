@@ -34,6 +34,10 @@ export interface LoadedClients {
   note?: string;
 }
 
+/** Why the client tools carry legacy-only records: the official list failed. */
+export const officialClientsNote = (error: unknown) =>
+  `the official client list didn't answer (${describeError(error)}); guest actions are unavailable until it does`;
+
 /**
  * rest/user (everyone ever seen) + stat/sta (who is connected) + network names
  * + official ids. A failing official list degrades to legacy-only records and
@@ -48,10 +52,7 @@ export async function loadClients(
     legacy.networkConf(site.ref),
     official.listClients(site.id).then(
       (clients) => ({ clients }),
-      (error: unknown) => ({
-        clients: [],
-        note: `the official client list didn't answer (${describeError(error)}); guest actions are unavailable until it does`,
-      }),
+      (error: unknown) => ({ clients: [], note: officialClientsNote(error) }),
     ),
   ]);
   const officialClients = officialResult.clients;
