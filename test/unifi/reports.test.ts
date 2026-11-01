@@ -157,6 +157,42 @@ describe('unifi_traffic_report', () => {
     ).rejects.toThrow(`device is only for scope ap or gateway, not ${scope}`);
   });
 
+  it.each(['site', 'ap', 'gateway'])('rejects a client for a %s report instead of ignoring it', async (scope) => {
+    const { call } = setup();
+    await expect(
+      call('unifi_traffic_report', {
+        scope,
+        client: '02:00:00:00:00:8f',
+        ...(scope === 'ap' ? { device: 'device-3' } : {}),
+      }),
+    ).rejects.toThrow(`client is only for scope client, not ${scope}`);
+  });
+
+  it('an AP report on a device that is not an AP is refused, naming the APs', async () => {
+    const { call } = setup();
+    await expect(call('unifi_traffic_report', { scope: 'ap', device: 'device-2' })).rejects.toThrow(
+      'device-2 is not an access point; the access points are: device-3',
+    );
+    const r = (await call('unifi_traffic_report', { scope: 'ap', device: 'device-3' })) as Report;
+    expect(r.target).toEqual({ name: 'device-3' });
+  });
+
+  it('a client report passes on the note when the official client list failed', async () => {
+    const { deps, call } = setup();
+    deps.official.listClients = async () => {
+      throw new Error('official API timed out');
+    };
+    const r = (await call('unifi_traffic_report', {
+      scope: 'client',
+      client: '02:00:00:00:00:8f',
+      interval: 'hourly',
+    })) as Report & { note?: string };
+    expect(r.points.length).toBeGreaterThan(0);
+    expect(r.note).toMatch(/official client list didn't answer/);
+    const site = (await call('unifi_traffic_report', { scope: 'site' })) as { note?: string };
+    expect(site.note).toBeUndefined();
+  });
+
   describe('with two gateways', () => {
     function twoGateways() {
       const ctx = setup();
@@ -308,6 +344,18 @@ describe('unifi_top_apps', () => {
     const r = (await call('unifi_top_apps')) as Apps;
     expect(r.apps).toEqual([]);
     expect(r.note).toMatch(/no DPI data/i);
+  });
+
+  it("a client's top apps pass on the note when the official client list failed", async () => {
+    const { deps, call } = setup();
+    deps.official.listClients = async () => {
+      throw new Error('official API timed out');
+    };
+    const r = (await call('unifi_top_apps', { client: '02:00:00:00:00:8f' })) as Apps;
+    expect(r.scope).toBe('client');
+    expect(r.note).toMatch(/no DPI data.*; the official client list didn't answer/i);
+    const ok = (await setup().call('unifi_top_apps', { client: '02:00:00:00:00:8f' })) as Apps;
+    expect(ok.note ?? '').not.toMatch(/official client list/);
   });
 
   it('refuses to guess between clients', async () => {

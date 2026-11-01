@@ -4,6 +4,7 @@ import { loadClients } from './clients.js';
 import { parseRange, siteInput, sinceInput, untilInput } from './inputs.js';
 import type { ReportInterval, ReportScope } from './legacy.js';
 import { ambiguous, findClient, findDevice } from './lookup.js';
+import type { OfficialDevice } from './official.js';
 import { DAY_MS, READ, type ReadDeps } from './read-common.js';
 import { MAX_REPORT_POINTS, downsample } from './reports.js';
 import type { DpiRow, ReportRow } from './schemas.js';
@@ -11,6 +12,9 @@ import { compact, isGatewayModel, iso } from './shape.js';
 import { ispMetricsReader } from './wan-tools.js';
 
 const TOP_N = 10;
+
+/** An AP by the official feature list; a device that lists no features is given the benefit of the doubt. */
+const isAccessPoint = (d: OfficialDevice) => d.features === undefined || d.features.includes('accessPoint');
 
 const SCOPES = {
   site: {
@@ -121,8 +125,8 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
           .string()
           .min(1)
           .optional()
-          .describe('AP name, MAC, IP or id (scope ap), or the gateway (scope gateway; needed when the site has several)'),
-        client: z.string().min(1).optional().describe('Client name, MAC, IP or id (scope client)'),
+          .describe('AP name, MAC, IP or id (scope ap; must be an access point), or the gateway (scope gateway; needed when the site has several)'),
+        client: z.string().min(1).optional().describe('Client name, MAC, IP or id (scope client only)'),
         interval: z.enum(['5minutes', 'hourly', 'daily']).optional().describe('Bucket size; default 5minutes up to 2 days, hourly up to 31 days, else daily'),
         since: sinceInput,
         until: untilInput,
@@ -136,8 +140,12 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
         const range = parseRange(a.since, a.until, '24h', now());
 
         let target: { name: string; mac: string } | undefined;
+        let clientNote: string | undefined;
         if (a.device !== undefined && scope !== 'ap' && scope !== 'gateway') {
           throw new Error(`device is only for scope ap or gateway, not ${scope}`);
+        }
+        if (a.client !== undefined && scope !== 'client') {
+          throw new Error(`client is only for scope client, not ${scope}`);
         }
         if (scope === 'ap' || scope === 'gateway') {
           if (scope === 'ap' && a.device === undefined) throw new Error('scope ap needs a device');
@@ -160,11 +168,19 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
                 `${match.found.name} is not a gateway; the gateways are: ${gateways.map((g) => g.name).join(', ') || 'none'}`,
               );
             }
+            if (scope === 'ap' && !isAccessPoint(match.found)) {
+              const aps = devices.filter(isAccessPoint).map((d) => d.name);
+              throw new Error(
+                `${match.found.name} is not an access point; the access points are: ${aps.join(', ') || 'none'}`,
+              );
+            }
             target = { name: match.found.name, mac: match.found.macAddress };
           }
         } else if (scope === 'client') {
           if (a.client === undefined) throw new Error('scope client needs a client');
-          const match = findClient((await loadClients(deps, site)).records, a.client);
+          const loaded = await loadClients(deps, site);
+          clientNote = loaded.note;
+          const match = findClient(loaded.records, a.client);
           if ('none' in match) throw new Error(`No client matches "${a.client}"`);
           if ('ambiguous' in match) {
             return ambiguous(a.client, match.ambiguous, (c) => ({ id: c.id, name: c.name, ip: c.ip }));
@@ -188,6 +204,7 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
           range: { from: iso(range.from), to: iso(range.to) },
           downsampled: points.length < mine.length ? { from: mine.length, to: points.length } : undefined,
           points: points.map(({ time, ...rest }) => ({ time: iso(time), ...rest })),
+          note: clientNote,
         });
       },
     }),
@@ -205,10 +222,13 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
         const site = await sites.resolve(a.site);
         let rows: DpiRow[];
         let target: string | undefined;
+        let clientNote: string | undefined;
         if (a.client === undefined) {
           rows = await legacy.siteDpi(site.ref);
         } else {
-          const match = findClient((await loadClients(deps, site)).records, a.client);
+          const loaded = await loadClients(deps, site);
+          clientNote = loaded.note;
+          const match = findClient(loaded.records, a.client);
           if ('none' in match) throw new Error(`No client matches "${a.client}"`);
           if ('ambiguous' in match) {
             return ambiguous(a.client, match.ambiguous, (c) => ({ id: c.id, name: c.name, ip: c.ip }));
@@ -266,6 +286,7 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
               appNames.names === undefined || catNames.names === undefined
                 ? 'The DPI catalogue could not be read, so unnamed ids show as app <id> or category <id>'
                 : undefined,
+              clientNote,
             ]
               .filter(Boolean)
               .join('; ') || undefined,
