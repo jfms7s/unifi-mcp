@@ -73,6 +73,8 @@ function placeSide(raw: unknown, label: 'source' | 'destination', ctx: FirewallC
   const { networkFilter, ipAddressFilter } = filter.data;
 
   if (filter.data.type === 'NETWORK' && networkFilter && !networkFilter.matchOpposite) {
+    // An empty filter names nothing to narrow by: the zone bounds it.
+    if (networkFilter.networkIds.length === 0) return wholeZone();
     // An id the console doesn't have (a name, a typo) could stand for anything: never a pass.
     const known = new Set([
       ...ctx.zones.flatMap((z) => z.networkIds),
@@ -110,6 +112,8 @@ function placeSide(raw: unknown, label: 'source' | 'destination', ctx: FirewallC
   } else {
     return wholeZone();
   }
+  // As with an empty NETWORK filter (and an open ACL endpoint): no items, the whole zone.
+  if (items.length === 0) return wholeZone();
   for (const [i, address] of addressesOf(items).entries()) {
     if (address === undefined) {
       placed.unplaced.push(`the policy's ${label} match ${JSON.stringify(items[i])}`);

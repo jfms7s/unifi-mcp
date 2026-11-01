@@ -200,6 +200,22 @@ describe('a policy touches pi-cluster', () => {
   });
 });
 
+describe('an empty filter reaches the whole zone (M3)', () => {
+  it.each([
+    ['an empty NETWORK filter', nets()],
+    ['an empty IP address list', ips()],
+    ['an empty IPv4 traffic matching list', viaList('empty')],
+  ])('%s on Internal is the whole zone, pi-cluster included', (_, trafficFilter) => {
+    const c = ctx([list('empty', [])]);
+    const policy = {
+      source: { zoneId: INTERNAL, trafficFilter },
+      destination: { zoneId: EXTERNAL },
+    };
+    expect(policyTarget([policy], c).sourceNetworkIds).toEqual([DEFAULT_NET, IOT, PI_CLUSTER]);
+    expect(reason(policy, c)).toContain('pi-cluster');
+  });
+});
+
 describe('what it cannot place leans to confirm', () => {
   const can = (r: string | undefined) => expect(r).toMatch(/can't place/);
 
