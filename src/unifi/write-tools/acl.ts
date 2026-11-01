@@ -154,13 +154,11 @@ export function createAclWriteTools(deps: WriteDeps): ToolDefinition[] {
         const { body, changes } = mergeUpdate(current, compact(patch as Plain), ACL_READ_ONLY);
         const fields = Object.keys(changes);
         if (fields.length === 0) return { unchanged: true, aclRule: rule.name };
+        const networks = await known(site);
         return guarded(
           {
             level: 'confirm',
-            target: unionTargets(
-              aclTarget(current, await known(site)),
-              aclTarget(body, await known(site)),
-            ),
+            target: unionTargets(aclTarget(current, networks), aclTarget(body, networks)),
             confirm,
             preview: async () => ({ would: 'update ACL rule', aclRule: rule.name, changes }),
             run: async () => {

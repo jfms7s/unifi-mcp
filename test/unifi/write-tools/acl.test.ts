@@ -163,3 +163,39 @@ describe('unifi_update_acl_rule and unifi_delete_acl_rule', () => {
     await expectRejectsLooseConfirm(await connect(tools), name, args, onWrite);
   });
 });
+
+describe('network reads', () => {
+  /** GETs of the site's official network list during `fn`. */
+  async function networkReads(fn: () => Promise<unknown>): Promise<number> {
+    let count = 0;
+    const listener = ({ request }: { request: Request }) => {
+      const path = new URL(request.url).pathname;
+      if (request.method === 'GET' && path === `${OFFICIAL_SITE}/networks`) count += 1;
+    };
+    server.events.on('request:start', listener);
+    try {
+      await fn();
+    } finally {
+      server.events.removeListener('request:start', listener);
+    }
+    return count;
+  }
+
+  it('unifi_update_acl_rule reads the networks once per call, as create does', async () => {
+    const { call } = setup({ ...withRules, ...created });
+    const create = await networkReads(() =>
+      call('unifi_create_acl_rule', {
+        name: 'x',
+        action: 'BLOCK',
+        sourceFilter: { type: 'NETWORKS', networkIds: [NETS.iot] },
+        destinationFilter: { type: 'NETWORKS', networkIds: [NETS.default] },
+      }),
+    );
+    const update = await networkReads(() =>
+      call('unifi_update_acl_rule', { aclRule: 'iot-to-lan', action: 'ALLOW' }),
+    );
+    // One read for the rule's networks plus the protected-scope load's own.
+    expect(create).toBe(2);
+    expect(update).toBe(create);
+  });
+});
