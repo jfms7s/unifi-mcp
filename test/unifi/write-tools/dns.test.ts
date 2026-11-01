@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { connect, expectRejectsLooseConfirm } from '../../helpers/sdk.js';
+import { consoleHost } from '../../../src/unifi/write-tools/common.js';
 import { useServer } from '../helpers.js';
 import { dnsPolicies } from './firewall-fixtures.js';
 import { without } from './firewall-fixtures.js';
@@ -109,9 +110,66 @@ describe('DNS policies', () => {
     expect(writes).toEqual([]);
   });
 
+  // M6: the harness console is https://console.test, a hostname.
+  it.each([
+    [
+      'an A record for the console host',
+      { type: 'A_RECORD', domain: 'console.test', ipv4Address: '192.0.2.1' },
+    ],
+    [
+      'the console host in another case, with a root dot',
+      { type: 'CNAME_RECORD', domain: 'Console.Test.', targetDomain: 'example.com' },
+    ],
+    [
+      'a forward of a parent of the console host',
+      { type: 'FORWARD_DOMAIN', domain: 'test', ipAddress: '192.0.2.53' },
+    ],
+  ])('create of %s is confirm-level: it can redirect unifi-mcp itself', async (_, args) => {
+    const { call, writes } = setup({ officialReply: { id: RECORD.id } });
+    const out = (await call('unifi_create_dns_policy', args)) as Out;
+    expect(writes).toEqual([]);
+    expect(out.requires).toBe('confirm: true');
+    expect(out.warning).toContain('console.test');
+    await call('unifi_create_dns_policy', { ...args, confirm: true });
+    expect(writes).toHaveLength(1);
+  });
+
+  it('records beside the console host stay easy', async () => {
+    for (const args of [
+      { type: 'A_RECORD', domain: 'nas.console.test', ipv4Address: '192.0.2.1' },
+      { type: 'A_RECORD', domain: 'test', ipv4Address: '192.0.2.1' },
+      { type: 'FORWARD_DOMAIN', domain: 'other.test', ipAddress: '192.0.2.53' },
+    ]) {
+      const { call, writes } = setup({ officialReply: { id: RECORD.id } });
+      expect(await call('unifi_create_dns_policy', args), args.domain).toMatchObject({
+        changed: 'created',
+      });
+      expect(writes).toHaveLength(1);
+    }
+  });
+
+  it('an update that points a record at the console host warns in its preview', async () => {
+    const { call } = setup(withRecord);
+    const out = (await call('unifi_update_dns_policy', {
+      dnsPolicy: 'nas.home.arpa',
+      domain: 'console.test',
+    })) as Out;
+    expect(out.warning).toContain('console.test');
+  });
+
+  it('consoleHost: a hostname URL names its host; an IP URL names none', () => {
+    expect(consoleHost('https://Unifi.Example.com:8443')).toBe('unifi.example.com');
+    expect(consoleHost('https://192.168.1.1')).toBeUndefined();
+    expect(consoleHost('https://[fd00::1]')).toBeUndefined();
+  });
+
   it.each([
     ['unifi_update_dns_policy', { dnsPolicy: 'nas.home.arpa', enabled: false }],
     ['unifi_delete_dns_policy', { dnsPolicy: 'nas.home.arpa' }],
+    [
+      'unifi_create_dns_policy',
+      { type: 'A_RECORD', domain: 'console.test', ipv4Address: '192.0.2.1' },
+    ],
   ] as const)('%s refuses every loose confirm through the SDK', async (name, args) => {
     const { tools, onWrite } = setup(withRecord);
     await expectRejectsLooseConfirm(await connect(tools), name, args, onWrite);

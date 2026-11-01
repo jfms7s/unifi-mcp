@@ -124,6 +124,7 @@ export function fakeWriteConsole(server: SetupServer, opts: ConsoleOptions = {})
   const deps: WriteDeps = {
     ...base,
     scope: async () => loadProtectedScope(['pi-cluster'], base, await base.sites.resolve()),
+    consoleHost: new URL(BASE).hostname,
   };
   const tools = createWriteTools(deps);
   return { writes, onWrite, tools, call: caller(tools) };

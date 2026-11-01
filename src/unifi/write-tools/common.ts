@@ -6,6 +6,18 @@ import type { ReadDeps } from '../read-common.js';
 export interface WriteDeps extends ReadDeps {
   /** The protected scope; lazy and cached for a few minutes (see `lazyScope`). */
   scope: () => Promise<ProtectedScope>;
+  /** The console's hostname from UNIFI_URL (see `consoleHost`); absent when it is an IP. */
+  consoleHost?: string;
+}
+
+/**
+ * The host unifi-mcp reaches the console by, lower-cased, when UNIFI_URL names
+ * a hostname; undefined for an IP address, which no DNS record can redirect.
+ */
+export function consoleHost(baseUrl: string): string | undefined {
+  const host = new URL(baseUrl).hostname.toLowerCase();
+  if (host.startsWith('[') || /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return undefined;
+  return host;
 }
 
 /** Annotations for a change; `destructive` when it cuts something off or resets it. */

@@ -43,6 +43,27 @@ const TYPES = [
 
 const policyInput = z.string().min(1).describe('DNS policy id, or its domain');
 
+const bare = (domain: string) => domain.trim().toLowerCase().replace(/\.$/, '');
+
+/**
+ * Why a record can redirect unifi-mcp itself: it is for the console's own
+ * hostname, or forwards that name (or a parent of it) to another server.
+ */
+export function consoleRedirect(
+  record: { type?: unknown; domain?: unknown },
+  host: string | undefined,
+): string | undefined {
+  if (host === undefined || typeof record.domain !== 'string') return undefined;
+  const domain = bare(record.domain);
+  if (domain === host) {
+    return `the record is for ${host}, the console's hostname in UNIFI_URL, so it can send unifi-mcp elsewhere`;
+  }
+  if (record.type === 'FORWARD_DOMAIN' && host.endsWith(`.${domain}`)) {
+    return `it forwards ${domain}, which holds ${host} (the console's hostname in UNIFI_URL), to another DNS server`;
+  }
+  return undefined;
+}
+
 async function findDns(deps: WriteDeps, site: Site, query: string) {
   const all = await deps.official.listDnsPolicies(site.id);
   const match = lookup(all, query, [(d, q) => sameText(d.id, q), (d, q) => sameText(d.domain, q)]);
@@ -65,21 +86,24 @@ export function createDnsWriteTools(deps: WriteDeps): ToolDefinition[] {
     defineTool({
       name: 'unifi_create_dns_policy',
       description:
-        'Create a DNS policy (official POST /dns/policies): a local A, AAAA, CNAME, MX, SRV or TXT record, or a forward domain. Easy: DNS records do not filter traffic, so they cannot cut unifi-mcp off (it reaches the console by IP).',
+        'Create a DNS policy (official POST /dns/policies): a local A, AAAA, CNAME, MX, SRV or TXT record, or a forward domain. Easy: DNS records do not filter traffic. When UNIFI_URL names the console by hostname, a record for that hostname, or a forward of it or a parent domain, can send unifi-mcp elsewhere, so it needs confirm: true and previews first.',
       inputSchema: {
         site: siteInput,
         type: z.enum(TYPES).describe('Record type'),
         ...partial(dnsFields),
         domain: dnsFields.domain,
         enabled: dnsFields.enabled.default(true),
+        confirm: confirmInput,
       },
       annotations: write({ destructive: false, idempotent: false }),
-      handler: async ({ site: wanted, ...a }) => {
+      handler: async ({ site: wanted, confirm, ...a }) => {
         const site = await deps.sites.resolve(wanted);
         const body = compact(a as Plain);
         return guarded(
           {
             level: 'easy',
+            reason: consoleRedirect(body, deps.consoleHost),
+            confirm,
             preview: async () => ({ would: 'create DNS policy', dnsPolicy: body }),
             run: async () => {
               const id = await deps.official.createFirewallObject(site.id, 'dns', body);
@@ -115,6 +139,7 @@ export function createDnsWriteTools(deps: WriteDeps): ToolDefinition[] {
         return guarded(
           {
             level: 'confirm',
+            reason: consoleRedirect(body, deps.consoleHost),
             confirm,
             preview: async () => ({ would: 'update DNS policy', dnsPolicy: record, changes }),
             run: async () => {

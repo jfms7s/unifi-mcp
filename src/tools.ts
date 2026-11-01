@@ -8,6 +8,7 @@ import { createReadTools } from './unifi/read-tools.js';
 import { createSiteManagerApi } from './unifi/sitemanager.js';
 import { createSiteResolver } from './unifi/sites.js';
 import { createSyslogApi } from './unifi/syslog.js';
+import { consoleHost } from './unifi/write-tools/common.js';
 import { createWriteTools, lazyScope } from './unifi/write-tools/index.js';
 
 /** Read tools, plus the change tools unless read-only; Site Manager tools only with its key. */
@@ -26,5 +27,8 @@ export function buildTools(config: UnifiMcpConfig): ToolDefinition[] {
   const scope = lazyScope(async () =>
     loadProtectedScope(config.protectedNetworks, deps, await deps.sites.resolve()),
   );
-  return [...tools, ...createWriteTools({ ...deps, scope })];
+  return [
+    ...tools,
+    ...createWriteTools({ ...deps, scope, consoleHost: consoleHost(config.console.baseUrl) }),
+  ];
 }
