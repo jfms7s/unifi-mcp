@@ -1,4 +1,5 @@
 import type { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
+import type { z } from 'zod';
 import type { ProtectedScope } from '../guard.js';
 import type { ReadDeps } from '../read-common.js';
 
@@ -32,3 +33,9 @@ export function lazyScope(load: () => Promise<ProtectedScope>): () => Promise<Pr
     return cached;
   };
 }
+
+/** Every field of a raw zod shape made optional: an update's "partial of the request schema". */
+export const partial = <T extends Record<string, z.ZodType>>(shape: T) =>
+  Object.fromEntries(Object.entries(shape).map(([k, v]) => [k, v.optional()])) as {
+    [K in keyof T]: z.ZodOptional<T[K]>;
+  };

@@ -25,15 +25,20 @@ export interface Write {
   method: string;
   path: string;
   body: unknown;
+  /** Only present when the write had a query string. */
+  query?: Record<string, string>;
 }
 
 export interface ConsoleOptions {
   links?: LinkSpec[];
   /** Replaces a fixture's body, by fixture name (e.g. `legacy-rest-user`). */
   fixtures?: Record<string, unknown>;
-  /** What an official write answers (default: an empty 200). */
+  /** What an official write answers (default: an empty 200); a function sees the write. */
   officialReply?: unknown;
 }
+
+/** `official-networks-<id>` and `official-wifi-broadcasts-<id>`: one object of a list. */
+const DETAIL = /^(official-(?:networks|wifi-broadcasts))-([0-9a-f-]{36})$/;
 
 const PREFIXES = [
   ['/proxy/network/integration', 'official'],
@@ -50,26 +55,45 @@ export function fakeWriteConsole(server: SetupServer, opts: ConsoleOptions = {})
       const [prefix, api] = PREFIXES.find(([p]) => path.startsWith(`${p}/`)) ?? [];
       if (prefix === undefined || api === undefined) throw new Error(`no fixture for ${path}`);
       const name = fixtureName(api, path.slice(prefix.length));
+      const detail = DETAIL.exec(name);
+      if (detail && opts.fixtures?.[name] === undefined) {
+        // A detail GET answers with that row of the list fixture, as the console would.
+        const [, list = '', id] = detail;
+        const page = (opts.fixtures?.[list] ?? liveFixture(list)) as {
+          data: Array<{ id: string }>;
+        };
+        const row = page.data.find((r) => r.id === id);
+        return row
+          ? HttpResponse.json(row as never)
+          : HttpResponse.json({ statusCode: 404, code: 'api.err.NotFound' }, { status: 404 });
+      }
       const body =
         opts.fixtures?.[name] ??
         (name === 'legacy-stat-device' ? statDevice(opts.links ?? LIVE_LINKS) : liveFixture(name));
       return HttpResponse.json(body as never);
     }),
-    ...[http.post, http.delete].map((verb) =>
+    ...[http.post, http.put, http.delete].map((verb) =>
       verb(`${BASE}/proxy/network/*`, async ({ request }) => {
         const path = new URL(request.url).pathname;
         const text = await request.text();
-        onWrite({
+        const url = new URL(request.url);
+        const write: Write = {
           method: request.method,
           path,
           body: text ? (JSON.parse(text) as unknown) : undefined,
-        });
+          ...(url.search ? { query: Object.fromEntries(url.searchParams) } : {}),
+        };
+        onWrite(write);
         if (path.startsWith('/proxy/network/api/')) {
           return HttpResponse.json({ meta: { rc: 'ok' }, data: [] });
         }
-        return opts.officialReply === undefined
+        const reply =
+          typeof opts.officialReply === 'function'
+            ? (opts.officialReply as (w: Write) => unknown)(write)
+            : opts.officialReply;
+        return reply === undefined
           ? new HttpResponse(null, { status: 200 })
-          : HttpResponse.json(opts.officialReply as never);
+          : HttpResponse.json(reply as never);
       }),
     ),
   );

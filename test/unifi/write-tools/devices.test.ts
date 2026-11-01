@@ -36,7 +36,7 @@ const offlineNode = withOfflineUser({
 });
 
 describe('createWriteTools', () => {
-  it('registers exactly the client, device and port tools, all with WRITE annotations', () => {
+  it('registers exactly the write tools, all with WRITE annotations', () => {
     const { tools } = setup();
     expect(tools.map((t) => t.name).sort()).toEqual([...WRITE_TOOL_NAMES].sort());
     const destructive = new Set([
@@ -44,6 +44,13 @@ describe('createWriteTools', () => {
       'unifi_restart_device',
       'unifi_power_cycle_port',
       'unifi_unadopt_device',
+      'unifi_update_network',
+      'unifi_delete_network',
+      'unifi_update_wifi',
+      'unifi_set_wifi_enabled',
+      'unifi_delete_wifi',
+      'unifi_delete_voucher',
+      'unifi_delete_vouchers',
     ]);
     for (const t of tools) {
       expect(t.annotations, t.name).toMatchObject({

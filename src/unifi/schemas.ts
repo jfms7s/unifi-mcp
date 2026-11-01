@@ -436,3 +436,30 @@ export type IspMetrics = z.infer<typeof ispMetricsSchema>;
 
 export const siteManagerEnvelope = <T extends z.ZodType>(item: T) =>
   z.object({ data: z.array(item), nextToken: z.string().optional() });
+
+/**
+ * A whole network or WiFi broadcast as GET /{networks,wifi/broadcasts}/{id}
+ * returns it, every field kept. The official PUT replaces the object, so an
+ * update must send back what it was not asked to change; a schema that
+ * dropped unknown fields would wipe them. Only `id` and `name` are read.
+ */
+export const fullObjectSchema = z.looseObject({ id: z.string(), name: z.string() });
+export type FullObject = z.infer<typeof fullObjectSchema>;
+
+/** `Hotspot voucher details`: the fields unifi-mcp shows. */
+export const voucherSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  code: z.string().optional(),
+  createdAt: z.string().optional(),
+  expired: z.boolean().optional(),
+  timeLimitMinutes: z.number().optional(),
+  authorizedGuestLimit: z.number().optional(),
+  authorizedGuestCount: z.number().optional(),
+  dataUsageLimitMBytes: z.number().optional(),
+  expiresAt: z.string().optional(),
+});
+export type Voucher = z.infer<typeof voucherSchema>;
+
+export const voucherCreationSchema = z.object({ vouchers: z.array(voucherSchema) });
+export const voucherDeletionSchema = z.object({ vouchersDeleted: z.number().optional() });

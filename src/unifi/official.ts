@@ -6,6 +6,7 @@ import {
   dpiNameSchema,
   firewallPolicySchema,
   firewallZoneSchema,
+  fullObjectSchema,
   namedObjectSchema,
   officialClientSchema,
   officialDeviceSchema,
@@ -18,13 +19,18 @@ import {
   type DpiName,
   type FirewallPolicy,
   type FirewallZone,
+  type FullObject,
   type NamedObject,
   type OfficialClient,
   type OfficialDevice,
   type OfficialNetwork,
   type PolicyOrdering,
+  type Voucher,
   type Wan,
   type WifiBroadcast,
+  voucherCreationSchema,
+  voucherDeletionSchema,
+  voucherSchema,
 } from './schemas.js';
 
 export type {
@@ -32,11 +38,13 @@ export type {
   DpiName,
   FirewallPolicy,
   FirewallZone,
+  FullObject,
   NamedObject,
   OfficialClient,
   OfficialDevice,
   OfficialNetwork,
   PolicyOrdering,
+  Voucher,
   Wan,
   WifiBroadcast,
 };
@@ -78,6 +86,37 @@ export interface OfficialApi {
   adoptDevice(siteId: string, macAddress: string): Promise<void>;
   /** The console resets an online device to factory defaults. */
   unadoptDevice(siteId: string, deviceId: string): Promise<void>;
+
+  /** The whole network, every field kept, for a GET-merge-PUT update. */
+  getNetwork(siteId: string, networkId: string): Promise<FullObject>;
+  /** Resolves to the console's answer (the new network), unparsed. */
+  createNetwork(siteId: string, body: object): Promise<unknown>;
+  /** The official PUT replaces the network: send the whole object. */
+  updateNetwork(siteId: string, networkId: string, body: object): Promise<void>;
+  deleteNetwork(siteId: string, networkId: string): Promise<void>;
+  /** The whole broadcast, passphrase included: never return it as is. */
+  getWifi(siteId: string, wifiId: string): Promise<FullObject>;
+  createWifi(siteId: string, body: object): Promise<unknown>;
+  /** The official PUT replaces the broadcast: send the whole object. */
+  updateWifi(siteId: string, wifiId: string, body: object): Promise<void>;
+  deleteWifi(siteId: string, wifiId: string): Promise<void>;
+  /** `filter` uses the official filter syntax, e.g. `expired.eq(true)`. */
+  listVouchers(siteId: string, filter?: string): Promise<Voucher[]>;
+  createVouchers(siteId: string, body: VoucherRequest): Promise<Voucher[]>;
+  deleteVoucher(siteId: string, voucherId: string): Promise<number | undefined>;
+  /** Deletes every voucher `filter` matches; the console requires a filter. */
+  deleteVouchers(siteId: string, filter: string): Promise<number | undefined>;
+}
+
+/** `Hotspot voucher creation request` in the Network API spec. */
+export interface VoucherRequest {
+  name: string;
+  timeLimitMinutes: number;
+  count?: number;
+  authorizedGuestLimit?: number;
+  dataUsageLimitMBytes?: number;
+  rxRateLimitKbps?: number;
+  txRateLimitKbps?: number;
 }
 
 /** `Guest access (un)authorization request` in the Network API spec. */
@@ -107,11 +146,16 @@ export function createOfficialApi(client: UnifiHttpClient): OfficialApi {
   }
 
   /** Follows offset/limit until `totalCount` is reached; an empty page also ends it. */
-  async function list<T extends z.ZodType>(path: string, item: T): Promise<z.infer<T>[]> {
+  async function list<T extends z.ZodType>(
+    path: string,
+    item: T,
+    filter?: string,
+  ): Promise<z.infer<T>[]> {
     const schema = officialPage(item);
     const all: z.infer<T>[] = [];
     for (;;) {
-      const page = await get(path, schema, { offset: all.length, limit: PAGE_SIZE });
+      const query = { offset: all.length, limit: PAGE_SIZE, ...(filter ? { filter } : {}) };
+      const page = await get(path, schema, query);
       all.push(...page.data);
       if (page.data.length === 0 || all.length >= page.totalCount) return all;
     }
@@ -121,9 +165,41 @@ export function createOfficialApi(client: UnifiHttpClient): OfficialApi {
   const device = (siteId: string, deviceId: string, rest = '') =>
     site(siteId, `/devices/${encodeURIComponent(deviceId)}${rest}`);
 
-  async function send(method: 'POST' | 'DELETE', path: string, body?: unknown): Promise<unknown> {
-    return client.request('official', method, path, body === undefined ? {} : { body });
+  async function send(
+    method: 'POST' | 'PUT' | 'DELETE',
+    path: string,
+    body?: unknown,
+    query?: QueryParams,
+  ): Promise<unknown> {
+    return client.request('official', method, path, {
+      ...(body === undefined ? {} : { body }),
+      ...(query === undefined ? {} : { query }),
+    });
   }
+
+  /** A write whose answer unifi-mcp reads: a missing used field is endpoint-changed. */
+  async function sendParsed<T>(
+    method: 'POST' | 'DELETE',
+    path: string,
+    schema: z.ZodType<T>,
+    opts: { body?: unknown; query?: QueryParams } = {},
+  ): Promise<T> {
+    const raw = await send(method, path, opts.body, opts.query);
+    const parsed = schema.safeParse(raw ?? {});
+    if (!parsed.success) {
+      throw new UnifiApiError({
+        kind: 'endpoint-changed',
+        method,
+        path,
+        detail: 'the response no longer has the fields unifi-mcp reads',
+      });
+    }
+    return parsed.data;
+  }
+
+  const network = (s: string, n: string) => site(s, `/networks/${encodeURIComponent(n)}`);
+  const wifi = (s: string, w: string) => site(s, `/wifi/broadcasts/${encodeURIComponent(w)}`);
+  const vouchers = (s: string) => site(s, '/hotspot/vouchers');
 
   return {
     listDevices: (s) => list(site(s, '/devices'), officialDeviceSchema),
@@ -161,6 +237,35 @@ export function createOfficialApi(client: UnifiHttpClient): OfficialApi {
     },
     async unadoptDevice(s, d) {
       await send('DELETE', device(s, d));
+    },
+
+    getNetwork: (s, n) => get(network(s, n), fullObjectSchema),
+    createNetwork: (s, body) => send('POST', site(s, '/networks'), body),
+    async updateNetwork(s, n, body) {
+      await send('PUT', network(s, n), body);
+    },
+    async deleteNetwork(s, n) {
+      await send('DELETE', network(s, n));
+    },
+    getWifi: (s, w) => get(wifi(s, w), fullObjectSchema),
+    createWifi: (s, body) => send('POST', site(s, '/wifi/broadcasts'), body),
+    async updateWifi(s, w, body) {
+      await send('PUT', wifi(s, w), body);
+    },
+    async deleteWifi(s, w) {
+      await send('DELETE', wifi(s, w));
+    },
+    listVouchers: (s, filter) => list(vouchers(s), voucherSchema, filter),
+    async createVouchers(s, body) {
+      return (await sendParsed('POST', vouchers(s), voucherCreationSchema, { body })).vouchers;
+    },
+    async deleteVoucher(s, v) {
+      const path = `${vouchers(s)}/${encodeURIComponent(v)}`;
+      return (await sendParsed('DELETE', path, voucherDeletionSchema)).vouchersDeleted;
+    },
+    async deleteVouchers(s, filter) {
+      return (await sendParsed('DELETE', vouchers(s), voucherDeletionSchema, { query: { filter } }))
+        .vouchersDeleted;
     },
   };
 }
