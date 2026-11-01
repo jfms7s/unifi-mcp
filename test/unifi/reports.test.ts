@@ -150,6 +150,60 @@ describe('unifi_traffic_report', () => {
     await expect(call('unifi_traffic_report', { scope: 'client', client: 'no-such' })).rejects.toThrow(/No client/);
   });
 
+  it.each(['site', 'client'])('rejects a device for a %s report instead of ignoring it', async (scope) => {
+    const { call } = setup();
+    await expect(
+      call('unifi_traffic_report', { scope, device: 'Gateway CGU', client: '02:00:00:00:00:8f' }),
+    ).rejects.toThrow(`device is only for scope ap or gateway, not ${scope}`);
+  });
+
+  describe('with two gateways', () => {
+    function twoGateways() {
+      const ctx = setup();
+      const list = ctx.deps.official.listDevices.bind(ctx.deps.official);
+      ctx.deps.official.listDevices = async (siteId) => {
+        const devices = await list(siteId);
+        const gw = devices.find((d) => d.name === 'Gateway CGU')!;
+        return [
+          ...devices,
+          { ...gw, id: 'second-gateway', macAddress: '02:00:00:00:00:f0', name: 'Gateway Two', ipAddress: '192.168.1.163' },
+        ];
+      };
+      return ctx;
+    }
+
+    it('a gateway report needs a device, and the error lists the gateways', async () => {
+      const { call } = twoGateways();
+      await expect(call('unifi_traffic_report', { scope: 'gateway' })).rejects.toThrow(
+        'This site has 2 gateways; pick one with device: Gateway CGU, Gateway Two',
+      );
+    });
+
+    it('filters the report by the chosen gateway', async () => {
+      const { call } = twoGateways();
+      const mine = (await call('unifi_traffic_report', {
+        scope: 'gateway',
+        device: 'Gateway CGU',
+        interval: 'hourly',
+      })) as Report;
+      expect(mine.target).toEqual({ name: 'Gateway CGU' });
+      expect(mine.points.length).toBeGreaterThan(0);
+      const other = (await call('unifi_traffic_report', {
+        scope: 'gateway',
+        device: 'Gateway Two',
+        interval: 'hourly',
+      })) as Report;
+      expect(other.points).toEqual([]);
+    });
+  });
+
+  it('a gateway report on a device that is not a gateway is refused', async () => {
+    const { call } = setup();
+    await expect(
+      call('unifi_traffic_report', { scope: 'gateway', device: 'device-2' }),
+    ).rejects.toThrow('device-2 is not a gateway');
+  });
+
   it('keeps only points inside the range', async () => {
     const { call } = setup();
     const r = (await call('unifi_traffic_report', {

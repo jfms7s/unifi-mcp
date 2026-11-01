@@ -7,7 +7,7 @@ import { ambiguous, findClient, findDevice } from './lookup.js';
 import { DAY_MS, READ, type ReadDeps } from './read-common.js';
 import { MAX_REPORT_POINTS, downsample } from './reports.js';
 import type { DpiRow, ReportRow } from './schemas.js';
-import { compact, iso } from './shape.js';
+import { compact, isGatewayModel, iso } from './shape.js';
 import { ispMetricsReader } from './wan-tools.js';
 
 const TOP_N = 10;
@@ -117,7 +117,11 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
         'Traffic and client counts over time from the console\'s own reports, for the whole site, one AP (device), one client, or the gateway (with WAN latency, CPU, memory). Interval 5minutes, hourly or daily (default by range). At most 200 points: longer series are averaged per bucket, first and last kept. Bytes are per bucket of the chosen interval.',
       inputSchema: {
         scope: z.enum(['site', 'ap', 'client', 'gateway']).describe('What to report on; ap needs device, client needs client'),
-        device: z.string().min(1).optional().describe('AP name, MAC, IP or id (scope ap)'),
+        device: z
+          .string()
+          .min(1)
+          .optional()
+          .describe('AP name, MAC, IP or id (scope ap), or the gateway (scope gateway; needed when the site has several)'),
         client: z.string().min(1).optional().describe('Client name, MAC, IP or id (scope client)'),
         interval: z.enum(['5minutes', 'hourly', 'daily']).optional().describe('Bucket size; default 5minutes up to 2 days, hourly up to 31 days, else daily'),
         since: sinceInput,
@@ -132,13 +136,29 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
         const range = parseRange(a.since, a.until, '24h', now());
 
         let target: { name: string; mac: string } | undefined;
+        if (a.device !== undefined && scope !== 'ap' && scope !== 'gateway') {
+          throw new Error(`device is only for scope ap or gateway, not ${scope}`);
+        }
         if (scope === 'ap' || scope === 'gateway') {
           if (scope === 'ap' && a.device === undefined) throw new Error('scope ap needs a device');
+          const devices = await official.listDevices(site.id);
+          const gateways = devices.filter((d) => isGatewayModel(d.model));
+          if (scope === 'gateway' && a.device === undefined && gateways.length > 1) {
+            // Several gateways report side by side; mixing their series would be meaningless.
+            throw new Error(
+              `This site has ${gateways.length} gateways; pick one with device: ${gateways.map((g) => g.name).join(', ')}`,
+            );
+          }
           if (a.device !== undefined) {
-            const match = findDevice(await official.listDevices(site.id), a.device);
+            const match = findDevice(devices, a.device);
             if ('none' in match) throw new Error(`No device matches "${a.device}"`);
             if ('ambiguous' in match) {
               return ambiguous(a.device, match.ambiguous, (d) => ({ id: d.id, name: d.name, model: d.model }));
+            }
+            if (scope === 'gateway' && !gateways.includes(match.found)) {
+              throw new Error(
+                `${match.found.name} is not a gateway; the gateways are: ${gateways.map((g) => g.name).join(', ') || 'none'}`,
+              );
             }
             target = { name: match.found.name, mac: match.found.macAddress };
           }
