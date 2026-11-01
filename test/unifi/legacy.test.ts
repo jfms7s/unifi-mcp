@@ -344,6 +344,14 @@ describe('legacy API maps rows for tools', () => {
     expect((await failure(legacy().devices(REF))).kind).toBe('endpoint-changed');
   });
 
+  it('deviceLinks reads only the uplinks: a port or radio missing a field does not matter', async () => {
+    const body = statDevice(LIVE_LINKS) as { data: Record<string, unknown>[] };
+    body.data[1]!.port_table = [{ port_idx: 1 }, { up: true }];
+    body.data[3]!.radio_table_stats = [{ channel: 11 }];
+    server.use(http.get(`${LEGACY}/stat/device`, () => HttpResponse.json(body as never)));
+    expect(await legacy().deviceLinks(REF)).toHaveLength(4);
+  });
+
   it('deviceLinks: a row without its mac is a changed endpoint', async () => {
     const body = statDevice(LIVE_LINKS) as { data: Record<string, unknown>[] };
     delete body.data[1]!.mac;

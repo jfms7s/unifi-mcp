@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { WRITE_TOOL_NAMES } from '../../../src/unifi/write-tools/index.js';
 import { connect, expectRejectsLooseConfirm } from '../../helpers/sdk.js';
 import { useServer } from '../helpers.js';
-import { DAISY_CHAIN, FLEX_MAC } from '../topology.js';
+import { DAISY_CHAIN, FLEX_MAC, LIVE_LINKS, statDevice } from '../topology.js';
 import {
   LEGACY_SITE,
   OFFICIAL_SITE,
@@ -95,6 +95,19 @@ describe('unifi_restart_device', () => {
         body: { action: 'RESTART' },
       },
     ]);
+  });
+
+  it('a stat/device port or radio missing a summary field does not stop the write', async () => {
+    const body = structuredClone(statDevice(LIVE_LINKS)) as { data: Record<string, unknown>[] };
+    for (const d of body.data) {
+      d.port_table = [{ port_idx: 1 }];
+      d.radio_table_stats = [{ channel: 6 }];
+    }
+    const { call, writes } = setup({ fixtures: { 'legacy-stat-device': body } });
+    expect(await call('unifi_power_cycle_port', { device: 'device-4', port: 5 })).toMatchObject({
+      changed: expect.any(String),
+    });
+    expect(writes).toHaveLength(1);
   });
 
   it('the gateway is confirm-level: a preview with the lock-out warning, nothing sent', async () => {

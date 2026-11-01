@@ -130,16 +130,20 @@ const radioStatsSchema = z.object({
 });
 
 /**
- * stat/device: where each device hangs (R15), and its ports and radios for the
- * device list. An offline device keeps only `last_uplink`; a gateway's uplink
- * is the WAN and names no parent.
+ * stat/device for the guard (R15): only where each device hangs. An offline
+ * device keeps only `last_uplink`; a gateway's uplink is the WAN and names no
+ * parent. Ports and radios are not read, so a change there never stops a write.
  */
-export const deviceSchema = z.object({
+export const deviceLinkSchema = z.object({
   mac: z.string(),
   name: z.string().optional(),
-  type: z.string().optional(),
   uplink: uplinkSchema.optional(),
   last_uplink: uplinkSchema.optional(),
+});
+
+/** stat/device for the device list: the uplinks plus ports and radios. */
+export const deviceSchema = deviceLinkSchema.extend({
+  type: z.string().optional(),
   port_table: z.array(devicePortSchema).optional(),
   radio_table_stats: z.array(radioStatsSchema).optional(),
 });

@@ -3,6 +3,7 @@ import type { UnifiHttpClient } from '../http/client.js';
 import { createEndpointGuard, type EndpointGuard } from './endpoint-guard.js';
 import {
   deviceBasicSchema,
+  deviceLinkSchema,
   deviceSchema,
   dpiSchema,
   firewallRuleSchema,
@@ -234,7 +235,7 @@ export function createLegacyApi(client: UnifiHttpClient, guard?: EndpointGuard):
     stations: (ref) => rows(ref, 'stat/sta', stationSchema),
     devicesBasic: (ref) => rows(ref, 'stat/device-basic', deviceBasicSchema),
     async deviceLinks(ref) {
-      const devices = await rows(ref, 'stat/device', deviceSchema);
+      const devices = await rows(ref, 'stat/device', deviceLinkSchema);
       return devices.map((d) => {
         const up = d.uplink?.uplink_mac ? d.uplink : d.last_uplink;
         return {
