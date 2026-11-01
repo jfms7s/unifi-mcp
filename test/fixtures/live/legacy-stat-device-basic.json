@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "rc": "ok"
+  },
+  "data": [
+    {
+      "mac": "02:00:00:00:00:02",
+      "state": 1,
+      "adopted": true,
+      "disabled": false,
+      "type": "usw",
+      "model": "USM8P60",
+      "in_gateway_mode": false
+    },
+    {
+      "mac": "02:00:00:00:00:04",
+      "state": 1,
+      "adopted": true,
+      "disabled": false,
+      "type": "usw",
+      "model": "USWED37",
+      "in_gateway_mode": false
+    },
+    {
+      "mac": "02:00:00:00:00:01",
+      "state": 1,
+      "adopted": true,
+      "disabled": false,
+      "type": "udm",
+      "model": "UDRULT",
+      "in_gateway_mode": true,
+      "name": "Gateway CGU"
+    },
+    {
+      "mac": "02:00:00:00:00:03",
+      "state": 1,
+      "adopted": true,
+      "disabled": false,
+      "type": "uap",
+      "model": "UAPA693",
+      "in_gateway_mode": false
+    }
+  ]
+}

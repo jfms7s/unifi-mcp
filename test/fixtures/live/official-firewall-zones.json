@@ -1,0 +1,12 @@
+{
+  "status": 400,
+  "body": {
+    "statusCode": 400,
+    "statusName": "BAD_REQUEST",
+    "code": "api.firewall.zone-based-firewall-not-configured",
+    "message": "Zone Based Firewall is not configured",
+    "timestamp": "2026-11-01T11:29:40.411516492Z",
+    "requestPath": "/integration/v1/sites/88f7af54-98f8-306a-a1c7-c9349722b1f6/firewall/zones",
+    "requestId": "8ded9c64-9450-465f-8de4-eb77a68d8649"
+  }
+}

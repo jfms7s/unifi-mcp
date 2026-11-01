@@ -1,0 +1,50 @@
+{
+  "meta": {
+    "rc": "ok"
+  },
+  "data": [
+    {
+      "pfwd_interface": "wan",
+      "fwd": "192.168.10.3",
+      "destination_ip": "any",
+      "src": "any",
+      "log": false,
+      "proto": "tcp_udp",
+      "name": "Synology",
+      "dst_port": "61119",
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "69382fa41d4c99459c112d5a",
+      "fwd_port": "6690",
+      "enabled": true
+    },
+    {
+      "pfwd_interface": "wan",
+      "fwd": "192.168.10.3",
+      "destination_ip": "any",
+      "src": "any",
+      "log": false,
+      "proto": "tcp_udp",
+      "name": "PLEX",
+      "dst_port": "32400",
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "69382fcf1d4c99459c112d5c",
+      "fwd_port": "32400",
+      "enabled": true
+    },
+    {
+      "pfwd_interface": "wan",
+      "log": false,
+      "destination_ips": [],
+      "enabled": true,
+      "fwd": "192.168.10.3",
+      "destination_ip": "any",
+      "proto": "tcp_udp",
+      "name": "reverse",
+      "dst_port": "443",
+      "site_id": "693862dc3ce34976d544de91",
+      "src_limiting_enabled": false,
+      "_id": "69f920526812016da8e545cf",
+      "fwd_port": "443"
+    }
+  ]
+}

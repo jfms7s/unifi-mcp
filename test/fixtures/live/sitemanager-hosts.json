@@ -1,0 +1,610 @@
+{
+  "data": [
+    {
+      "id": "000000000000000000000000000000000000000000000000000000000011:17",
+      "hardwareId": "00000000-0000-4000-8000-000000000012",
+      "type": "console",
+      "ipAddress": "203.0.113.5",
+      "owner": true,
+      "isBlocked": false,
+      "registrationTime": "2025-12-09T11:02:24Z",
+      "lastConnectionStateChange": "2026-10-31T19:35:04Z",
+      "latestBackupTime": "2026-10-29T14:56:50Z",
+      "userData": {
+        "apps": [
+          "users"
+        ],
+        "consoleGroupMembers": [
+          {
+            "mac": "020000000001",
+            "role": "UNADOPTED",
+            "roleAttributes": {
+              "applications": {},
+              "candidateRoles": [],
+              "connectedState": "CONNECTED",
+              "connectedStateLastChanged": "2025-04-17T13:09:31.340Z"
+            },
+            "sysId": 42616
+          }
+        ],
+        "controllers": [
+          "network",
+          "innerspace"
+        ],
+        "email": "user-1@example.com",
+        "features": {
+          "deviceGroups": true,
+          "dsSupported": false,
+          "floorplan": {
+            "canEdit": true,
+            "canView": true
+          },
+          "manageApplications": true,
+          "msApixSupported": false,
+          "notifications": true,
+          "webrtc": {
+            "hasSessionStats": true,
+            "iceRestart": true,
+            "mediaStreams": true,
+            "mediaStreamsAV1": true,
+            "mediaStreamsH265": true,
+            "msIdSupported": true,
+            "twoWayAudio": true
+          }
+        },
+        "fullName": "user-1",
+        "localId": "00000000-0000-4000-8000-000000000013",
+        "permissions": {
+          "access.management": [
+            "admin"
+          ],
+          "calculus.management": [
+            "admin"
+          ],
+          "connect.management": [
+            "admin"
+          ],
+          "drive.management": [
+            "admin"
+          ],
+          "fabric.management": [
+            "admin"
+          ],
+          "innerspace.management": [
+            "admin"
+          ],
+          "led.management": [
+            "admin"
+          ],
+          "network.management": [
+            "admin"
+          ],
+          "olympus.management": [
+            "admin"
+          ],
+          "protect.management": [
+            "admin"
+          ],
+          "system.management.location": [
+            "admin"
+          ],
+          "system.management.user": [
+            "admin"
+          ],
+          "talk-relay.management": [
+            "admin"
+          ],
+          "talk.management": [
+            "admin"
+          ]
+        },
+        "role": "owner",
+        "roleId": "00000000-0000-4000-8000-000000000014",
+        "status": "ACTIVE"
+      },
+      "reportedState": {
+        "anonid": "00000000-0000-4000-8000-000000000015",
+        "apps": [
+          {
+            "controllerStatus": "READY",
+            "features": {
+              "apiIntegration": true,
+              "assignmentFlags": true,
+              "driveUIComponentForUserConsolidation": true,
+              "fetchServiceStatusFromAccess": true,
+              "identityCertificateDistribution": true,
+              "supportAPIGetUcsUpdateConfig": true,
+              "supportAPIKeysMigration": true,
+              "supportAPIUcsSetupState": true,
+              "supportCsvImportAccessCredentials": true,
+              "supportFeatures": true,
+              "supportProtectGranularPermissions": true,
+              "supportRadiusULPUserIdProvisioning": true,
+              "supportUserDelegateAuthOnDrivePortal": true,
+              "upgradeUcs": true,
+              "upgradeUcsAgentBeforeAdoption": true,
+              "userConsolidation": true,
+              "userConsolidationViaGlobalFunc": true
+            },
+            "flags": [
+              "skipConnectionBlocker",
+              "supportUserPanel",
+              "isIdentityStandard",
+              "isIdentityEnterprise",
+              "unifiedAdminsUsersPage"
+            ],
+            "identityFeatures": {
+              "hostingIdentityHubScore": 0,
+              "standard": true,
+              "ucs": false,
+              "ucsAgent": true,
+              "ucsRemoteAccessViaUOS": true,
+              "unifiedAdminsUsersPage": true
+            },
+            "identityState": {
+              "enterpriseActivated": false,
+              "migrationNeeded": false,
+              "migrationStatus": "",
+              "migrationStatusMessage": "",
+              "organizationManaged": false,
+              "standard": {
+                "directory": {
+                  "enabled": false,
+                  "type": ""
+                },
+                "services": {
+                  "access": {
+                    "assigned": false,
+                    "enabled": false
+                  },
+                  "camera": {
+                    "assigned": false,
+                    "enabled": false
+                  },
+                  "drive": {
+                    "assigned": false,
+                    "enabled": false
+                  },
+                  "evstation": {
+                    "assigned": false,
+                    "enabled": false
+                  },
+                  "smart_iot": {
+                    "assigned": false,
+                    "enabled": false
+                  },
+                  "talk": {
+                    "assigned": false,
+                    "enabled": false
+                  },
+                  "vpn": {
+                    "assigned": false,
+                    "enabled": false
+                  },
+                  "wifi": {
+                    "assigned": false,
+                    "enabled": false
+                  }
+                }
+              },
+              "standardActivated": false,
+              "ucsActivated": false,
+              "ucsAgentActivated": false,
+              "ucsAgentVersion": "1.8.8+2046",
+              "ucsSetuped": false,
+              "ucsVersion": "",
+              "usersOrAdminsExist": true
+            },
+            "isConfigured": true,
+            "isInstalled": true,
+            "isRunning": true,
+            "name": "users",
+            "port": 9080,
+            "prefetch": [
+              "1095.c253b016.chunk.js",
+              "1156.2ca4b35e.chunk.js",
+              "120.302f2d1b.chunk.js",
+              "1238.11557bed.chunk.js",
+              "1312.ca11e819.chunk.js",
+              "1316.624048b2.chunk.js",
+              "1343.f7987f44.chunk.js",
+              "1510.e20667ea.chunk.js",
+              "1530.da7396b7.chunk.js",
+              "1542.e19e77fa.chunk.js",
+              "1623.88437d63.chunk.js",
+              "1966.0a8235b4.chunk.js",
+              "2020.8b0579b6.chunk.js",
+              "2067.312e55dc.chunk.js",
+              "2125.efe66a8e.chunk.js",
+              "2220.d69833f0.chunk.js",
+              "228.5496f461.chunk.js",
+              "2636.f824d249.chunk.js",
+              "27.956935d4.chunk.js",
+              "2742.7b6e1f22.chunk.js",
+              "2832.04efffd7.chunk.js",
+              "289.4f2588bc.chunk.js",
+              "2964.70fc1ce9.chunk.js",
+              "3066.579cf6f4.chunk.js",
+              "314.63253757.chunk.js",
+              "3349.4f151db2.chunk.js",
+              "3400.0b66db5c.chunk.js",
+              "3520.06eab5bf.chunk.js",
+              "4038.ce1b681a.chunk.js",
+              "4055.8eff6f5b.chunk.js",
+              "4094.71e88efb.chunk.js",
+              "4112.a229facf.chunk.js",
+              "4450.29dd60d4.chunk.js",
+              "4598.8033f251.chunk.js",
+              "4627.0eb89f59.chunk.js",
+              "4659.0a0f148f.chunk.js",
+              "4707.b82a8964.chunk.js",
+              "4752.0427fd1c.chunk.js",
+              "4900.b6f0f3c2.chunk.js",
+              "4932.cf62aee2.chunk.js",
+              "5390.b0ef1ac4.chunk.js",
+              "5563.90ec2f45.chunk.js",
+              "5574.443ac45b.chunk.js",
+              "5863.23b54519.chunk.js",
+              "5982.1669ee1f.chunk.js",
+              "6007.ed001dd4.chunk.js",
+              "6012.2f39bbc8.chunk.js",
+              "6517.75dd191f.chunk.js",
+              "6662.fe0e420a.chunk.js",
+              "6697.c7560471.chunk.js",
+              "6736.b90c5a24.chunk.js",
+              "6977.d3f6d2af.chunk.js",
+              "698.b4438267.chunk.js",
+              "7676.639ff926.chunk.js",
+              "7786.9e2d7017.chunk.js",
+              "7818.0efb79ce.chunk.js",
+              "7875.4039ff46.chunk.js",
+              "7892.13a56afc.chunk.js",
+              "7910.48ce44c9.chunk.js",
+              "7991.42301edb.chunk.js",
+              "7993.bd6c3992.chunk.js",
+              "8110.b14fdcd2.chunk.js",
+              "8132.67f90ef3.chunk.js",
+              "8325.c1b24f27.chunk.js",
+              "8349.1ece2dc5.chunk.js",
+              "8404.10457452.chunk.js",
+              "8713.e3a31a8e.chunk.js",
+              "880.fb037353.chunk.js",
+              "8949.789db52e.chunk.js",
+              "899.abc036ca.chunk.js",
+              "9446.f5ed8e37.chunk.js",
+              "973.4b15c5da.chunk.js",
+              "976.853128eb.chunk.js",
+              "987.e8f5396e.chunk.js",
+              "9988.1e58cf61.chunk.js",
+              "DoorAccess.8d547488.chunk.js",
+              "PasswordStrong.551d3e35.chunk.js",
+              "credentials.06a642b2.chunk.js",
+              "uid-agent.4e1543e8.chunk.js",
+              "index.1.13.6-4345.js"
+            ],
+            "swaiVersion": 2,
+            "type": "app",
+            "uiIcon": "icon.png",
+            "uiVersion": "1.13.6-4345",
+            "version": "1.13.11+6130"
+          }
+        ],
+        "autoUpdate": {
+          "includeApplications": true,
+          "preferencesPrompt": null,
+          "schedule": {
+            "day": 0,
+            "frequency": "daily",
+            "hour": 3
+          }
+        },
+        "availableChannels": [
+          "release"
+        ],
+        "cloudSystemLogState": "disabled",
+        "consolesOnSameLocalNetwork": [],
+        "controller_uuid": "000000000000000000000000000000000000000000000000000000000011:17",
+        "controllers": [
+          {
+            "applicationDegradation": {
+              "loadLevel": "normal",
+              "pressures": [],
+              "targetedForSuspension": false,
+              "updatedAt": 1793400782265,
+              "version": 1
+            },
+            "commonApiOverrides": {
+              "getFabricConfig": "/v2/api/ucore/fabric/config"
+            },
+            "controllerStatus": "READY",
+            "fabric": {
+              "configLastUpdated": 1793531522928
+            },
+            "features": {
+              "alarmManager": true,
+              "applicationDegradation": true,
+              "fabricSnapshot": true,
+              "storeUlpIdForOneClickVpn": true
+            },
+            "handledRequirements": {},
+            "initialDeviceListSynced": true,
+            "installState": "installed",
+            "integrationApis": [
+              {
+                "apiDocsLocation": "/proxy/network/api-docs/integration.json",
+                "name": "Integration",
+                "version": "0.1"
+              }
+            ],
+            "isConfigured": true,
+            "isInstalled": true,
+            "isPending": false,
+            "isRunning": true,
+            "name": "network",
+            "port": 8081,
+            "prefetch": [
+              "react/js/swai.1584cd4345f1f469101c.js",
+              "react/js/dynamic.ufsdn.713447c33469f52c3647.js",
+              "react/js/innerspace-embed.f724b737fadeaae65f83.js",
+              "react/js/toast-provider.8d5b2075bc8de7815d11.js",
+              "react/js/react-app-wrapper.70e19a39f3ba952cca8e.js",
+              "react/js/controller-warnings.f57b49a8ed3bb5e33a24.js",
+              "react/js/authenticated-app-config.275ea588cf293445db35.js",
+              "react/js/network-server-styles.f1450be606d4011000c8.js",
+              "react/js/network-helmet.7c343aa93f0f2e3c1fae.js",
+              "react/js/device-model-handler.6204d8e3e6d9ff271820.js",
+              "react/js/test-config.815aced92947c93c49b9.js",
+              "react/js/search-highlight-provider.75e0413ca882fbb00f1e.js",
+              "react/js/waypoints-provider.de0dfdeb7255485a2d85.js",
+              "react/js/capabilities-provider.5f3a39f70451dc4b7de8.js",
+              "react/js/webrtc-connection.51d886ea83907e13db30.js",
+              "react/js/swai-toasts.70549ac199d1fe93f8ec.js",
+              "react/js/default-toasts.4a7de81e2a9d1182f3ee.js",
+              "react/js/isolated-hotspot-manager.b8ff78aaaa032a847cd0.js",
+              "react/js/login-container.87f32fc2cf0094f41fbb.js",
+              "react/js/property-panel-root.2c48ba16a34f5cca7e13.js",
+              "react/js/modal-root.1a95844653b8b8659b08.js",
+              "react/js/window-root.24c9ee296802ffafb817.js",
+              "react/js/side-navigation.3194b9053cdbde41e723.js",
+              "react/js/network-server-header.d80a3ad6b095b526ef99.js",
+              "react/js/prefetcher.f77facc9c1399c4caa27.js",
+              "react/js/stats-source-fetcher.ef9d55750e00cfece7e5.js",
+              "react/js/device-adoption-redirector.82dd9f3c8c25ffba1a4f.js",
+              "react/js/search-tag-initiator.100d2b306c459fad2c50.js",
+              "react/js/deprecated-redirector.b8d2594f5c91ea15c01e.js",
+              "react/js/swai-routes-injector.1942d903cec95c82e1a9.js",
+              "react/js/swai-etpro-adapter-injector.4784b9cb1b1d5a97c9e3.js",
+              "react/js/swai-sso-user-settings-adapter-injector.a8bba280a34ef91fee45.js",
+              "react/js/radiosPage.cb65a55ae8135a163d14.js",
+              "react/js/channelAi.fcd1d42798dda4c1351f.js",
+              "react/js/roaming.03dbcac3d570d7e02ca7.js",
+              "react/js/flows.6aad9185e09fd453a30e.js",
+              "react/js/activity.0760abc39c6e046d2120.js",
+              "react/js/multicast.e7072c0bde59526f0df1.js",
+              "react/js/av-manager.1a716ec7db43a6ebcec1.js",
+              "react/js/ports.b365251b08a84abf7b1b.js",
+              "react/js/topology.3a344b070aa153f96047.js",
+              "react/js/settings.3ed975ba8d8cb232fbc4.js",
+              "react/js/airview.bbc4618669685f8b4bcf.js",
+              "react/js/logs.cae60a703a4fa376a949.js",
+              "react/js/insights.c9e5a87b83516c420405.js",
+              "react/js/devices.9f245d1f49072f70e561.js",
+              "react/js/clients.c894a0a37699a48100e8.js",
+              "react/js/adminPage.d1d776f9a3225df27682.js",
+              "react/js/web-socket-manager.8b2cc36f400970e38b56.js"
+            ],
+            "releaseChannel": "release",
+            "required": true,
+            "state": "active",
+            "status": "ok",
+            "statusMessage": "",
+            "swaiVersion": 3,
+            "type": "controller",
+            "uiVersion": "10.6.109.0",
+            "unadoptedDevices": [],
+            "updatable": true,
+            "updateAvailable": null,
+            "version": "10.6.109",
+            "versionRaw": "10.6.109-36013-1"
+          },
+          {
+            "controllerStatus": "READY",
+            "initialDeviceListSynced": true,
+            "installState": "installed",
+            "isConfigured": true,
+            "isInstalled": true,
+            "isPending": false,
+            "isRunning": true,
+            "name": "innerspace",
+            "port": 17080,
+            "releaseChannel": "release",
+            "state": "active",
+            "status": "ok",
+            "statusMessage": "",
+            "swaiVersion": 5,
+            "type": "controller",
+            "uiVersion": "1.4.1",
+            "unadoptedDevices": [],
+            "updatable": true,
+            "updateAvailable": null,
+            "version": "1.4.1",
+            "versionRaw": "1.4.1"
+          }
+        ],
+        "country": 620,
+        "deviceErrorCode": null,
+        "deviceState": "setup",
+        "deviceStateLastChanged": 1793400384,
+        "directConnectDomain": "host-2.example.net",
+        "features": {
+          "alarmManager": true,
+          "alarms": {
+            "alarmPausing": true,
+            "alarmProfiles": true,
+            "alarmRestrictions": true,
+            "alarmsActivity": true,
+            "triggersWithPrecondition": true,
+            "userNotificationMuting": true,
+            "userNotificationRestrictions": true
+          },
+          "apiIntegration": true,
+          "applications": {
+            "access": {
+              "mspPlayback": true
+            }
+          },
+          "captiveProxy": true,
+          "cloud": {
+            "applicationEvents": true,
+            "applicationEventsHttp": true,
+            "fabric": {
+              "systemlogs": true
+            },
+            "ucp4GuestConnection": true,
+            "ucp4OrganizationConnection": true,
+            "ztp": false
+          },
+          "cloudBackup": true,
+          "coLocated": {
+            "primary": true,
+            "shadow": true
+          },
+          "customSmtpServer": true,
+          "deviceList": {
+            "autolinkDevices": true,
+            "deviceTags": {
+              "grpcApi": true
+            },
+            "partialUpdates": true,
+            "ucp4Events": true
+          },
+          "directRemoteConnection": true,
+          "hasBezel": false,
+          "hasGateway": true,
+          "hasLCM": true,
+          "hasLED": false,
+          "identity": {
+            "hostingIdentityHubScore": 0,
+            "standard": true,
+            "ucs": false,
+            "ucsAgent": true,
+            "ucsRemoteAccessViaUOS": true,
+            "unifiedAdminsUsersPage": true
+          },
+          "infoApis": {
+            "firmwareUpdate": true
+          },
+          "integrations": true,
+          "isAutomaticFailoverAvailable": false,
+          "localVantagePoint": false,
+          "mfa": true,
+          "mspBridgeModesSupported": true,
+          "multiplePoolsSupport": false,
+          "netInAppBackupSupport": true,
+          "notifications": true,
+          "sharedTokens": true,
+          "snmpConfig": false,
+          "supportForm": true,
+          "syslog": true,
+          "teleport": true,
+          "teleportFeatures": {
+            "regularAdminLongTermToken": true
+          },
+          "teleportState": "ENABLED",
+          "uidService": true,
+          "updates": {
+            "applicationReleaseChannels": true,
+            "applicationSchedules": true
+          },
+          "ups": {
+            "canBePaired": true,
+            "pairing": true
+          },
+          "upsPairing": true
+        },
+        "firmwareUpdate": {
+          "latestAvailableVersion": null
+        },
+        "hardware": {
+          "bom": "113-07651-22",
+          "cpu.id": "1023d0e1-00000000",
+          "debianCodename": "bullseye",
+          "firmwareVersion": "5.1.34",
+          "hwrev": 1958678,
+          "mac": "020000000001",
+          "name": "UniFi Cloud Gateway Ultra",
+          "qrid": "000016",
+          "reboot": "30",
+          "serialno": "020000000001",
+          "shortname": "UDRULT",
+          "subtype": "",
+          "sysid": 42616,
+          "upgrade": "310",
+          "uuid": "00000000-0000-4000-8000-000000000012"
+        },
+        "host_type": 42616,
+        "hostname": "device-5",
+        "internetIssues5min": {
+          "periods": [
+            {
+              "index": 5978288
+            }
+          ]
+        },
+        "ip": "192.168.1.162",
+        "ipAddrs": [
+          "fe80::ff:fe00:2f",
+          "fe80::ff:fe00:30",
+          "192.168.1.162",
+          "fe80::ff:fe00:31",
+          "192.168.10.1",
+          "fe80::ff:fe00:32"
+        ],
+        "isStacked": false,
+        "location": {
+          "lat": 0,
+          "long": 0,
+          "radius": 0,
+          "text": "<redacted>"
+        },
+        "mac": "020000000001",
+        "mgmt_port": 443,
+        "name": "Gateway CGU",
+        "releaseChannel": "release",
+        "state": "connected",
+        "timezone": "Europe/Lisbon",
+        "uidb": {
+          "guid": "af0f4041-c677-442d-b5ea-47ad5554048e",
+          "id": "d15a9f5a-ed82-4124-a603-a4be273c5556",
+          "images": {
+            "blueprint": "fc746504c36683352aaa0e7d80eeeae6",
+            "blueprint-dark": "50ea0d6f3c68f6d2a18cf8ebbcf976f1",
+            "default": "deba1d58ee3b3b3d69cbe23f0afc75c2",
+            "mobile-connection": "ff6fb8d354ac31f135a6bb5142ec8b37",
+            "mobile-internet-connected": "3b007904ec2ddfd71e05bcaf40dce046",
+            "mobile-no-internet": "b344d4550f0aa10e53aad419f0fb8cca",
+            "nopadding": "bb72967cf14882bac738bf33636f44be",
+            "topology": "798c84608c785198bf6de1d4d0644167"
+          }
+        },
+        "unadoptedUnifiOSDevices": [],
+        "version": "5.1.132",
+        "wans": [
+          {
+            "enabled": true,
+            "interface": "eth4",
+            "ipv4": "192.168.1.162",
+            "ipv6": "fe80::ff:fe00:31",
+            "mac": "02:00:00:00:00:a9",
+            "plugged": true,
+            "port": 5,
+            "speedType": "2.5GbE",
+            "type": "WAN"
+          }
+        ]
+      }
+    }
+  ],
+  "httpStatusCode": 200,
+  "traceId": "63ec38604ccc68b2c569ba9da887311d"
+}

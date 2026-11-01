@@ -1,0 +1,35 @@
+{
+  "meta": {
+    "rc": "ok"
+  },
+  "data": [
+    {
+      "time": 1793404800000,
+      "wan-tx_bytes": 36673672833.666664,
+      "wan-rx_bytes": 36427095338.416664,
+      "wan2-tx_bytes": 0,
+      "wan2-rx_bytes": 0,
+      "wlan_bytes": 20115590066.72727,
+      "num_sta": 38,
+      "lan-num_sta": 19,
+      "wlan-num_sta": 19,
+      "site": "693862dc3ce34976d544de91",
+      "o": "site",
+      "oid": "693862dc3ce34976d544de91"
+    },
+    {
+      "time": 1793491200000,
+      "wan-tx_bytes": 6229228450.333334,
+      "wan-rx_bytes": 25646271559.583336,
+      "wan2-tx_bytes": 0,
+      "wan2-rx_bytes": 0,
+      "wlan_bytes": 3065331165.5000005,
+      "num_sta": 32,
+      "lan-num_sta": 18,
+      "wlan-num_sta": 14,
+      "site": "693862dc3ce34976d544de91",
+      "o": "site",
+      "oid": "693862dc3ce34976d544de91"
+    }
+  ]
+}

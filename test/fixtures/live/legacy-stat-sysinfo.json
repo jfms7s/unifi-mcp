@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "rc": "ok"
+  },
+  "data": [
+    {
+      "timezone": "Europe/Lisbon",
+      "autobackup": false,
+      "build": "atag_10.6.109_36013",
+      "version": "10.6.109",
+      "previous_version": "10.6.106",
+      "data_retention_days": 90,
+      "data_retention_time_in_hours_for_5minutes_scale": 24,
+      "data_retention_time_in_hours_for_hourly_scale": 168,
+      "data_retention_time_in_hours_for_daily_scale": 2160,
+      "data_retention_time_in_hours_for_monthly_scale": 8760,
+      "data_retention_time_in_hours_for_others": 2160,
+      "update_available": false,
+      "update_downloaded": false,
+      "live_chat": "super-only",
+      "store_enabled": "super-only",
+      "hostname": "device-5",
+      "name": "Gateway CGU",
+      "ip_addrs": [
+        "192.168.0.1",
+        "192.168.11.1",
+        "192.168.10.1"
+      ],
+      "inform_port": 8080,
+      "https_port": 8443,
+      "portal_http_port": 8880,
+      "override_inform_host": false,
+      "image_maps_use_google_engine": false,
+      "radius_disconnect_running": false,
+      "sso_app_id": "id-1",
+      "uptime": 132272,
+      "anonymous_controller_id": "00000000-0000-4000-8000-000000000002",
+      "has_webrtc_support": true,
+      "debug_setting_preference": "auto",
+      "debug_sdn": "warn",
+      "debug_system": "warn",
+      "debug_mgmt": "warn",
+      "debug_device": "warn",
+      "ubnt_device_type": "UDRULT",
+      "udm_version": "UDRULT.ipq5322.v5.1.34.4d109cd.261026.1535",
+      "unsupported_device_count": 0,
+      "unsupported_device_list": [],
+      "default_site_device_auth_password_alert": false,
+      "is_cloud_console": false,
+      "console_display_version": "5.1.34"
+    }
+  ]
+}

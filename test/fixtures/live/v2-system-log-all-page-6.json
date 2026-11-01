@@ -1,0 +1,2249 @@
+{
+  "data": [
+    {
+      "id": "6addfc0300c24c73d96900c6",
+      "timestamp": 1792932867125,
+      "category": "VPN",
+      "subcategory": "SYSTEM_VPN",
+      "severity": "LOW",
+      "key": "VPN_CLIENT_DISCONNECTED_V2",
+      "title_raw": "VPN Client Disconnected",
+      "message_raw": "{CLIENT} has disconnected from {NETWORK}'s VPN. Time Connected: {DURATION}. Data Used: {DATA_UP} (up) / {DATA_DOWN} (down).",
+      "parameters": {
+        "CLIENT": {
+          "id": "tun1:client-54:3232240644",
+          "name": "client-54",
+          "not_actionable": true
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DATA_UP": {
+          "id": "161807",
+          "name": "158.01 KB",
+          "not_actionable": true
+        },
+        "DATA_DOWN": {
+          "id": "650586",
+          "name": "635.34 KB",
+          "not_actionable": true
+        },
+        "NETWORK": {
+          "id": "6938b63c1d4c99459c11356f",
+          "name": "ssid-1",
+          "subnet": "192.168.20.0/24",
+          "vpn_type": "openvpn-server"
+        },
+        "DURATION": {
+          "id": "405",
+          "name": "6m 45s",
+          "not_actionable": true
+        },
+        "VPN_SERVER_ADDRESS": {
+          "name": "192.168.1.162"
+        },
+        "WAN_ID": {
+          "id": "WAN",
+          "name": "WAN1"
+        }
+      },
+      "type": "VPN_CLIENT_CONNECTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addfb9100c24c73d96900c5",
+      "timestamp": 1792932753886,
+      "category": "VPN",
+      "subcategory": "SYSTEM_VPN",
+      "severity": "LOW",
+      "key": "VPN_CLIENT_CONNECTED_V2",
+      "title_raw": "VPN Client Connected",
+      "message_raw": "{CLIENT} has connected to {NETWORK}'s VPN. Source IP: {REMOTE_IP}",
+      "parameters": {
+        "CLIENT": {
+          "id": "tun1:client-54:3232240642",
+          "name": "client-54",
+          "not_actionable": true
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "IP": {
+          "name": "192.168.20.2"
+        },
+        "NETWORK": {
+          "id": "6938b63c1d4c99459c11356f",
+          "name": "ssid-1",
+          "subnet": "192.168.20.0/24",
+          "vpn_type": "openvpn-server"
+        },
+        "REMOTE_IP": {
+          "name": "203.0.113.5"
+        },
+        "VPN_SERVER_ADDRESS": {
+          "name": "192.168.1.162"
+        },
+        "WAN_ID": {
+          "id": "WAN",
+          "name": "WAN1"
+        }
+      },
+      "type": "VPN_CLIENT_CONNECTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addfb7200c24c73d96900c3",
+      "timestamp": 1792932722836,
+      "category": "CLIENT_DEVICES",
+      "subcategory": "MONITORING_WIFI",
+      "severity": "LOW",
+      "key": "CLIENT_CONNECTED_WIRELESS_2",
+      "title_raw": "WiFi Client Connected",
+      "message_raw": "{CLIENT} connected to {WLAN} on {DEVICE}. Connection Info: {WIFI_STATS}. IP: {IP}",
+      "parameters": {
+        "AUTH_METHOD": {
+          "name": "wpapsk"
+        },
+        "CHANNEL": {
+          "name": "11"
+        },
+        "CHANNEL_WIDTH": {
+          "name": "20"
+        },
+        "CLIENT": {
+          "device_fingerprint_id": 5286,
+          "fingerprint_source": 0,
+          "hostname": "client-27",
+          "id": "02:00:00:00:00:21",
+          "ip": "192.168.10.19",
+          "name": "client-27 00:21"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "SIGNAL_STRENGTH": {
+          "name": "-64"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:03",
+          "ip": "192.168.10.121",
+          "model": "U7-Lite",
+          "model_name": "UAPA693",
+          "name": "device-3",
+          "version": "8.7.11"
+        },
+        "IP": {
+          "name": "192.168.10.19"
+        },
+        "NETWORK": {
+          "id": "693862e03ce34976d544deaa",
+          "name": "Default",
+          "network_purpose": "corporate",
+          "subnet": "192.168.10.0/24",
+          "vlan_id": 1
+        },
+        "RADIO_BAND": {
+          "name": "ng"
+        },
+        "WIFI_STATS": {
+          "name": "Ch. 11 (2.4 GHz, 20 MHz), -64 dBm"
+        },
+        "WLAN": {
+          "id": "6938478b1d4c99459c112e35",
+          "name": "ssid-1"
+        }
+      },
+      "type": "CLIENT_CONNECTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addfb6d00c24c73d96900c1",
+      "timestamp": 1792932717767,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.199",
+          "name": "203.0.113.199",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addfb4100c24c73d96900bb"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addfb6d00c24c73d96900c0",
+      "timestamp": 1792932717757,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.199",
+          "name": "203.0.113.199",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addfb2500c24c73d96900ba"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addfb6d00c24c73d96900be",
+      "timestamp": 1792932717679,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "198.18.1.130",
+          "name": "198.18.1.130",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addfa8c00c24c73d96900b9"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addfad700c24c73d9690099",
+      "timestamp": 1792932567757,
+      "category": "VPN",
+      "subcategory": "SYSTEM_VPN",
+      "severity": "LOW",
+      "key": "VPN_CLIENT_DISCONNECTED_V2",
+      "title_raw": "VPN Client Disconnected",
+      "message_raw": "{CLIENT} has disconnected from {NETWORK}'s VPN. Time Connected: {DURATION}. Data Used: {DATA_UP} (up) / {DATA_DOWN} (down).",
+      "parameters": {
+        "CLIENT": {
+          "id": "tun1:client-54:3232240642",
+          "name": "client-54",
+          "not_actionable": true
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DATA_UP": {
+          "id": "432871",
+          "name": "422.73 KB",
+          "not_actionable": true
+        },
+        "DATA_DOWN": {
+          "id": "1139554",
+          "name": "1.09 MB",
+          "not_actionable": true
+        },
+        "NETWORK": {
+          "id": "6938b63c1d4c99459c11356f",
+          "name": "ssid-1",
+          "subnet": "192.168.20.0/24",
+          "vpn_type": "openvpn-server"
+        },
+        "DURATION": {
+          "id": "227",
+          "name": "3m 47s",
+          "not_actionable": true
+        },
+        "VPN_SERVER_ADDRESS": {
+          "name": "192.168.1.162"
+        },
+        "WAN_ID": {
+          "id": "WAN",
+          "name": "WAN1"
+        }
+      },
+      "type": "VPN_CLIENT_CONNECTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addfa4d00c24c73d9690096",
+      "timestamp": 1792932429313,
+      "category": "VPN",
+      "subcategory": "SYSTEM_VPN",
+      "severity": "LOW",
+      "key": "VPN_CLIENT_CONNECTED_V2",
+      "title_raw": "VPN Client Connected",
+      "message_raw": "{CLIENT} has connected to {NETWORK}'s VPN. Source IP: {REMOTE_IP}",
+      "parameters": {
+        "CLIENT": {
+          "id": "tun1:client-54:3232240644",
+          "name": "client-54",
+          "not_actionable": true
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "IP": {
+          "name": "192.168.20.4"
+        },
+        "NETWORK": {
+          "id": "6938b63c1d4c99459c11356f",
+          "name": "ssid-1",
+          "subnet": "192.168.20.0/24",
+          "vpn_type": "openvpn-server"
+        },
+        "REMOTE_IP": {
+          "name": "203.0.113.5"
+        },
+        "VPN_SERVER_ADDRESS": {
+          "name": "192.168.1.162"
+        },
+        "WAN_ID": {
+          "id": "WAN",
+          "name": "WAN1"
+        }
+      },
+      "type": "VPN_CLIENT_CONNECTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addfa4100c24c73d9690095",
+      "timestamp": 1792932417042,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "198.18.1.131",
+          "name": "198.18.1.131",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf99e00c24c73d9690091"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addfa4100c24c73d9690093",
+      "timestamp": 1792932417033,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.168",
+          "name": "203.0.113.168",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf95500c24c73d9690090"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addfa3e00c24c73d969008d",
+      "timestamp": 1792932414507,
+      "category": "CLIENT_DEVICES",
+      "subcategory": "MONITORING_WIFI",
+      "severity": "LOW",
+      "key": "CLIENT_DISCONNECTED_WIRELESS_2",
+      "title_raw": "WiFi Client Disconnected",
+      "message_raw": "{CLIENT} disconnected from {WLAN}. Time Connected: {DURATION}. Data Used: {DATA_UP} (up) / {DATA_DOWN} (down). Last Connected To: {DEVICE} at {SIGNAL_STRENGTH} dBm.",
+      "parameters": {
+        "AVG_UTILIZATION": {
+          "name": "6"
+        },
+        "AVG_INTERFERENCE": {
+          "name": "3"
+        },
+        "CHANNEL": {
+          "name": "44"
+        },
+        "CHANNEL_WIDTH": {
+          "name": "80"
+        },
+        "CLIENT": {
+          "device_fingerprint_id": 5286,
+          "fingerprint_source": 0,
+          "hostname": "client-27",
+          "id": "02:00:00:00:00:21",
+          "ip": "192.168.10.19",
+          "name": "client-27 00:21"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DATA_UP": {
+          "id": "9092971",
+          "name": "8.67 MB",
+          "not_actionable": true
+        },
+        "DATA_DOWN": {
+          "id": "43372220",
+          "name": "41.36 MB",
+          "not_actionable": true
+        },
+        "SIGNAL_STRENGTH": {
+          "name": "-84"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:03",
+          "ip": "192.168.10.121",
+          "model": "U7-Lite",
+          "model_name": "UAPA693",
+          "name": "device-3",
+          "version": "8.7.11"
+        },
+        "IP": {
+          "name": "192.168.10.19"
+        },
+        "NETWORK": {
+          "id": "693862e03ce34976d544deaa",
+          "name": "Default",
+          "network_purpose": "corporate",
+          "subnet": "192.168.10.0/24",
+          "vlan_id": 1
+        },
+        "RADIO_BAND": {
+          "name": "na"
+        },
+        "DURATION": {
+          "id": "288",
+          "name": "4m 48s",
+          "not_actionable": true
+        },
+        "WLAN": {
+          "id": "6938478b1d4c99459c112e35",
+          "name": "ssid-1"
+        }
+      },
+      "type": "CLIENT_CONNECTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf9ee00c24c73d969008c",
+      "timestamp": 1792932334960,
+      "category": "VPN",
+      "subcategory": "SYSTEM_VPN",
+      "severity": "LOW",
+      "key": "VPN_CLIENT_CONNECTED_V2",
+      "title_raw": "VPN Client Connected",
+      "message_raw": "{CLIENT} has connected to {NETWORK}'s VPN. Source IP: {REMOTE_IP}",
+      "parameters": {
+        "CLIENT": {
+          "id": "tun1:client-54:3232240642",
+          "name": "client-54",
+          "not_actionable": true
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "IP": {
+          "name": "192.168.20.2"
+        },
+        "NETWORK": {
+          "id": "6938b63c1d4c99459c11356f",
+          "name": "ssid-1",
+          "subnet": "192.168.20.0/24",
+          "vpn_type": "openvpn-server"
+        },
+        "REMOTE_IP": {
+          "name": "203.0.113.5"
+        },
+        "VPN_SERVER_ADDRESS": {
+          "name": "192.168.1.162"
+        },
+        "WAN_ID": {
+          "id": "WAN",
+          "name": "WAN1"
+        }
+      },
+      "type": "VPN_CLIENT_CONNECTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf9c600c24c73d969006b",
+      "timestamp": 1792932294115,
+      "category": "CLIENT_DEVICES",
+      "subcategory": "MONITORING_WIFI",
+      "severity": "LOW",
+      "key": "CLIENT_DISCONNECTED_WIRELESS_2",
+      "title_raw": "WiFi Client Disconnected",
+      "message_raw": "{CLIENT} disconnected from {WLAN}. Time Connected: {DURATION}. Data Used: {DATA_UP} (up) / {DATA_DOWN} (down). Last Connected To: {DEVICE} at {SIGNAL_STRENGTH} dBm.",
+      "parameters": {
+        "AVG_UTILIZATION": {
+          "name": "40"
+        },
+        "AVG_INTERFERENCE": {
+          "name": "29"
+        },
+        "CHANNEL": {
+          "name": "11"
+        },
+        "CHANNEL_WIDTH": {
+          "name": "20"
+        },
+        "CLIENT": {
+          "hostname": "client-50",
+          "id": "02:00:00:00:00:33",
+          "ip": "192.168.11.241",
+          "name": "client-50 00:33"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DATA_UP": {
+          "id": "0",
+          "name": "0.00 B",
+          "not_actionable": true
+        },
+        "DATA_DOWN": {
+          "id": "376",
+          "name": "376.00 B",
+          "not_actionable": true
+        },
+        "SIGNAL_STRENGTH": {
+          "name": "-60"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:03",
+          "ip": "192.168.10.121",
+          "model": "U7-Lite",
+          "model_name": "UAPA693",
+          "name": "device-3",
+          "version": "8.7.11"
+        },
+        "IP": {
+          "name": "192.168.11.241"
+        },
+        "NETWORK": {
+          "id": "6938a4331d4c99459c11328f",
+          "name": "IoT",
+          "network_purpose": "corporate",
+          "subnet": "192.168.11.0/24",
+          "vlan_id": 2
+        },
+        "RADIO_BAND": {
+          "name": "ng"
+        },
+        "DURATION": {
+          "id": "300",
+          "name": "5m",
+          "not_actionable": true
+        },
+        "WLAN": {
+          "id": "69cd055b6757dd6538f48f53",
+          "name": "ssid-2"
+        }
+      },
+      "type": "CLIENT_CONNECTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf92100c24c73d9690069",
+      "timestamp": 1792932129538,
+      "category": "CLIENT_DEVICES",
+      "subcategory": "MONITORING_WIFI",
+      "severity": "LOW",
+      "key": "CLIENT_CONNECTED_WIRELESS_2",
+      "title_raw": "WiFi Client Connected",
+      "message_raw": "{CLIENT} connected to {WLAN} on {DEVICE}. Connection Info: {WIFI_STATS}. IP: {IP}",
+      "parameters": {
+        "AUTH_METHOD": {
+          "name": "wpapsk"
+        },
+        "CHANNEL": {
+          "name": "44"
+        },
+        "CHANNEL_WIDTH": {
+          "name": "80"
+        },
+        "CLIENT": {
+          "device_fingerprint_id": 5286,
+          "fingerprint_source": 0,
+          "hostname": "client-27",
+          "id": "02:00:00:00:00:21",
+          "ip": "192.168.10.19",
+          "name": "client-27 00:21"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "SIGNAL_STRENGTH": {
+          "name": "-84"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:03",
+          "ip": "192.168.10.121",
+          "model": "U7-Lite",
+          "model_name": "UAPA693",
+          "name": "device-3",
+          "version": "8.7.11"
+        },
+        "IP": {
+          "name": "192.168.10.19"
+        },
+        "NETWORK": {
+          "id": "693862e03ce34976d544deaa",
+          "name": "Default",
+          "network_purpose": "corporate",
+          "subnet": "192.168.10.0/24",
+          "vlan_id": 1
+        },
+        "RADIO_BAND": {
+          "name": "na"
+        },
+        "WIFI_STATS": {
+          "name": "Ch. 44 (5 GHz, 80 MHz), -84 dBm"
+        },
+        "WLAN": {
+          "id": "6938478b1d4c99459c112e35",
+          "name": "ssid-1"
+        }
+      },
+      "type": "CLIENT_CONNECTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf91400c24c73d9690067",
+      "timestamp": 1792932116321,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.245",
+          "name": "203.0.113.245",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf82200c24c73d9690065"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf8b900c24c73d9690062",
+      "timestamp": 1792932025769,
+      "category": "CLIENT_DEVICES",
+      "subcategory": "MONITORING_WIRED",
+      "severity": "LOW",
+      "key": "CLIENT_DISCONNECTED_WIRED_2",
+      "title_raw": "Wired Client Disconnected",
+      "message_raw": "{CLIENT} disconnected from {NETWORK} on {DEVICE_WITH_PORT}. Time Connected: {DURATION}. Data Used: {DATA_UP} (up) / {DATA_DOWN} (down).",
+      "parameters": {
+        "CLIENT": {
+          "device_fingerprint_id": 5580,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:28",
+          "ip": "192.168.10.134",
+          "name": "client-52 00:28"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DATA_UP": {
+          "id": "106641",
+          "name": "104.14 KB",
+          "not_actionable": true
+        },
+        "DATA_DOWN": {
+          "id": "44313",
+          "name": "43.27 KB",
+          "not_actionable": true
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DEVICE_WITH_PORT": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU Port 2",
+          "version": "5.1.33"
+        },
+        "NETWORK": {
+          "id": "693862e03ce34976d544deaa",
+          "name": "Default",
+          "network_purpose": "corporate",
+          "subnet": "192.168.10.0/24",
+          "vlan_id": 1
+        },
+        "PORT": {
+          "id": "2",
+          "name": "2"
+        },
+        "DURATION": {
+          "id": "329",
+          "name": "5m 29s",
+          "not_actionable": true
+        }
+      },
+      "type": "CLIENT_CONNECTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf8a100c24c73d9690060",
+      "timestamp": 1792932001472,
+      "category": "CLIENT_DEVICES",
+      "subcategory": "MONITORING_WIFI",
+      "severity": "LOW",
+      "key": "CLIENT_CONNECTED_WIRELESS_2",
+      "title_raw": "WiFi Client Connected",
+      "message_raw": "{CLIENT} connected to {WLAN} on {DEVICE}. Connection Info: {WIFI_STATS}. IP: {IP}",
+      "parameters": {
+        "AUTH_METHOD": {
+          "name": "wpapsk"
+        },
+        "CHANNEL": {
+          "name": "11"
+        },
+        "CHANNEL_WIDTH": {
+          "name": "20"
+        },
+        "CLIENT": {
+          "hostname": "client-50",
+          "id": "02:00:00:00:00:33",
+          "ip": "192.168.11.241",
+          "name": "client-50 00:33"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "SIGNAL_STRENGTH": {
+          "name": "-60"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:03",
+          "ip": "192.168.10.121",
+          "model": "U7-Lite",
+          "model_name": "UAPA693",
+          "name": "device-3",
+          "version": "8.7.11"
+        },
+        "IP": {
+          "name": "192.168.11.241"
+        },
+        "NETWORK": {
+          "id": "6938a4331d4c99459c11328f",
+          "name": "IoT",
+          "network_purpose": "corporate",
+          "subnet": "192.168.11.0/24",
+          "vlan_id": 2
+        },
+        "RADIO_BAND": {
+          "name": "ng"
+        },
+        "WIFI_STATS": {
+          "name": "Ch. 11 (2.4 GHz, 20 MHz), -60 dBm"
+        },
+        "WLAN": {
+          "id": "69cd055b6757dd6538f48f53",
+          "name": "ssid-2"
+        }
+      },
+      "type": "CLIENT_CONNECTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf7e700c24c73d9690041",
+      "timestamp": 1792931815685,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "198.18.1.130",
+          "name": "198.18.1.130",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf6f100c24c73d969003f"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf7c900c24c73d969003c",
+      "timestamp": 1792931785749,
+      "category": "CLIENT_DEVICES",
+      "subcategory": "MONITORING_WIRED",
+      "severity": "LOW",
+      "key": "CLIENT_DISCONNECTED_WIRED_2",
+      "title_raw": "Wired Client Disconnected",
+      "message_raw": "{CLIENT} disconnected from {NETWORK} on {DEVICE_WITH_PORT}. Time Connected: {DURATION}. Data Used: {DATA_UP} (up) / {DATA_DOWN} (down).",
+      "parameters": {
+        "CLIENT": {
+          "device_fingerprint_id": 2285,
+          "fingerprint_source": 0,
+          "hostname": "client-30",
+          "id": "02:00:00:00:00:23",
+          "ip": "192.168.10.62",
+          "name": "MAC Hub"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DATA_UP": {
+          "id": "141638259",
+          "name": "135.08 MB",
+          "not_actionable": true
+        },
+        "DATA_DOWN": {
+          "id": "651782252",
+          "name": "621.59 MB",
+          "not_actionable": true
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:04",
+          "ip": "192.168.10.131",
+          "model": "USW-Flex-2.5G-8-POE",
+          "model_name": "USWED37",
+          "name": "device-4",
+          "version": "2.1.8"
+        },
+        "DEVICE_WITH_PORT": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:04",
+          "ip": "192.168.10.131",
+          "model": "USW-Flex-2.5G-8-POE",
+          "model_name": "USWED37",
+          "name": "device-4 Port 1",
+          "version": "2.1.8"
+        },
+        "NETWORK": {
+          "id": "693862e03ce34976d544deaa",
+          "name": "Default",
+          "network_purpose": "corporate",
+          "subnet": "192.168.10.0/24",
+          "vlan_id": 1
+        },
+        "PORT": {
+          "id": "1",
+          "name": "1"
+        },
+        "DURATION": {
+          "id": "4502",
+          "name": "1h 15m",
+          "not_actionable": true
+        }
+      },
+      "type": "CLIENT_CONNECTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf6bb00c24c73d969001e",
+      "timestamp": 1792931515066,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "HIGH",
+      "key": "THREAT_DETECTED_KNOWN_DESTINATION_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_IP} to {DST_CLIENT} has been detected.",
+      "parameters": {
+        "DST_CLIENT": {
+          "device_fingerprint_id": 2764,
+          "fingerprint_source": 0,
+          "hostname": "data-archive",
+          "id": "02:00:00:00:00:1a",
+          "name": "data-archive 00:1a"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "SRC_IP": {
+          "id": "203.0.113.59",
+          "name": "203.0.113.59",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf63400c24c73d969001a"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf6bb00c24c73d969001c",
+      "timestamp": 1792931515055,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.231",
+          "name": "203.0.113.231",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf5bc00c24c73d9690019"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf5ad00c24c73d968fff9",
+      "timestamp": 1792931245725,
+      "category": "CLIENT_DEVICES",
+      "subcategory": "MONITORING_WIRED",
+      "severity": "LOW",
+      "key": "CLIENT_DISCONNECTED_WIRED_2",
+      "title_raw": "Wired Client Disconnected",
+      "message_raw": "{CLIENT} disconnected from {NETWORK} on {DEVICE_WITH_PORT}. Time Connected: {DURATION}. Data Used: {DATA_UP} (up) / {DATA_DOWN} (down).",
+      "parameters": {
+        "CLIENT": {
+          "device_fingerprint_id": 5580,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:28",
+          "ip": "192.168.10.134",
+          "name": "client-52 00:28"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DATA_UP": {
+          "id": "0",
+          "name": "0.00 B",
+          "not_actionable": true
+        },
+        "DATA_DOWN": {
+          "id": "802",
+          "name": "802.00 B",
+          "not_actionable": true
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DEVICE_WITH_PORT": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU Port 2",
+          "version": "5.1.33"
+        },
+        "NETWORK": {
+          "id": "693862e03ce34976d544deaa",
+          "name": "Default",
+          "network_purpose": "corporate",
+          "subnet": "192.168.10.0/24",
+          "vlan_id": 1
+        },
+        "PORT": {
+          "id": "2",
+          "name": "2"
+        },
+        "DURATION": {
+          "id": "298",
+          "name": "4m 58s",
+          "not_actionable": true
+        }
+      },
+      "type": "CLIENT_CONNECTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf58e00c24c73d968fff8",
+      "timestamp": 1792931214443,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.199",
+          "name": "203.0.113.199",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf54700c24c73d968fff2"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf58e00c24c73d968fff7",
+      "timestamp": 1792931214439,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.196",
+          "name": "203.0.113.196",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf54600c24c73d968fff1"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf58e00c24c73d968fff4",
+      "timestamp": 1792931214420,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "198.18.1.132",
+          "name": "198.18.1.132",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf49000c24c73d968fff0"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf46100c24c73d968ffd2",
+      "timestamp": 1792930913781,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 2664,
+          "fingerprint_source": 0,
+          "hostname": "client-1",
+          "id": "02:00:00:00:00:05",
+          "name": "client-1 00:05"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.7",
+          "name": "203.0.113.7",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf3fe00c24c73d968ffcc"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf46100c24c73d968ffd0",
+      "timestamp": 1792930913765,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "198.18.1.133",
+          "name": "198.18.1.133",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf3db00c24c73d968ffcb"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf46100c24c73d968ffcf",
+      "timestamp": 1792930913758,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "198.18.1.134",
+          "name": "198.18.1.134",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf35700c24c73d968ffca"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf33400c24c73d968ffad",
+      "timestamp": 1792930612673,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "198.18.1.130",
+          "name": "198.18.1.130",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf22200c24c73d968ffab"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf20800c24c73d968ff8e",
+      "timestamp": 1792930312050,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.164",
+          "name": "203.0.113.164",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf1b200c24c73d968ff89"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf20800c24c73d968ff8c",
+      "timestamp": 1792930312037,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "198.18.1.135",
+          "name": "198.18.1.135",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addf0f200c24c73d968ff88"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addf0db00c24c73d968ff4d",
+      "timestamp": 1792930011402,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "198.18.1.132",
+          "name": "198.18.1.132",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addefc300c24c73d968ff4b"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addefae00c24c73d968ff2e",
+      "timestamp": 1792929710773,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.218",
+          "name": "203.0.113.218",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addef0d00c24c73d968ff2a"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addefae00c24c73d968ff2c",
+      "timestamp": 1792929710761,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.245",
+          "name": "203.0.113.245",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addee9400c24c73d968ff29"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addee8200c24c73d968ff0c",
+      "timestamp": 1792929410132,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "198.18.1.132",
+          "name": "198.18.1.132",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6added6200c24c73d968ff0a"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6added5500c24c73d968feed",
+      "timestamp": 1792929109498,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "HIGH",
+      "key": "THREAT_DETECTED_KNOWN_DESTINATION_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_IP} to {DST_CLIENT} has been detected.",
+      "parameters": {
+        "DST_CLIENT": {
+          "device_fingerprint_id": 2764,
+          "fingerprint_source": 0,
+          "hostname": "data-archive",
+          "id": "02:00:00:00:00:1a",
+          "name": "data-archive 00:1a"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "SRC_IP": {
+          "id": "203.0.113.100",
+          "name": "203.0.113.100",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6added3800c24c73d968fee9"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6added5500c24c73d968feeb",
+      "timestamp": 1792929109481,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.245",
+          "name": "203.0.113.245",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addec3600c24c73d968fee8"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addec2800c24c73d968fec9",
+      "timestamp": 1792928808875,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.168",
+          "name": "203.0.113.168",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6addeb0100c24c73d968fec5"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6addec2800c24c73d968fec7",
+      "timestamp": 1792928808860,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "198.18.1.136",
+          "name": "198.18.1.136",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6adde9ca00c24c73d968fec4"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6adde9cf00c24c73d968fe8b",
+      "timestamp": 1792928207601,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.218",
+          "name": "203.0.113.218",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6adde89b00c24c73d968fe89"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6adde8a300c24c73d968fe6b",
+      "timestamp": 1792927907063,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.233",
+          "name": "203.0.113.233",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6adde87f00c24c73d968fe61"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6adde8a300c24c73d968fe69",
+      "timestamp": 1792927907034,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "HIGH",
+      "key": "THREAT_DETECTED_KNOWN_DESTINATION_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_IP} to {DST_CLIENT} has been detected.",
+      "parameters": {
+        "DST_CLIENT": {
+          "device_fingerprint_id": 2764,
+          "fingerprint_source": 0,
+          "hostname": "data-archive",
+          "id": "02:00:00:00:00:1a",
+          "name": "data-archive 00:1a"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "SRC_IP": {
+          "id": "198.18.1.137",
+          "name": "198.18.1.137",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6adde85f00c24c73d968fe5f"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6adde8a300c24c73d968fe68",
+      "timestamp": 1792927907026,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.233",
+          "name": "203.0.113.233",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6adde87200c24c73d968fe60"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6adde8a300c24c73d968fe67",
+      "timestamp": 1792927907022,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "HIGH",
+      "key": "THREAT_DETECTED_KNOWN_DESTINATION_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_IP} to {DST_CLIENT} has been detected.",
+      "parameters": {
+        "DST_CLIENT": {
+          "device_fingerprint_id": 2764,
+          "fingerprint_source": 0,
+          "hostname": "data-archive",
+          "id": "02:00:00:00:00:1a",
+          "name": "data-archive 00:1a"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "SRC_IP": {
+          "id": "198.18.1.138",
+          "name": "198.18.1.138",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6adde81000c24c73d968fe5e"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    },
+    {
+      "id": "6adde8a300c24c73d968fe66",
+      "timestamp": 1792927907018,
+      "category": "SECURITY",
+      "subcategory": "SECURITY_INTRUSION_PREVENTION",
+      "severity": "VERY_HIGH",
+      "key": "THREAT_DETECTED_KNOWN_SOURCE_CLIENT",
+      "title_raw": "Threat Detected",
+      "message_raw": "A network intrusion attempt from {SRC_CLIENT} to {DST_IP} has been detected.",
+      "parameters": {
+        "SRC_CLIENT": {
+          "device_fingerprint_id": 3594,
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:aa",
+          "name": "pi-cluster"
+        },
+        "CONSOLE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "CONSOLE_WITH_DEVICE_NAME": {
+          "id": "Gateway CGU",
+          "name": "Gateway CGU"
+        },
+        "DEVICE": {
+          "fingerprint_source": 0,
+          "id": "02:00:00:00:00:01",
+          "ip": "192.168.10.1",
+          "model": "UCG-Ultra",
+          "model_name": "UDRULT",
+          "name": "Gateway CGU",
+          "version": "5.1.33"
+        },
+        "DST_IP": {
+          "id": "203.0.113.169",
+          "name": "203.0.113.169",
+          "not_actionable": true
+        },
+        "INITIATOR_ID": {
+          "id": "6adde76c00c24c73d968fe5d"
+        }
+      },
+      "type": "THREAT_DETECTION_AND_PREVENTION",
+      "status": "NEW"
+    }
+  ],
+  "page_number": 6,
+  "total_element_count": 6045,
+  "total_page_count": 7
+}

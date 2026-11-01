@@ -1,0 +1,66 @@
+{
+  "offset": 0,
+  "limit": 200,
+  "count": 3,
+  "totalCount": 3,
+  "data": [
+    {
+      "type": "STANDARD",
+      "id": "27c0eae9-ecaf-467f-9a42-bd05f8984bcd",
+      "name": "ssid-1",
+      "enabled": true,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      },
+      "network": {
+        "type": "NATIVE"
+      },
+      "securityConfiguration": {
+        "type": "WPA2_PERSONAL"
+      },
+      "broadcastingFrequenciesGHz": [
+        5,
+        2.4
+      ]
+    },
+    {
+      "type": "STANDARD",
+      "id": "761e53dc-ee9e-4fe5-91ab-5a6841885093",
+      "name": "ssid-2",
+      "enabled": true,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      },
+      "network": {
+        "type": "SPECIFIC",
+        "networkId": "f1b4fdb6-c787-4421-92bb-56d55e0ea95a"
+      },
+      "securityConfiguration": {
+        "type": "WPA2_PERSONAL"
+      },
+      "broadcastingFrequenciesGHz": [
+        5,
+        2.4
+      ]
+    },
+    {
+      "type": "STANDARD",
+      "id": "e0077cb0-b9dd-4d24-a1f8-8b9a98c113ea",
+      "name": "ssid-3",
+      "enabled": true,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      },
+      "network": {
+        "type": "NATIVE"
+      },
+      "securityConfiguration": {
+        "type": "WPA2_PERSONAL"
+      },
+      "broadcastingFrequenciesGHz": [
+        5,
+        2.4
+      ]
+    }
+  ]
+}

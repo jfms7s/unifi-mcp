@@ -1,0 +1,148 @@
+{
+  "offset": 0,
+  "limit": 200,
+  "count": 35,
+  "totalCount": 35,
+  "data": [
+    {
+      "id": 0,
+      "name": "Instant messengers"
+    },
+    {
+      "id": 1,
+      "name": "Peer-to-peer networks"
+    },
+    {
+      "id": 3,
+      "name": "File sharing services and tools"
+    },
+    {
+      "id": 4,
+      "name": "Media streaming services"
+    },
+    {
+      "id": 5,
+      "name": "Email messaging services"
+    },
+    {
+      "id": 6,
+      "name": "VoIP services"
+    },
+    {
+      "id": 7,
+      "name": "Database tools"
+    },
+    {
+      "id": 8,
+      "name": "Online games"
+    },
+    {
+      "id": 9,
+      "name": "Management tools and protocols"
+    },
+    {
+      "id": 10,
+      "name": "Remote access terminals"
+    },
+    {
+      "id": 11,
+      "name": "Tunneling and proxy services"
+    },
+    {
+      "id": 12,
+      "name": "Investment platforms"
+    },
+    {
+      "id": 13,
+      "name": "Web services"
+    },
+    {
+      "id": 14,
+      "name": "Security update tools"
+    },
+    {
+      "id": 15,
+      "name": "Web instant messengers"
+    },
+    {
+      "id": 17,
+      "name": "Business tools"
+    },
+    {
+      "id": 18,
+      "name": "Network protocols"
+    },
+    {
+      "id": 19,
+      "name": "Network protocols"
+    },
+    {
+      "id": 20,
+      "name": "Network protocols"
+    },
+    {
+      "id": 22,
+      "name": "Adult"
+    },
+    {
+      "id": 23,
+      "name": "Private protocols"
+    },
+    {
+      "id": 24,
+      "name": "Social networks"
+    },
+    {
+      "id": 28,
+      "name": "TopSites-Adult"
+    },
+    {
+      "id": 29,
+      "name": "TopSites-Arts"
+    },
+    {
+      "id": 30,
+      "name": "TopSites-Business"
+    },
+    {
+      "id": 31,
+      "name": "TopSites-Computers"
+    },
+    {
+      "id": 33,
+      "name": "TopSites-Health"
+    },
+    {
+      "id": 34,
+      "name": "TopSites-Home"
+    },
+    {
+      "id": 36,
+      "name": "TopSites-News"
+    },
+    {
+      "id": 37,
+      "name": "TopSites-Recreation"
+    },
+    {
+      "id": 40,
+      "name": "TopSites-Science"
+    },
+    {
+      "id": 41,
+      "name": "TopSites-Shopping"
+    },
+    {
+      "id": 42,
+      "name": "TopSites-Society"
+    },
+    {
+      "id": 43,
+      "name": "TopSites-Sports"
+    },
+    {
+      "id": 255,
+      "name": "user-4"
+    }
+  ]
+}

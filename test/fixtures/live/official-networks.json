@@ -1,0 +1,42 @@
+{
+  "offset": 0,
+  "limit": 200,
+  "count": 3,
+  "totalCount": 3,
+  "data": [
+    {
+      "management": "GATEWAY",
+      "id": "50edfc66-8b84-4f92-8753-9d69a080a695",
+      "name": "Default",
+      "enabled": true,
+      "vlanId": 1,
+      "metadata": {
+        "origin": "SYSTEM_DEFINED",
+        "configurable": true
+      },
+      "default": true
+    },
+    {
+      "management": "GATEWAY",
+      "id": "f1b4fdb6-c787-4421-92bb-56d55e0ea95a",
+      "name": "IoT",
+      "enabled": true,
+      "vlanId": 2,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      },
+      "default": false
+    },
+    {
+      "management": "GATEWAY",
+      "id": "80ec407d-e455-4a87-8b26-846881ebf07f",
+      "name": "pi-cluster",
+      "enabled": true,
+      "vlanId": 3,
+      "metadata": {
+        "origin": "USER_DEFINED"
+      },
+      "default": false
+    }
+  ]
+}

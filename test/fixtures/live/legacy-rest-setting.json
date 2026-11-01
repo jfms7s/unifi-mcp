@@ -1,0 +1,755 @@
+{
+  "meta": {
+    "rc": "ok"
+  },
+  "data": [
+    {
+      "hostname": "device-5",
+      "name": "Gateway CGU",
+      "_id": "693862e03ce34976d544de93",
+      "key": "super_identity"
+    },
+    {
+      "data_retention_time_in_hours_for_5minutes_scale": 24,
+      "data_retention_time_in_hours_for_monthly_scale": 8760,
+      "enable_analytics": false,
+      "data_retention_time_in_hours_for_hourly_scale": 168,
+      "data_retention_time_in_hours_for_daily_scale": 2160,
+      "autobackup_enabled": true,
+      "multiple_sites_enabled": false,
+      "minimum_usable_hd_space": 500,
+      "data_retention_setting_preference": "auto",
+      "time_series_per_client_stats_enabled": true,
+      "autobackup_timezone": "Europe/Lisbon",
+      "data_retention_time_in_hours_for_others": 2160,
+      "discoverable": true,
+      "live_updates": "auto",
+      "autobackup_days": 0,
+      "override_inform_host": false,
+      "_id": "693862e03ce34976d544de94",
+      "autobackup_cron_expr": "30 0 1 * *",
+      "key": "super_mgmt"
+    },
+    {
+      "provider": "cloud",
+      "_id": "693801c63ce34976d544ded9",
+      "key": "super_mail"
+    },
+    {
+      "_id": "698e97eacb94a762544a69aa",
+      "key": "super_fabric_system_log",
+      "enabled": false
+    },
+    {
+      "sso_enabled": false,
+      "available_controller_channels": [
+        "release"
+      ],
+      "firmware_channel": "release",
+      "_id": "6a2406b31f58c685503cd78e",
+      "available_firmware_channels": [
+        "release"
+      ],
+      "key": "super_fwupdate"
+    },
+    {
+      "uplink_type": "gateway",
+      "x_mesh_psk": "<redacted>",
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "693862e03ce34976d544de96",
+      "x_mesh_essid": "<redacted>",
+      "key": "connectivity",
+      "enabled": true
+    },
+    {
+      "x_element_essid": "<redacted>",
+      "site_id": "693862dc3ce34976d544de91",
+      "x_element_psk": "<redacted>",
+      "_id": "693862e03ce34976d544de97",
+      "key": "element_adopt",
+      "enabled": true
+    },
+    {
+      "portal_customized_text_color": "#232326",
+      "portal_customized_title": "UniFi Guest Hotspot",
+      "auth": "none",
+      "redirect_https": true,
+      "portal_enabled": true,
+      "portal_customized_button_color": "#006FFF",
+      "portal_customized": false,
+      "portal_customized_languages": [
+        "en"
+      ],
+      "portal_customized_button_text": "Login",
+      "portal_customized_button_text_color": "#FFFFFF",
+      "portal_customized_welcome_text": "Welcome to UniFi Guest Hotspot",
+      "portal_customized_bg_image_enabled": false,
+      "portal_customized_success_text": "Welcome to UniFi Guest Hotspot",
+      "portal_use_hostname": false,
+      "expire_number": 8,
+      "portal_customized_link_color": "#006FFF",
+      "portal_customized_box_radius": 25,
+      "redirect_enabled": false,
+      "portal_customized_logo_size": 128,
+      "key": "guest_access",
+      "portal_customized_bg_color": "#005ED9",
+      "portal_customized_logo_position": "center",
+      "restricted_subnet_3": "10.0.0.0/8",
+      "expire_unit": 60,
+      "restricted_subnet_2": "172.16.0.0/12",
+      "restricted_subnet_1": "192.168.0.0/16",
+      "portal_customized_box_opacity": 100,
+      "ec_enabled": true,
+      "portal_customized_bg_type": "color",
+      "expire": 480,
+      "portal_customized_box_text_color": "#000000",
+      "site_id": "693862dc3ce34976d544de91",
+      "template_engine": "angular",
+      "redirect_to_https": false,
+      "portal_customized_box_color": "#FFFFFF",
+      "_id": "693862e03ce34976d544de99",
+      "portal_customized_authentication_text": "Select Your authentication method"
+    },
+    {
+      "setting_preference": "auto",
+      "site_id": "693862dc3ce34976d544de91",
+      "ntp_server_1": "0.ubnt.pool.ntp.org",
+      "_id": "693862e03ce34976d544de9a",
+      "ntp_server_2": "1.ubnt.pool.ntp.org",
+      "ntp_server_3": "2.ubnt.pool.ntp.org",
+      "ntp_server_4": "3.ubnt.pool.ntp.org",
+      "key": "ntp"
+    },
+    {
+      "x_ssh_bind_wildcard": false,
+      "wifiman_enabled": true,
+      "advanced_feature_enabled": true,
+      "x_api_token": "<redacted>",
+      "x_ssh_auth_password_enabled": true,
+      "x_mgmt_key": "<redacted>",
+      "x_ssh_sha512passwd": "<redacted>",
+      "unifi_idp_enabled": true,
+      "x_ssh_username": "<redacted>",
+      "site_id": "693862dc3ce34976d544de91",
+      "x_ssh_keys": [],
+      "debug_tools_enabled": false,
+      "_id": "693862e03ce34976d544de9b",
+      "auto_upgrade": true,
+      "x_ssh_password": "<redacted>",
+      "key": "mgmt",
+      "x_ssh_enabled": false,
+      "auto_upgrade_hour": 3
+    },
+    {
+      "fingerprintingEnabled": true,
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "693862e03ce34976d544de9c",
+      "key": "dpi",
+      "enabled": true
+    },
+    {
+      "brightness": 80,
+      "touch_event": true,
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "693862e03ce34976d544de9d",
+      "idle_timeout": 300,
+      "sync": true,
+      "key": "lcm",
+      "enabled": true
+    },
+    {
+      "h323_module": true,
+      "send_redirects": true,
+      "upnp_enabled": false,
+      "broadcast_ping": false,
+      "tcp_close_timeout": 10,
+      "upnp_secure_mode": false,
+      "tcp_fin_wait_timeout": 120,
+      "unbind_wan_monitors": false,
+      "upnp_wan_interface": "WAN",
+      "offload_sch": true,
+      "other_timeout": 600,
+      "icmp_timeout": 30,
+      "key": "usg",
+      "udp_other_timeout": 30,
+      "gre_module": true,
+      "timeout_setting_preference": "auto",
+      "tcp_time_wait_timeout": 120,
+      "ftp_module": true,
+      "offload_accounting": true,
+      "mss_clamp": "auto",
+      "udp_stream_timeout": 180,
+      "receive_redirects": false,
+      "syn_cookies": true,
+      "tcp_last_ack_timeout": 30,
+      "upnp_nat_pmp_enabled": false,
+      "site_id": "693862dc3ce34976d544de91",
+      "tftp_module": true,
+      "offload_l2_blocking": true,
+      "dns_verification": {
+        "setting_preference": "auto",
+        "primary_dns_server": "1.1.1.1",
+        "domain": "ui.com",
+        "secondary_dns_server": "8.8.8.8"
+      },
+      "tcp_syn_recv_timeout": 60,
+      "_id": "693862e03ce34976d544de9e",
+      "tcp_close_wait_timeout": 60,
+      "tcp_syn_sent_timeout": 120,
+      "tcp_established_timeout": 7440,
+      "pptp_module": true,
+      "sip_module": false
+    },
+    {
+      "this_controller": true,
+      "log_all_contents": true,
+      "this_controller_encrypted_only": true,
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "693862e03ce34976d544dea0",
+      "key": "rsyslogd",
+      "enabled": true
+    },
+    {
+      "site_id": "693862dc3ce34976d544de91",
+      "layout_preference": "manual",
+      "_id": "693862e03ce34976d544dea1",
+      "widgets": [
+        {
+          "name": "cybersecure",
+          "enabled": true
+        },
+        {
+          "name": "most_active_apps_aps_clients",
+          "enabled": true
+        },
+        {
+          "name": "most_common_client_fingerprints",
+          "enabled": true
+        },
+        {
+          "name": "wifi_channels",
+          "enabled": false
+        },
+        {
+          "name": "traffic_identification",
+          "enabled": true
+        },
+        {
+          "name": "wifi_technology",
+          "enabled": true
+        },
+        {
+          "name": "wifi_tx_retries",
+          "enabled": true
+        },
+        {
+          "name": "wifi_connectivity",
+          "enabled": true
+        },
+        {
+          "name": "ap_radio_density",
+          "enabled": true
+        }
+      ],
+      "key": "dashboard"
+    },
+    {
+      "forward_unknown_mcast_router_ports": false,
+      "jumboframe_enabled": false,
+      "auto_stp_edge_detection_enabled": false,
+      "radiusprofile_id": "693862e03ce34976d544dea3",
+      "switch_exclusions": [],
+      "stp_version": "rstp",
+      "flowctrl_enabled": true,
+      "dot1x_fallback_networkconf_id": "",
+      "dot1x_portctrl_enabled": false,
+      "flood_known_protocols": true,
+      "link_debounce": 0,
+      "dhcp_snoop": true,
+      "site_id": "693862dc3ce34976d544de91",
+      "acl_device_isolation": [],
+      "_id": "693862e03ce34976d544dea2",
+      "poe_staging_delay_msec": 200,
+      "acl_l3_isolation": [],
+      "key": "global_switch"
+    },
+    {
+      "subnet_cidr": "192.168.2.1/24",
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "693862e03ce34976d544dea4",
+      "key": "teleport",
+      "enabled": true
+    },
+    {
+      "public_key": "<redacted>",
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "693862e03ce34976d544dea5",
+      "x_private_key": "<redacted>",
+      "key": "magic_site_to_site_vpn",
+      "enabled": true
+    },
+    {
+      "setting_preference": "auto",
+      "auto_adjust_channels_to_country": true,
+      "channels_na": [
+        "36",
+        "40",
+        "44",
+        "48",
+        "52",
+        "56",
+        "60",
+        "64",
+        "100",
+        "104",
+        "108",
+        "112",
+        "116",
+        "120",
+        "124",
+        "128",
+        "132",
+        "136",
+        "140"
+      ],
+      "ht_modes_na": [
+        "20",
+        "40"
+      ],
+      "ht_modes_ng": [
+        "20"
+      ],
+      "auto_channel_presets_type": "maximum_speed",
+      "channels_ng": [
+        "1",
+        "6",
+        "11"
+      ],
+      "enabled": false,
+      "default": true,
+      "optimize": [
+        "channel"
+      ],
+      "channels_blacklist": [
+        {
+          "channel": 2,
+          "channel_width": 20,
+          "radio": "ng"
+        },
+        {
+          "channel": 3,
+          "channel_width": 20,
+          "radio": "ng"
+        },
+        {
+          "channel": 4,
+          "channel_width": 20,
+          "radio": "ng"
+        },
+        {
+          "channel": 5,
+          "channel_width": 20,
+          "radio": "ng"
+        },
+        {
+          "channel": 7,
+          "channel_width": 20,
+          "radio": "ng"
+        },
+        {
+          "channel": 8,
+          "channel_width": 20,
+          "radio": "ng"
+        },
+        {
+          "channel": 9,
+          "channel_width": 20,
+          "radio": "ng"
+        },
+        {
+          "channel": 10,
+          "channel_width": 20,
+          "radio": "ng"
+        },
+        {
+          "channel": 12,
+          "channel_width": 20,
+          "radio": "ng"
+        },
+        {
+          "channel": 13,
+          "channel_width": 20,
+          "radio": "ng"
+        },
+        {
+          "channel": 14,
+          "channel_width": 20,
+          "radio": "ng"
+        }
+      ],
+      "radios_configuration": [
+        {
+          "dfs": false,
+          "channel_width": 20,
+          "radio": "ng"
+        },
+        {
+          "dfs": true,
+          "channel_width": 80,
+          "radio": "na"
+        },
+        {
+          "dfs": false,
+          "channel_width": 320,
+          "radio": "6e"
+        }
+      ],
+      "cron_expr": "0 3 * * *",
+      "auto_enabled": false,
+      "radios": [
+        "ng",
+        "na",
+        "6e"
+      ],
+      "site_id": "693862dc3ce34976d544de91",
+      "channels_6e": [
+        "1",
+        "5",
+        "9",
+        "13",
+        "17",
+        "21",
+        "25",
+        "29",
+        "33",
+        "37",
+        "41",
+        "45",
+        "49",
+        "53",
+        "57",
+        "61",
+        "65",
+        "69",
+        "73",
+        "77",
+        "81",
+        "85",
+        "89",
+        "93"
+      ],
+      "exclude_devices": [],
+      "_id": "693862e03ce34976d544dea6",
+      "key": "radio_ai"
+    },
+    {
+      "utm_token": "<redacted>",
+      "ad_blocking_enabled": false,
+      "advanced_filtering_preference": "manual",
+      "enabled_categories": [
+        "emerging-activex",
+        "emerging-attackresponse",
+        "botcc",
+        "ciarmy",
+        "compromised",
+        "emerging-dns",
+        "emerging-dos",
+        "dshield",
+        "emerging-exploit",
+        "emerging-ftp",
+        "emerging-imap",
+        "emerging-malware",
+        "emerging-mobile",
+        "emerging-netbios",
+        "emerging-p2p",
+        "emerging-pop3",
+        "emerging-rpc",
+        "emerging-scan",
+        "emerging-shellcode",
+        "emerging-smtp",
+        "emerging-snmp",
+        "emerging-sql",
+        "emerging-telnet",
+        "emerging-tftp",
+        "tor",
+        "emerging-useragent",
+        "emerging-voip",
+        "emerging-webclient",
+        "emerging-webserver",
+        "emerging-webapps",
+        "emerging-worm",
+        "emerging-misc",
+        "dark-web-blocker-list",
+        "malicious-hosts"
+      ],
+      "dns_filters": [
+        {
+          "filter": "none",
+          "network_id": "6938a4331d4c99459c11328f",
+          "blocked_tld": [],
+          "blocked_sites": [],
+          "allowed_sites": [],
+          "name": "",
+          "description": "",
+          "version": "v4"
+        },
+        {
+          "filter": "none",
+          "network_id": "693862e03ce34976d544deaa",
+          "blocked_tld": [],
+          "blocked_sites": [],
+          "allowed_sites": [],
+          "name": "",
+          "description": "",
+          "version": "v4"
+        }
+      ],
+      "memory_optimized": true,
+      "dns_filtering": true,
+      "last_alert_id": "5-2026-11-01T11:08:14.105646 0000",
+      "honeypot": [],
+      "enabled_networks": [
+        "693862e03ce34976d544deaa",
+        "6938a4331d4c99459c11328f"
+      ],
+      "ips_mode": "ids",
+      "ad_blocking_configurations": [],
+      "site_id": "693862dc3ce34976d544de91",
+      "content_filtering_blocking_page_enabled": true,
+      "_id": "693862e03ce34976d544dea7",
+      "key": "ips",
+      "endpoint_scanning": false,
+      "honeypot_enabled": false
+    },
+    {
+      "server_names": [
+        "cloudflare",
+        "google"
+      ],
+      "custom_servers": [],
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "693862e03ce34976d544dea8",
+      "state": "auto",
+      "key": "doh"
+    },
+    {
+      "network_defaults": [
+        {
+          "raw_color_hex": "0544ff",
+          "key": "693862e03ce34976d544deaa"
+        },
+        {
+          "raw_color_hex": "ffffff",
+          "key": "none"
+        },
+        {
+          "raw_color_hex": "ff05ef",
+          "key": "6938a4331d4c99459c11328f"
+        },
+        {
+          "raw_color_hex": "ff6c14",
+          "key": "6ae51197aa840627805aa50a"
+        }
+      ],
+      "site_id": "693862dc3ce34976d544de91",
+      "network_overrides": [],
+      "_id": "693862e13ce34976d544deb1",
+      "speed_defaults": [
+        {
+          "raw_color_hex": "FFC105",
+          "key": "10M"
+        },
+        {
+          "raw_color_hex": "FFC105",
+          "key": "FE"
+        },
+        {
+          "raw_color_hex": "FFFFFF",
+          "key": "GbE"
+        },
+        {
+          "raw_color_hex": "0515FF",
+          "key": "2.5GbE"
+        },
+        {
+          "raw_color_hex": "FF6305",
+          "key": "5GbE"
+        },
+        {
+          "raw_color_hex": "FFFFFF",
+          "key": "10GbE"
+        },
+        {
+          "raw_color_hex": "0572FF",
+          "key": "25GbE"
+        },
+        {
+          "raw_color_hex": "5305FF",
+          "key": "40GbE"
+        },
+        {
+          "raw_color_hex": "32FFD9",
+          "key": "100GbE"
+        }
+      ],
+      "speed_overrides": [],
+      "key": "ether_lighting"
+    },
+    {
+      "site_id": "693862dc3ce34976d544de91",
+      "psk": "<redacted>",
+      "_id": "693862e13ce34976d544deb2",
+      "ssid": "ssid-4",
+      "key": "peer_to_peer"
+    },
+    {
+      "identity_certificate_groups": [],
+      "identity_certificate_users": [],
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "693862e13ce34976d544deb3",
+      "state": "off",
+      "identity_certificate_all_users": false,
+      "key": "ssl_inspection"
+    },
+    {
+      "mode": "auto",
+      "excluded_network_ids": [],
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "693862e13ce34976d544deb4",
+      "key": "global_nat"
+    },
+    {
+      "timezone": "Europe/Lisbon",
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "693801bc3ce34976d544dec6",
+      "key": "locale"
+    },
+    {
+      "code": "620",
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "693801c53ce34976d544dec7",
+      "key": "country"
+    },
+    {
+      "x_pregenerated_dh_key": "<redacted>",
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "693804193ce34976d544deed",
+      "key": "openvpn"
+    },
+    {
+      "speed_test_mode": "ALL",
+      "cron_expr": "0 5 * * *",
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "69382d0a1d4c99459c112d42",
+      "key": "auto_speedtest",
+      "enabled": true
+    },
+    {
+      "acct_port": 1813,
+      "interim_update_interval": 3600,
+      "site_id": "693862dc3ce34976d544de91",
+      "auth_port": 1812,
+      "tunneled_reply": true,
+      "_id": "6938b62e1d4c99459c11356c",
+      "key": "radius",
+      "enabled": true,
+      "x_secret": "<redacted>",
+      "configure_whole_network": true
+    },
+    {
+      "auto_engine_id_enabled": true,
+      "port": 2055,
+      "site_id": "693862dc3ce34976d544de91",
+      "refresh_rate": 20,
+      "_id": "6938e83136d173372d5101a9",
+      "version": 10,
+      "key": "netflow",
+      "enabled": false,
+      "export_frequency": 5
+    },
+    {
+      "mode": "all",
+      "predefined_services": [],
+      "enabled_for_network_ids": [],
+      "custom_services": [],
+      "site_id": "693862dc3ce34976d544de91",
+      "enabled_for": "all",
+      "_id": "6938e83236d173372d5101b0",
+      "key": "mdns"
+    },
+    {
+      "supports_vlan_group": false,
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "6938e83336d173372d5101fa",
+      "key": "ugw"
+    },
+    {
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "6938e8b8dae563140451c393",
+      "default_security_posture": "ALLOW_ALL",
+      "key": "global_network"
+    },
+    {
+      "querier_switches": [],
+      "forward_unknown_mcast_router_ports": false,
+      "subscription_mode": "ALL",
+      "failover_querier": "",
+      "switches": [],
+      "querier_subscription_mode": "ALL",
+      "enabled": true,
+      "querier_addresses": [],
+      "fastleave_for_network_ids": [],
+      "flood_unknown_multicast_for_network_ids": [],
+      "querier_mode": "OFF",
+      "flood_known_protocols": true,
+      "auto_unknown_traffic_handling": true,
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "69cd5685d220be04b6407b81",
+      "primary_querier": "",
+      "key": "igmp_snooping",
+      "network_ids": [
+        "693862e03ce34976d544deaa",
+        "6938a4331d4c99459c11328f"
+      ]
+    },
+    {
+      "alerts": [
+        {
+          "gid": 1,
+          "signature": "ET P2P Vuze BT UDP Connection (5)",
+          "id": 2010144,
+          "category": "emerging-p2p",
+          "type": "track",
+          "tracking": [
+            {
+              "mode": "ip",
+              "value": "192.168.10.2",
+              "direction": "both"
+            }
+          ]
+        }
+      ],
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "69cd5685d220be04b6407b82",
+      "whitelist": [],
+      "key": "ips_suppression"
+    },
+    {
+      "ip_filtering": {
+        "action": "block",
+        "countries": "",
+        "enabled": false,
+        "traffic_direction": "both"
+      },
+      "site_id": "693862dc3ce34976d544de91",
+      "_id": "69cd5685d220be04b6407b83",
+      "key": "usg_geo"
+    },
+    {
+      "site_id": "693862dc3ce34976d544de91",
+      "ikev2_reauthentication_method": "make-before-break",
+      "_id": "69e9890a22716da43b9b2307",
+      "key": "ipsec"
+    }
+  ]
+}
