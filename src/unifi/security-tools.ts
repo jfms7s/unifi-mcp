@@ -174,7 +174,8 @@ export function createSecurityTools(deps: ReadDeps): ToolDefinition[] {
         const officialName = new Map([...officialNets, ...wans].map((n) => [n.id, n.name]));
         const networkName = (id: string) => officialName.get(id) ?? legacyName(id);
         const names: FirewallNames = {
-          zone: () => undefined,
+          // Until the zones are read (or when they are unavailable): a short id.
+          zone: (id) => `zone ${id.slice(0, 8)}`,
           network: networkName,
           list: (id) => traffic.find((l) => l.id === id)?.name,
         };

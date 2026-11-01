@@ -406,6 +406,22 @@ describe('a firewall endpoint that changed (M5)', () => {
     expect(out.policies).toHaveLength(21);
   });
 
+  it('unifi_list_firewall without the zones labels each side with a short zone id', async () => {
+    const out = (await caller(
+      createReadTools(withBroken('listFirewallZones', '/firewall/zones')),
+    )('unifi_list_firewall')) as Record<string, unknown> & {
+      unavailable: Record<string, string>;
+      policies: string[];
+    };
+    expect(Object.keys(out.unavailable)).toEqual(['zones']);
+    expect(out.zones).toBeUndefined();
+    // Internal 2f3e84b1-…, External c266752b-…
+    expect(out.policies).toContain(
+      'zone c266752b → zone 2f3e84b1: ALLOW to 192.168.10.3 port 6690 tcp_udp "Allow Port Forward Synology" (system)',
+    );
+    expect(out.policies.join('\n')).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-/);
+  });
+
   it("unifi_list_firewall without the zone policies still lists the zones' neighbours", async () => {
     const out = (await caller(
       createReadTools(withBroken('listFirewallPolicies', '/firewall/policies')),
