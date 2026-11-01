@@ -15,6 +15,7 @@ describe('loadConfig', () => {
       siteManagerApiKey: undefined,
       readOnly: false,
       protectedNetworks: ['pi-cluster'],
+      acceptedFindings: [],
       transport: 'stdio',
       port: 3000,
       token: undefined,
@@ -118,6 +119,31 @@ describe('loadConfig', () => {
 
   it.each(['none', 'NONE', ' None '])('"%s" protects only the gateway, explicitly', (v) => {
     expect(loadConfig({ ...base, UNIFI_MCP_PROTECTED_NETWORKS: v }).protectedNetworks).toEqual([]);
+  });
+
+  it('reads accepted posture findings as rule:object pairs, the object after the first colon', () => {
+    const v =
+      'port-forward-open:PLEX, wifi-weak:TP-Link_D3C0 ,policy-any-any:Allow Internal to IoT,new-clients:pi (10.0.0.1:22)';
+    expect(loadConfig({ ...base, UNIFI_MCP_ACCEPTED_FINDINGS: v }).acceptedFindings).toEqual([
+      { rule: 'port-forward-open', object: 'PLEX' },
+      { rule: 'wifi-weak', object: 'TP-Link_D3C0' },
+      { rule: 'policy-any-any', object: 'Allow Internal to IoT' },
+      { rule: 'new-clients', object: 'pi (10.0.0.1:22)' },
+    ]);
+  });
+
+  it.each([undefined, '', ' , '])('accepts nothing when accepted findings is %j', (v) => {
+    expect(loadConfig({ ...base, UNIFI_MCP_ACCEPTED_FINDINGS: v }).acceptedFindings).toEqual([]);
+  });
+
+  it.each(['PLEX', 'port-forward-open:', 'port-forward-open: '])('an accepted finding without an object (%j) is an error', (v) => {
+    expect(() => loadConfig({ ...base, UNIFI_MCP_ACCEPTED_FINDINGS: v })).toThrow(/must be rule:object/);
+  });
+
+  it('an accepted finding with an unknown rule is an error that lists the rules', () => {
+    expect(() => loadConfig({ ...base, UNIFI_MCP_ACCEPTED_FINDINGS: 'port-forward:PLEX' })).toThrow(
+      /names an unknown rule; the rules are port-forward-open, wifi-weak/,
+    );
   });
 
   it('describes the protected networks for the startup log, warning when there are none', () => {

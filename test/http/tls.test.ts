@@ -37,6 +37,7 @@ function clientWith(tls: TlsConfig, url = baseUrl) {
     console: { baseUrl: url, apiKey: 'console-key', tls },
     readOnly: false,
     protectedNetworks: [],
+    acceptedFindings: [],
     transport: 'stdio',
     port: 3000,
   };

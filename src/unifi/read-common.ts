@@ -1,5 +1,6 @@
 import type { LegacyApi } from './legacy.js';
 import type { OfficialApi } from './official.js';
+import type { AcceptedFinding } from './posture.js';
 import { SEVERITIES } from './schemas.js';
 import type { SiteManagerApi } from './sitemanager.js';
 import type { SiteResolver } from './sites.js';
@@ -14,6 +15,8 @@ export interface ReadDeps {
   sites: SiteResolver;
   /** Milliseconds since the epoch; injectable so tests can pin "now". */
   now?: () => number;
+  /** Posture findings the owner accepted (UNIFI_MCP_ACCEPTED_FINDINGS). */
+  acceptedFindings?: readonly AcceptedFinding[];
 }
 
 export const READ = {

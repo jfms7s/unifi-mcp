@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { UnifiApiError } from '../../src/http/errors.js';
 import type { FirewallPolicy, FirewallZone } from '../../src/unifi/official.js';
 import {
+  applyAccepted,
   auditPosture,
   loadPostureInput,
   skippedRules,
@@ -570,6 +571,99 @@ describe('ordering', () => {
   it('findings come HIGH first, then MEDIUM, then LOW', () => {
     const ranks = audit().map((f) => ['HIGH', 'MEDIUM', 'LOW'].indexOf(f.severity));
     expect(ranks).toEqual([...ranks].sort((a, b) => a - b));
+  });
+});
+
+describe('accepted findings', () => {
+  const accept = (...pairs: Array<[string, string]>) =>
+    pairs.map(([rule, object]) => ({ rule, object }));
+
+  it('moves an accepted finding to accepted, severity kept', () => {
+    const out = applyAccepted(audit(), accept(['port-forward-open', 'PLEX']));
+    expect(byRule(out.findings, 'port-forward-open').map((f) => f.object)).toEqual([
+      'Synology',
+      'reverse',
+    ]);
+    expect(out.accepted.map((f) => [f.rule, f.object, f.severity])).toEqual([
+      ['port-forward-open', 'PLEX', 'HIGH'],
+    ]);
+    expect(out.stale).toEqual([]);
+  });
+
+  it('leaves a finding that is not accepted where it is', () => {
+    const all = audit();
+    const out = applyAccepted(all, accept(['wifi-weak', 'PLEX']));
+    expect(out.findings).toEqual(all);
+    expect(out.accepted).toEqual([]);
+  });
+
+  it('reports an acceptance that matches no finding as stale', () => {
+    const out = applyAccepted(
+      audit(),
+      accept(['port-forward-open', 'gone'], ['port-forward-open', 'PLEX']),
+    );
+    expect(out.stale).toEqual(accept(['port-forward-open', 'gone']));
+  });
+
+  it('matches the object name exactly: neither a prefix nor another case', () => {
+    const all = audit();
+    const out = applyAccepted(
+      all,
+      accept(['port-forward-open', 'PLE'], ['port-forward-open', 'plex']),
+    );
+    expect(out.findings).toEqual(all);
+    expect(out.accepted).toEqual([]);
+    expect(out.stale).toEqual(accept(['port-forward-open', 'PLE'], ['port-forward-open', 'plex']));
+  });
+
+  it('matches the rule too: an object accepted under one rule stays under another', () => {
+    const out = applyAccepted(audit(), accept(['wifi-weak', 'ssid-1']));
+    expect(out.accepted.every((f) => f.rule === 'wifi-weak' && f.object === 'ssid-1')).toBe(true);
+    expect(out.findings.some((f) => f.object === 'ssid-1')).toBe(false);
+  });
+
+  it('an acceptance for a rule that was skipped is not stale: it could not have matched', () => {
+    const out = applyAccepted(
+      auditPosture(zbfOff),
+      accept(['policy-any-any', 'Allow Internal to IoT']),
+      skippedRules(zbfOff),
+    );
+    expect(out.stale).toEqual([]);
+  });
+
+  it('unifi_posture_audit lists accepted findings apart and leaves them out of counts', async () => {
+    const deps = {
+      ...readDeps(),
+      acceptedFindings: accept(
+        ['port-forward-open', 'PLEX'],
+        ['port-forward-open', 'reverse'],
+        ['wifi-weak', 'nowhere'],
+      ),
+    };
+    const out = (await caller(createReadTools(deps))('unifi_posture_audit')) as {
+      findings: Finding[];
+      accepted: Finding[];
+      staleAccepted: Array<{ rule: string; object: string; note: string }>;
+      counts: Record<string, number>;
+    };
+    expect(out.counts).toEqual({ HIGH: 1, MEDIUM: 5, LOW: 18 });
+    expect(out.accepted.map((f) => [f.object, f.severity])).toEqual([
+      ['PLEX', 'HIGH'],
+      ['reverse', 'HIGH'],
+    ]);
+    expect(out.findings.map((f) => f.object)).not.toContain('PLEX');
+    expect(out.staleAccepted).toEqual([
+      expect.objectContaining({ rule: 'wifi-weak', object: 'nowhere' }),
+    ]);
+  });
+
+  it('unifi_posture_audit without acceptances has no accepted or staleAccepted', async () => {
+    const out = (await caller(createReadTools(readDeps()))('unifi_posture_audit')) as Record<
+      string,
+      unknown
+    >;
+    expect(out.accepted).toBeUndefined();
+    expect(out.staleAccepted).toBeUndefined();
   });
 });
 

@@ -25,7 +25,7 @@ The guard column says what a change needs before it runs:
 | `unifi_vpn_status` | read | VPN servers and site-to-site tunnels. |
 | `unifi_events` | read | The event log, newest first, paged to a ceiling that is reported when hit. |
 | `unifi_threat_summary` | read | SECURITY log entries grouped and checked against port forwards; firewall blocks are grouped by rule and LAN address, inbound or outbound. |
-| `unifi_posture_audit` | read | Security posture findings, HIGH first; rules that could not run are listed under `skipped`. |
+| `unifi_posture_audit` | read | Security posture findings, HIGH first; rules that could not run are listed under `skipped`, findings accepted with `UNIFI_MCP_ACCEPTED_FINDINGS` under `accepted`. |
 | `unifi_list_firewall` | read | Zones, zone policies, ACL rules, DNS policies and traffic matching lists as one-line rules; a rule repeated across zone pairs is one row. A collection that cannot be read is named under `unavailable`; without the zones, policy sides read `zone <id prefix>`. |
 | `unifi_list_port_forwards` | read | Port forwards, enabled state and exposure. |
 | `unifi_list_wifi` | read | WiFi networks with security, network and guest flags. |
@@ -95,6 +95,18 @@ A firewall policy's side that is a zone alone reaches every network in that zone
 
 Write tools act only on an exact client or device: an id, MAC, IP or full name. A partial name comes back as candidates to ask again with, and nothing changes.
 
+## Accepted posture findings
+
+Some exposure is intended: a port forward you run on purpose, an SSID kept on WPA2 for old devices. `UNIFI_MCP_ACCEPTED_FINDINGS` lists those findings so `unifi_posture_audit` stops raising them on every run:
+
+```
+UNIFI_MCP_ACCEPTED_FINDINGS=port-forward-open:PLEX,port-forward-open:reverse,wifi-weak:TP-Link_D3C0,policy-any-any:Allow Internal to IoT
+```
+
+Each entry is `rule:object`, comma-separated: the rule name a finding carries and its `object`, exactly as the audit prints it (case counts, no prefixes; the object is everything after the first colon, so it may hold a colon but not a comma). An accepted finding is not dropped: it moves to `accepted` with its severity and leaves `counts`. One entry accepts every finding of that rule on that object, so `wifi-weak:<ssid>` also covers a later guest-isolation finding on the same SSID.
+
+An entry that matches no finding (the forward was removed or renamed) is listed under `staleAccepted`, so the list can't rot unseen. An entry whose rule was skipped this run (zone rules while Zone-Based Firewall is off) is not stale. An unknown rule name or an entry without an object is a startup error; the accepted list is logged at startup.
+
 ## Configuration
 
 | Variable | Required | Purpose |
@@ -106,6 +118,7 @@ Write tools act only on an exact client or device: an id, MAC, IP or full name. 
 | `UNIFI_SITE_MANAGER_API_KEY` | no | Site Manager (unifi.ui.com) key; adds `unifi_list_hosts` and `unifi_isp_metrics`. |
 | `UNIFI_MCP_READ_ONLY` | no | `true` registers the read tools only. |
 | `UNIFI_MCP_PROTECTED_NETWORKS` | no | Comma-separated network names or ids. The default value is `pi-cluster`; set your own, e.g. `servers,management`, or `none` to protect only the gateway. Empty is an error. |
+| `UNIFI_MCP_ACCEPTED_FINDINGS` | no | Comma-separated `rule:object` posture findings accepted as intended; see [Accepted posture findings](#accepted-posture-findings). Unset or empty accepts none. |
 | `UNIFI_MCP_TRANSPORT` | no | `stdio` (default), `http` or `both`. The image sets `http`. |
 | `UNIFI_MCP_PORT` | no | HTTP port, default `3000`. |
 | `UNIFI_MCP_TOKEN` | for `http`/`both` | Bearer token MCP clients must send. |

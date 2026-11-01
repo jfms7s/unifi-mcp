@@ -48,6 +48,25 @@ export interface PostureInput {
 
 const SEVERITY_ORDER: Severity[] = ['HIGH', 'MEDIUM', 'LOW'];
 
+/** Every rule the audit runs, by the name its findings carry. */
+export const POSTURE_RULES = [
+  'port-forward-open',
+  'wifi-weak',
+  'zone-allow-to-trusted',
+  'policy-any-any',
+  'zone-mixed-trust',
+  'duplicate-policies',
+  'ips-off',
+  'new-clients',
+  'firmware-updates',
+] as const;
+
+/** A finding the owner has accepted as intended: its rule and its exact object name. */
+export interface AcceptedFinding {
+  rule: string;
+  object: string;
+}
+
 export async function loadPostureInput(
   deps: ReadDeps,
   site: Site,
@@ -513,4 +532,25 @@ export function skippedRules(input: PostureInput): Array<{ rule: string; note: s
     });
   }
   return out;
+}
+
+/**
+ * Moves the findings the owner accepted out of `findings` into `accepted`,
+ * severity kept. An acceptance matches a rule and an object name exactly. One
+ * that matches nothing is `stale`, unless its rule was skipped this run and so
+ * could not have matched.
+ */
+export function applyAccepted(
+  all: Finding[],
+  acceptances: readonly AcceptedFinding[],
+  skipped: ReadonlyArray<{ rule: string }> = [],
+): { findings: Finding[]; accepted: Finding[]; stale: AcceptedFinding[] } {
+  const matches = (a: AcceptedFinding, f: Finding) => a.rule === f.rule && a.object === f.object;
+  const isAccepted = (f: Finding) => acceptances.some((a) => matches(a, f));
+  const skippedRules = new Set(skipped.map((s) => s.rule));
+  return {
+    findings: all.filter((f) => !isAccepted(f)),
+    accepted: all.filter(isAccepted),
+    stale: acceptances.filter((a) => !skippedRules.has(a.rule) && !all.some((f) => matches(a, f))),
+  };
 }

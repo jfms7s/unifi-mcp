@@ -1,3 +1,5 @@
+import { POSTURE_RULES, type AcceptedFinding } from './unifi/posture.js';
+
 export type TransportMode = 'stdio' | 'http' | 'both';
 
 export type TlsConfig = { fingerprint: string } | { insecure: true };
@@ -14,6 +16,8 @@ export interface UnifiMcpConfig {
   readOnly: boolean;
   /** Network names or ids whose changes need confirm-level handling. */
   protectedNetworks: string[];
+  /** Posture findings accepted as intended: reported apart, not counted. */
+  acceptedFindings: AcceptedFinding[];
   transport: TransportMode;
   port: number;
   token?: string;
@@ -103,6 +107,36 @@ function readProtectedNetworks(env: NodeJS.ProcessEnv): string[] {
   return names;
 }
 
+/**
+ * `rule:object` pairs, comma-separated; the object is everything after the
+ * first colon and is matched exactly. Unset or empty accepts nothing (nothing
+ * is hidden). An unknown rule or a pair without an object is an error, so a
+ * typo is caught at startup rather than read as a stale acceptance.
+ */
+function readAcceptedFindings(env: NodeJS.ProcessEnv): AcceptedFinding[] {
+  const raw = env.UNIFI_MCP_ACCEPTED_FINDINGS ?? '';
+  return raw
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0)
+    .map((entry) => {
+      const colon = entry.indexOf(':');
+      const rule = colon < 0 ? entry : entry.slice(0, colon).trim();
+      const object = colon < 0 ? '' : entry.slice(colon + 1).trim();
+      if (!object) {
+        throw new ConfigError(
+          `UNIFI_MCP_ACCEPTED_FINDINGS entry "${entry}" must be rule:object, e.g. port-forward-open:PLEX`,
+        );
+      }
+      if (!(POSTURE_RULES as readonly string[]).includes(rule)) {
+        throw new ConfigError(
+          `UNIFI_MCP_ACCEPTED_FINDINGS entry "${entry}" names an unknown rule; the rules are ${POSTURE_RULES.join(', ')}`,
+        );
+      }
+      return { rule, object };
+    });
+}
+
 /** The startup line naming what the guard protects; a warning when it is only the gateway. */
 export function protectedNetworksLog(networks: readonly string[]): string {
   return networks.length === 0
@@ -143,6 +177,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): UnifiMcpConfig
     siteManagerApiKey: env.UNIFI_SITE_MANAGER_API_KEY?.trim() || undefined,
     readOnly: readBoolean(env, 'UNIFI_MCP_READ_ONLY'),
     protectedNetworks: readProtectedNetworks(env),
+    acceptedFindings: readAcceptedFindings(env),
     transport,
     port: readPort(env),
     token,

@@ -26,6 +26,7 @@ export function buildTools(
     syslog: createSyslogApi(client),
     sitemanager: config.siteManagerApiKey ? createSiteManagerApi(client) : undefined,
     sites: createSiteResolver(client),
+    acceptedFindings: config.acceptedFindings,
   };
 
   const tools = createReadTools(deps);
