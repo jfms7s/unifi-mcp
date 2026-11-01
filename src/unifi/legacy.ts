@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import { z } from 'zod';
 import type { UnifiHttpClient } from '../http/client.js';
 import { createEndpointGuard, type EndpointGuard } from './endpoint-guard.js';
 import {
@@ -71,7 +71,15 @@ export interface PortForward {
   src: string;
 }
 
+export type CmdManager = 'stamgr' | 'devmgr';
+export interface CmdBody {
+  cmd: 'block-sta' | 'unblock-sta' | 'kick-sta' | 'set-locate' | 'unset-locate';
+  mac: string;
+}
+
 export interface LegacyApi {
+  /** Runs a client or device command; resolves on `rc: ok`, rejects with the console's message otherwise. */
+  cmd(ref: string, manager: CmdManager, body: CmdBody): Promise<void>;
   sysinfo(ref: string): Promise<SysInfo>;
   health(ref: string): Promise<Health[]>;
   stations(ref: string): Promise<Station[]>;
@@ -141,6 +149,9 @@ export function createLegacyApi(client: UnifiHttpClient, guard?: EndpointGuard):
   }
 
   return {
+    async cmd(ref, manager, body) {
+      await rows(ref, `cmd/${manager}`, z.unknown(), body);
+    },
     async sysinfo(ref) {
       const body = await g.call({
         api: 'legacy',
