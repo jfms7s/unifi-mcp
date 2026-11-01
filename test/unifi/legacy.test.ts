@@ -114,7 +114,7 @@ const cases: Case[] = [
   {
     name: 'stationDpi',
     endpoint: 'stat/stadpi',
-    fixture: 'legacy-stat-sitedpi',
+    fixture: 'legacy-stat-stadpi',
     method: 'POST',
     field: 'x',
     call: (a) => a.stationDpi(REF, ['02:00:00:00:00:05']),

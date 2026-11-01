@@ -4,11 +4,9 @@ import { parseRange, siteInput, sinceInput, untilInput } from './inputs.js';
 import { DAY_MS, READ, type ReadDeps } from './read-common.js';
 import { compact, iso } from './shape.js';
 
-export function createWanTools(deps: ReadDeps): ToolDefinition[] {
-  const { official, legacy, sitemanager, sites } = deps;
-  const now = deps.now ?? Date.now;
-
-  async function ispMetrics(range: { from: number; to: number }) {
+/** ISP latency, loss and uptime over a range from Site Manager; says why when it cannot. */
+export function ispMetricsReader({ sitemanager }: ReadDeps) {
+  return async (range: { from: number; to: number }) => {
     if (!sitemanager) {
       return { available: false, reason: 'UNIFI_SITE_MANAGER_API_KEY is not set' };
     }
@@ -26,7 +24,14 @@ export function createWanTools(deps: ReadDeps): ToolDefinition[] {
     } catch (error) {
       return { available: false, reason: describeError(error) };
     }
-  }
+  };
+}
+
+export function createWanTools(deps: ReadDeps): ToolDefinition[] {
+  const { official, legacy, sites } = deps;
+  const now = deps.now ?? Date.now;
+
+  const ispMetrics = ispMetricsReader(deps);
 
   return [
     defineTool({

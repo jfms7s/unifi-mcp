@@ -1,3 +1,6 @@
+import type { ClientRecord } from './clients.js';
+import type { OfficialDevice } from './official.js';
+
 export type Match<T> = { found: T } | { ambiguous: T[] } | { none: true };
 
 const squashMac = (value: string) => value.toLowerCase().replace(/[^0-9a-f]/g, '');
@@ -26,4 +29,33 @@ export function lookup<T>(items: T[], query: string, tiers: Array<(item: T, quer
     if (hits.length > 1) return { ambiguous: hits };
   }
   return { none: true };
+}
+
+/** Device by id, MAC, IP, then exact and partial name. */
+export const findDevice = (devices: OfficialDevice[], query: string): Match<OfficialDevice> =>
+  lookup(devices, query, [
+    (d, q) => sameText(d.id, q),
+    (d, q) => sameId(d.macAddress, q),
+    (d, q) => d.ipAddress === q,
+    (d, q) => sameText(d.name, q),
+    (d, q) => hasText(d.name, q),
+  ]);
+
+/** Client by id, MAC, IP, then exact and partial name. */
+export const findClient = (clients: ClientRecord[], query: string): Match<ClientRecord> =>
+  lookup(clients, query, [
+    (c, q) => sameText(c.id, q) || sameText(c.officialId, q),
+    (c, q) => sameId(c.mac, q),
+    (c, q) => c.ip === q,
+    (c, q) => sameText(c.name, q),
+    (c, q) => hasText(c.name, q),
+  ]);
+
+/** What a tool returns when a name matches several things: the candidates, never a guess. */
+export function ambiguous<T>(query: string, candidates: T[], row: (c: T) => unknown) {
+  return {
+    ambiguous: true as const,
+    message: `"${query}" matches ${candidates.length}; ask again with its id or IP`,
+    candidates: candidates.map(row),
+  };
 }

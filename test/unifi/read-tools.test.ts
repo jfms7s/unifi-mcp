@@ -43,6 +43,9 @@ describe('registration', () => {
       'unifi_wan_status',
       'unifi_vpn_status',
       'unifi_events',
+      'unifi_traffic_report',
+      'unifi_top_apps',
+      'unifi_isp_metrics',
       'unifi_list_hosts',
     ]);
     for (const tool of tools) {
@@ -55,10 +58,11 @@ describe('registration', () => {
     }
   });
 
-  it('leaves out unifi_list_hosts when Site Manager is not configured', () => {
+  it('leaves out the Site Manager tools when it is not configured', () => {
     const { tools } = setup({ sitemanager: false });
     expect(tools.map((t) => t.name)).not.toContain('unifi_list_hosts');
-    expect(tools).toHaveLength(8);
+    expect(tools.map((t) => t.name)).not.toContain('unifi_isp_metrics');
+    expect(tools).toHaveLength(10);
   });
 });
 

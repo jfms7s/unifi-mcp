@@ -60,7 +60,7 @@ export function fakeConsole(opts: { log?: RawEntry[] } = {}): FakeConsole {
         .replace(/^\/v1\/(sites\/[^/]+\/)?/, '');
       return `official-${(rest || 'sites').replace(/\/$/, '').replace(/\//g, '-')}`;
     }
-    if (api === 'legacy') return `legacy-${path.replace(/^\/s\/[^/]+\//, '').replace(/\//g, '-')}`;
+    if (api === 'legacy') return `legacy-${path.replace(/^\/s\/[^/]+\//, '').replace(/[/.]/g, '-')}`;
     if (api === 'sitemanager') {
       return path.startsWith('/v1/isp-metrics/') ? 'sitemanager-isp-metrics-1h' : 'sitemanager-hosts';
     }

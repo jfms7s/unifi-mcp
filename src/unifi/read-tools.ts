@@ -3,24 +3,17 @@ import { describeError } from '../http/errors.js';
 import { defineTool, type ToolDefinition } from '../mcp/types.js';
 import { clientDetail, clientRow, loadClients, type ClientRecord } from './clients.js';
 import { limitInput, parseTime, siteInput } from './inputs.js';
-import { hasText, lookup, sameId, sameText } from './lookup.js';
+import { ambiguous, findClient, findDevice, hasText, sameId, sameText } from './lookup.js';
 import type { OfficialDevice } from './official.js';
 import { EVENT_CEILING, DAY_MS, READ, coverageNote, severityRank, type ReadDeps } from './read-common.js';
 import { compact, cut, isGatewayModel, modelName } from './shape.js';
 import { createEventTools } from './event-tools.js';
+import { createMetricsTools } from './metrics-tools.js';
 import { createHostTools, createWanTools } from './wan-tools.js';
 
 export type { ReadDeps };
 
 const OFFLINE_STATES = new Set(['OFFLINE', 'CONNECTION_INTERRUPTED', 'ISOLATED']);
-
-function ambiguous<T>(query: string, candidates: T[], row: (c: T) => unknown) {
-  return {
-    ambiguous: true as const,
-    message: `"${query}" matches ${candidates.length}; ask again with its id or IP`,
-    candidates: candidates.map(row),
-  };
-}
 
 function deviceRow(d: OfficialDevice) {
   return compact({
@@ -149,13 +142,7 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
           official.listDevices(site.id),
           legacy.devicesBasic(site.ref),
         ]);
-        const match = lookup(devices, device, [
-          (d, q) => sameText(d.id, q),
-          (d, q) => sameId(d.macAddress, q),
-          (d, q) => d.ipAddress === q,
-          (d, q) => sameText(d.name, q),
-          (d, q) => hasText(d.name, q),
-        ]);
+        const match = findDevice(devices, device);
         if ('none' in match) throw new Error(`No device matches "${device}"`);
         if ('ambiguous' in match) return ambiguous(device, match.ambiguous, deviceRow);
         const d = match.found;
@@ -242,13 +229,7 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
       handler: async ({ client, site: wanted }) => {
         const site = await sites.resolve(wanted);
         const all = await loadClients(deps, site);
-        const match = lookup(all, client, [
-          (c, q) => sameText(c.id, q) || sameText(c.officialId, q),
-          (c, q) => sameId(c.mac, q),
-          (c, q) => c.ip === q,
-          (c, q) => sameText(c.name, q),
-          (c, q) => hasText(c.name, q),
-        ]);
+        const match = findClient(all, client);
         if ('none' in match) throw new Error(`No client matches "${client}"`);
         if ('ambiguous' in match) return ambiguous(client, match.ambiguous, clientRow);
         return clientDetail(match.found);
@@ -256,6 +237,7 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
     }),
     ...createWanTools(deps),
     ...createEventTools(deps),
+    ...createMetricsTools(deps),
     ...createHostTools(deps),
   ];
 }
