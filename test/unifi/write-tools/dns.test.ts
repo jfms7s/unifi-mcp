@@ -176,9 +176,15 @@ describe('DNS policies', () => {
   });
 
   it('consoleRedirect compares the host case-insensitively, with or without its root dot', () => {
-    expect(consoleRedirect({ type: 'A_RECORD', domain: 'console.test' }, 'Console.Test.')).toBeDefined();
-    expect(consoleRedirect({ type: 'FORWARD_DOMAIN', domain: 'test' }, 'CONSOLE.TEST')).toBeDefined();
-    expect(consoleRedirect({ type: 'A_RECORD', domain: 'nas.console.test' }, 'Console.Test.')).toBeUndefined();
+    expect(
+      consoleRedirect({ type: 'A_RECORD', domain: 'console.test' }, 'Console.Test.'),
+    ).toBeDefined();
+    expect(
+      consoleRedirect({ type: 'FORWARD_DOMAIN', domain: 'test' }, 'CONSOLE.TEST'),
+    ).toBeDefined();
+    expect(
+      consoleRedirect({ type: 'A_RECORD', domain: 'nas.console.test' }, 'Console.Test.'),
+    ).toBeUndefined();
   });
 
   it.each([

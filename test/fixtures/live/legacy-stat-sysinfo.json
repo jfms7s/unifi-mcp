@@ -21,11 +21,7 @@
       "store_enabled": "super-only",
       "hostname": "device-5",
       "name": "Gateway CGU",
-      "ip_addrs": [
-        "192.168.0.1",
-        "192.168.11.1",
-        "192.168.10.1"
-      ],
+      "ip_addrs": ["192.168.0.1", "192.168.11.1", "192.168.10.1"],
       "inform_port": 8080,
       "https_port": 8443,
       "portal_http_port": 8880,

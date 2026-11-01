@@ -93,7 +93,8 @@ export function fakeWriteConsole(server: SetupServer, opts: ConsoleOptions = {})
       }
       const name = fixtureName(api, path.slice(prefix.length));
       const site = siteOf(path, opts);
-      if (site?.fixtures?.[name] !== undefined) return HttpResponse.json(site.fixtures[name] as never);
+      if (site?.fixtures?.[name] !== undefined)
+        return HttpResponse.json(site.fixtures[name] as never);
       if (name === 'official-sites' && opts.extraSites) {
         return HttpResponse.json(sitesWith(opts.extraSites) as never);
       }

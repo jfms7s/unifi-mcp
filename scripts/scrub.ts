@@ -325,7 +325,11 @@ function learnValue(value: unknown, map: ScrubMap, parentKey: string | undefined
   const record = value as Record<string, unknown>;
   // An official-API site ({id, internalReference, name}): its id names the owner's console.
   const siteId = record.id;
-  if (typeof record.internalReference === 'string' && typeof siteId === 'string' && UUID_RE.test(siteId)) {
+  if (
+    typeof record.internalReference === 'string' &&
+    typeof siteId === 'string' &&
+    UUID_RE.test(siteId)
+  ) {
     if (!siteId.startsWith(FAKE_UUID_PREFIX)) map.siteIds.add(siteId);
     mapId(map, siteId);
   }

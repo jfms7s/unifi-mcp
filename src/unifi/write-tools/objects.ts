@@ -30,9 +30,7 @@ const NOT_SECRET = new Set(['sortkey', 'publickey']);
 const secretName = (key: string): boolean => {
   const k = key.toLowerCase();
   if (NOT_SECRET.has(k)) return false;
-  return (
-    SECRET_WORD.test(k.replace(/^bypass/, '')) || KEY_NAME.test(k) || k.startsWith('x_')
-  );
+  return SECRET_WORD.test(k.replace(/^bypass/, '')) || KEY_NAME.test(k) || k.startsWith('x_');
 };
 
 /**
@@ -89,10 +87,7 @@ export function redact(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(redact);
   if (!isPlain(value)) return value;
   return Object.fromEntries(
-    Object.entries(value).map(([k, v]) => [
-      k,
-      isSecret(k, v) ? REDACTED : redact(v),
-    ]),
+    Object.entries(value).map(([k, v]) => [k, isSecret(k, v) ? REDACTED : redact(v)]),
   );
 }
 

@@ -19,7 +19,13 @@ export function ispMetricsReader({ sitemanager }: ReadDeps) {
       return {
         interval,
         range: { from: iso(range.from), to: iso(range.to) },
-        series: rows.map((r) => summariseIsp(r.hostId, r.siteId, r.periods.map((p) => p.data.wan))),
+        series: rows.map((r) =>
+          summariseIsp(
+            r.hostId,
+            r.siteId,
+            r.periods.map((p) => p.data.wan),
+          ),
+        ),
       };
     } catch (error) {
       return { available: false, reason: describeError(error) };
@@ -37,13 +43,16 @@ export function createWanTools(deps: ReadDeps): ToolDefinition[] {
     defineTool({
       name: 'unifi_wan_status',
       description:
-        'WAN state: the configured WANs, the gateway\'s WAN IP, ISP and link status, internet latency and drops now, and (with a Site Manager key) ISP latency, loss and uptime over a range (default 24 h).',
+        "WAN state: the configured WANs, the gateway's WAN IP, ISP and link status, internet latency and drops now, and (with a Site Manager key) ISP latency, loss and uptime over a range (default 24 h).",
       inputSchema: { site: siteInput, since: sinceInput, until: untilInput },
       annotations: READ,
       handler: async ({ site: wanted, since, until }) => {
         const site = await sites.resolve(wanted);
         const range = parseRange(since, until, '24h', now());
-        const [wans, health] = await Promise.all([official.listWans(site.id), legacy.health(site.ref)]);
+        const [wans, health] = await Promise.all([
+          official.listWans(site.id),
+          legacy.health(site.ref),
+        ]);
         const wan = health.find((h) => h.subsystem === 'wan');
         const www = health.find((h) => h.subsystem === 'www');
         return compact({
@@ -71,7 +80,8 @@ export function createWanTools(deps: ReadDeps): ToolDefinition[] {
 
     defineTool({
       name: 'unifi_vpn_status',
-      description: 'VPN servers and site-to-site tunnels with their state, plus the console\'s VPN health.',
+      description:
+        "VPN servers and site-to-site tunnels with their state, plus the console's VPN health.",
       inputSchema: { site: siteInput },
       annotations: READ,
       handler: async ({ site: wanted }) => {
@@ -92,7 +102,6 @@ export function createWanTools(deps: ReadDeps): ToolDefinition[] {
       },
     }),
   ];
-
 }
 
 interface WanPeriod {
@@ -108,7 +117,8 @@ function summariseIsp(hostId: string, siteId: string, periods: WanPeriod[]) {
     const values = periods.map(pick).filter((v): v is number => v !== undefined);
     return values.length === 0 ? undefined : values.reduce((a, b) => a + b, 0) / values.length;
   };
-  const round = (v: number | undefined) => (v === undefined ? undefined : Math.round(v * 100) / 100);
+  const round = (v: number | undefined) =>
+    v === undefined ? undefined : Math.round(v * 100) / 100;
   const maxes = periods.map((p) => p.maxLatency).filter((v): v is number => v !== undefined);
   return compact({
     hostId,
@@ -127,7 +137,8 @@ export function createHostTools({ sitemanager }: ReadDeps): ToolDefinition[] {
   return [
     defineTool({
       name: 'unifi_list_hosts',
-      description: 'List the consoles on the Site Manager account with their name, state and version.',
+      description:
+        'List the consoles on the Site Manager account with their name, state and version.',
       inputSchema: {},
       annotations: READ,
       handler: async () => {

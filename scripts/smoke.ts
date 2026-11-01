@@ -26,8 +26,10 @@ async function main(): Promise<void> {
 
   for (const tool of sorted) {
     let args: Args = {};
-    if (tool.name === 'unifi_get_device') args = { device: firstId(results.get('unifi_list_devices'), 'devices') };
-    if (tool.name === 'unifi_get_client') args = { client: firstId(results.get('unifi_list_clients'), 'clients') };
+    if (tool.name === 'unifi_get_device')
+      args = { device: firstId(results.get('unifi_list_devices'), 'devices') };
+    if (tool.name === 'unifi_get_client')
+      args = { client: firstId(results.get('unifi_list_clients'), 'clients') };
     if (tool.name === 'unifi_traffic_report') args = { scope: 'site' };
 
     try {

@@ -11,9 +11,7 @@
       "lastConnectionStateChange": "2026-10-31T19:35:04Z",
       "latestBackupTime": "2026-10-29T14:56:50Z",
       "userData": {
-        "apps": [
-          "users"
-        ],
+        "apps": ["users"],
         "consoleGroupMembers": [
           {
             "mac": "020000000001",
@@ -27,10 +25,7 @@
             "sysId": 42616
           }
         ],
-        "controllers": [
-          "network",
-          "innerspace"
-        ],
+        "controllers": ["network", "innerspace"],
         "email": "user-1@example.com",
         "features": {
           "deviceGroups": true,
@@ -55,48 +50,20 @@
         "fullName": "user-1",
         "localId": "00000000-0000-4000-8000-000000000013",
         "permissions": {
-          "access.management": [
-            "admin"
-          ],
-          "calculus.management": [
-            "admin"
-          ],
-          "connect.management": [
-            "admin"
-          ],
-          "drive.management": [
-            "admin"
-          ],
-          "fabric.management": [
-            "admin"
-          ],
-          "innerspace.management": [
-            "admin"
-          ],
-          "led.management": [
-            "admin"
-          ],
-          "network.management": [
-            "admin"
-          ],
-          "olympus.management": [
-            "admin"
-          ],
-          "protect.management": [
-            "admin"
-          ],
-          "system.management.location": [
-            "admin"
-          ],
-          "system.management.user": [
-            "admin"
-          ],
-          "talk-relay.management": [
-            "admin"
-          ],
-          "talk.management": [
-            "admin"
-          ]
+          "access.management": ["admin"],
+          "calculus.management": ["admin"],
+          "connect.management": ["admin"],
+          "drive.management": ["admin"],
+          "fabric.management": ["admin"],
+          "innerspace.management": ["admin"],
+          "led.management": ["admin"],
+          "network.management": ["admin"],
+          "olympus.management": ["admin"],
+          "protect.management": ["admin"],
+          "system.management.location": ["admin"],
+          "system.management.user": ["admin"],
+          "talk-relay.management": ["admin"],
+          "talk.management": ["admin"]
         },
         "role": "owner",
         "roleId": "00000000-0000-4000-8000-000000000014",
@@ -298,9 +265,7 @@
             "hour": 3
           }
         },
-        "availableChannels": [
-          "release"
-        ],
+        "availableChannels": ["release"],
         "cloudSystemLogState": "disabled",
         "consolesOnSameLocalNetwork": [],
         "controller_uuid": "000000000000000000000000000000000000000000000000000000000011:17",

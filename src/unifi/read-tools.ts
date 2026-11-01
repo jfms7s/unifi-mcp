@@ -12,7 +12,14 @@ import { limitInput, parseTime, siteInput } from './inputs.js';
 import { ambiguous, findClient, findDevice, hasText, sameId, sameText } from './lookup.js';
 import type { LegacyDevice } from './legacy.js';
 import type { OfficialDevice } from './official.js';
-import { EVENT_CEILING, DAY_MS, READ, coverageNote, severityRank, type ReadDeps } from './read-common.js';
+import {
+  EVENT_CEILING,
+  DAY_MS,
+  READ,
+  coverageNote,
+  severityRank,
+  type ReadDeps,
+} from './read-common.js';
 import { compact, cut, isGatewayModel, modelName } from './shape.js';
 import type { Site } from './sites.js';
 import { createEventTools } from './event-tools.js';
@@ -95,7 +102,12 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
         const count = (type: string) => clients.filter((c) => c.type === type).length;
         const [wired, wireless] = [count('WIRED'), count('WIRELESS')];
         return {
-          counts: { total: clients.length, wired, wireless, other: clients.length - wired - wireless },
+          counts: {
+            total: clients.length,
+            wired,
+            wireless,
+            other: clients.length - wired - wireless,
+          },
         };
       },
       async (error: unknown) => {
@@ -187,7 +199,9 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
           legacy.devices(site.ref).catch((e: unknown) => ({ error: describeError(e) })),
         ]);
         // An offline device has no statistics; its row simply lacks them.
-        const stats = await Promise.allSettled(devices.map((d) => official.deviceStats(site.id, d.id)));
+        const stats = await Promise.allSettled(
+          devices.map((d) => official.deviceStats(site.id, d.id)),
+        );
         const rows = 'error' in legacyRows ? [] : legacyRows;
         return compact({
           site: site.name,
@@ -229,7 +243,9 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
         if ('ambiguous' in match) return ambiguous(device, match.ambiguous, deviceRow);
         const d = match.found;
         const [stats, legacyRow] = [
-          await official.deviceStats(site.id, d.id).catch((e: unknown) => ({ error: describeError(e) })),
+          await official
+            .deviceStats(site.id, d.id)
+            .catch((e: unknown) => ({ error: describeError(e) })),
           basic.find((b) => sameId(b.mac, d.macAddress)),
         ];
         const s = 'error' in stats ? undefined : stats;
@@ -260,12 +276,17 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
         network: z.string().min(1).optional().describe('Network name (e.g. IoT)'),
         ap: z.string().min(1).optional().describe('Uplink AP or switch name, or its MAC'),
         wired: z.boolean().optional().describe('true for wired clients, false for wireless'),
-        blocked: z.boolean().optional().describe('true for blocked clients only, false for unblocked'),
+        blocked: z
+          .boolean()
+          .optional()
+          .describe('true for blocked clients only, false for unblocked'),
         firstSeenSince: z
           .string()
           .min(1)
           .optional()
-          .describe('Only clients first seen after this: ISO 8601 or a span back from now such as 7d'),
+          .describe(
+            'Only clients first seen after this: ISO 8601 or a span back from now such as 7d',
+          ),
         includeOffline: z
           .boolean()
           .default(false)
@@ -275,12 +296,15 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
       annotations: READ,
       handler: async (a) => {
         const site = await sites.resolve(a.site);
-        const since = a.firstSeenSince === undefined ? undefined : parseTime(a.firstSeenSince, now());
+        const since =
+          a.firstSeenSince === undefined ? undefined : parseTime(a.firstSeenSince, now());
         const { records: all, note } = await loadClients(deps, site);
         const showOffline = a.includeOffline || a.blocked === true;
         const keep = (c: ClientRecord) =>
           (showOffline || c.connected) &&
-          (a.network === undefined || sameText(c.network, a.network) || c.networkId === a.network) &&
+          (a.network === undefined ||
+            sameText(c.network, a.network) ||
+            c.networkId === a.network) &&
           (a.wired === undefined || c.wired === a.wired) &&
           (a.blocked === undefined || c.blocked === a.blocked) &&
           (since === undefined || (c.firstSeen !== undefined && c.firstSeen >= since)) &&

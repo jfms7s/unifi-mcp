@@ -145,16 +145,7 @@
       "destinationZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
       "ordering": {
         "orderedFirewallPolicyIds": {
-          "beforeSystemDefined": [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-          ],
+          "beforeSystemDefined": [null, null, null, null, null, null, null, null],
           "afterSystemDefined": []
         }
       }
@@ -164,12 +155,7 @@
       "destinationZoneId": "d2e63b8f-895d-4976-a0cd-d4173c1f1698",
       "ordering": {
         "orderedFirewallPolicyIds": {
-          "beforeSystemDefined": [
-            null,
-            null,
-            null,
-            null
-          ],
+          "beforeSystemDefined": [null, null, null, null],
           "afterSystemDefined": []
         }
       }
@@ -179,12 +165,7 @@
       "destinationZoneId": "e4b8a9f8-d39f-4d4c-9120-9290c6b209e2",
       "ordering": {
         "orderedFirewallPolicyIds": {
-          "beforeSystemDefined": [
-            null,
-            null,
-            null,
-            null
-          ],
+          "beforeSystemDefined": [null, null, null, null],
           "afterSystemDefined": []
         }
       }
@@ -194,12 +175,7 @@
       "destinationZoneId": "2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0",
       "ordering": {
         "orderedFirewallPolicyIds": {
-          "beforeSystemDefined": [
-            null,
-            null,
-            null,
-            null
-          ],
+          "beforeSystemDefined": [null, null, null, null],
           "afterSystemDefined": []
         }
       }
@@ -229,12 +205,7 @@
       "destinationZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
       "ordering": {
         "orderedFirewallPolicyIds": {
-          "beforeSystemDefined": [
-            null,
-            null,
-            null,
-            null
-          ],
+          "beforeSystemDefined": [null, null, null, null],
           "afterSystemDefined": []
         }
       }
@@ -294,12 +265,7 @@
       "destinationZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
       "ordering": {
         "orderedFirewallPolicyIds": {
-          "beforeSystemDefined": [
-            null,
-            null,
-            null,
-            null
-          ],
+          "beforeSystemDefined": [null, null, null, null],
           "afterSystemDefined": []
         }
       }
@@ -359,12 +325,7 @@
       "destinationZoneId": "c266752b-f8ea-4d9e-8dc9-3658eb20eb50",
       "ordering": {
         "orderedFirewallPolicyIds": {
-          "beforeSystemDefined": [
-            null,
-            null,
-            null,
-            null
-          ],
+          "beforeSystemDefined": [null, null, null, null],
           "afterSystemDefined": []
         }
       }

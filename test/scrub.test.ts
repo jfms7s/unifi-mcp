@@ -362,8 +362,12 @@ describe('scrub: owner, account and console identity', () => {
     prime(sites, map);
     prime(zbf, map);
     const fake = '00000000-0000-4000-8000-000000000001';
-    expect(scrub(sites, map)).toEqual({ data: [{ id: fake, internalReference: 'default', name: 'Default' }] });
-    expect(scrub(zbf, map)).toEqual({ body: { requestPath: `/integration/v1/sites/${fake}/firewall/zones` } });
+    expect(scrub(sites, map)).toEqual({
+      data: [{ id: fake, internalReference: 'default', name: 'Default' }],
+    });
+    expect(scrub(zbf, map)).toEqual({
+      body: { requestPath: `/integration/v1/sites/${fake}/firewall/zones` },
+    });
     expect(scrub(scrub(sites, map), createScrubMap())).toEqual(scrub(sites, map));
   });
 

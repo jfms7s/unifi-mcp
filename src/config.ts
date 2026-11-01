@@ -148,7 +148,9 @@ function readTransport(env: NodeJS.ProcessEnv): TransportMode {
   const raw = env.UNIFI_MCP_TRANSPORT?.trim();
   if (!raw) return 'stdio';
   if (!TRANSPORTS.includes(raw as TransportMode)) {
-    throw new ConfigError(`UNIFI_MCP_TRANSPORT must be one of ${TRANSPORTS.join(', ')} (got: ${raw})`);
+    throw new ConfigError(
+      `UNIFI_MCP_TRANSPORT must be one of ${TRANSPORTS.join(', ')} (got: ${raw})`,
+    );
   }
   return raw as TransportMode;
 }

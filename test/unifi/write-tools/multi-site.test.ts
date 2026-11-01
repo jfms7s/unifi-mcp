@@ -38,7 +38,7 @@ const setup = () =>
   });
 
 describe('writes on a console with two sites', () => {
-  it('a write on site B is checked against B\'s scope, not the default site\'s', async () => {
+  it("a write on site B is checked against B's scope, not the default site's", async () => {
     const { call, writes } = setup();
     // client-22 is on pi-cluster at Default; Branch has no pi-cluster.
     expect(await call('unifi_block_client', { site: 'Branch', client: 'client-22' })).toEqual({
@@ -109,8 +109,14 @@ describe('writes on two sites through buildTools', () => {
   it('keeps a scope per site: Branch is easy, Default needs confirm, each loaded once', async () => {
     const { call, writes } = production();
     const branch = { site: 'Branch', client: 'client-22' };
-    expect(await call('unifi_block_client', branch)).toEqual({ changed: 'blocked', client: 'client-22' });
-    const preview = (await call('unifi_block_client', { site: 'Default', client: 'client-22' })) as {
+    expect(await call('unifi_block_client', branch)).toEqual({
+      changed: 'blocked',
+      client: 'client-22',
+    });
+    const preview = (await call('unifi_block_client', {
+      site: 'Default',
+      client: 'client-22',
+    })) as {
       requires?: string;
       warning?: string;
     };

@@ -42,7 +42,9 @@ describe('createServer', () => {
   it('returns the handler result as pretty-printed JSON text', async () => {
     const client = await connect([echoTool]);
     const result = await client.callTool({ name: 'unifi_echo', arguments: { number: 3 } });
-    expect(result.content).toEqual([{ type: 'text', text: JSON.stringify({ number: 3 }, null, 2) }]);
+    expect(result.content).toEqual([
+      { type: 'text', text: JSON.stringify({ number: 3 }, null, 2) },
+    ]);
     expect(result.isError).toBeFalsy();
   });
 
@@ -54,7 +56,13 @@ describe('createServer', () => {
         inputSchema: {},
         annotations: { readOnlyHint: true },
         handler: async () => {
-          throw new UnifiApiError({ kind: 'status', method: 'GET', path: '/api/x', status: 404, detail: 'not found' });
+          throw new UnifiApiError({
+            kind: 'status',
+            method: 'GET',
+            path: '/api/x',
+            status: 404,
+            detail: 'not found',
+          });
         },
       }),
     ]);

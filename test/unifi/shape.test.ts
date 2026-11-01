@@ -5,10 +5,7 @@ import type { SyslogEntry } from '../../src/unifi/syslog.js';
 
 const NOW = Date.UTC(2026, 10, 1, 12, 0, 0);
 
-function entry(
-  messageTemplate: string,
-  parameters: SyslogEntry['parameters'],
-): SyslogEntry {
+function entry(messageTemplate: string, parameters: SyslogEntry['parameters']): SyslogEntry {
   return {
     id: 'e1',
     timestamp: NOW,
@@ -23,10 +20,13 @@ function entry(
 
 describe('renderMessage', () => {
   it('fills each placeholder with the parameter name', () => {
-    const e = entry('A network intrusion attempt from {SRC_IP} to {DST_CLIENT} has been detected.', {
-      SRC_IP: { id: '203.0.113.6', name: '203.0.113.6' },
-      DST_CLIENT: { id: '02:00:00:00:00:1a', name: 'data-archive' },
-    });
+    const e = entry(
+      'A network intrusion attempt from {SRC_IP} to {DST_CLIENT} has been detected.',
+      {
+        SRC_IP: { id: '203.0.113.6', name: '203.0.113.6' },
+        DST_CLIENT: { id: '02:00:00:00:00:1a', name: 'data-archive' },
+      },
+    );
     expect(renderMessage(e)).toBe(
       'A network intrusion attempt from 203.0.113.6 to data-archive has been detected.',
     );
@@ -39,9 +39,9 @@ describe('renderMessage', () => {
   });
 
   it('renders a missing parameter as {NAME?}', () => {
-    expect(renderMessage(entry('from {SRC_IP} to {DST_CLIENT}', { DST_CLIENT: { name: 'x' } }))).toBe(
-      'from {SRC_IP?} to x',
-    );
+    expect(
+      renderMessage(entry('from {SRC_IP} to {DST_CLIENT}', { DST_CLIENT: { name: 'x' } })),
+    ).toBe('from {SRC_IP?} to x');
   });
 
   it('treats a parameter with neither name nor id as missing', () => {
@@ -73,7 +73,10 @@ describe('parseTime', () => {
 
 describe('parseRange', () => {
   it('defaults to the span ending now', () => {
-    expect(parseRange(undefined, undefined, '24h', NOW)).toEqual({ from: NOW - 86_400_000, to: NOW });
+    expect(parseRange(undefined, undefined, '24h', NOW)).toEqual({
+      from: NOW - 86_400_000,
+      to: NOW,
+    });
   });
 
   it('takes since and until independently', () => {

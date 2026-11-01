@@ -14,18 +14,38 @@ import { ispMetricsReader } from './wan-tools.js';
 const TOP_N = 10;
 
 /** An AP by the official feature list; a device that lists no features is given the benefit of the doubt. */
-const isAccessPoint = (d: OfficialDevice) => d.features === undefined || d.features.includes('accessPoint');
+const isAccessPoint = (d: OfficialDevice) =>
+  d.features === undefined || d.features.includes('accessPoint');
 
 const SCOPES = {
   site: {
     legacy: 'site',
-    attrs: ['time', 'wan-tx_bytes', 'wan-rx_bytes', 'wan2-tx_bytes', 'wan2-rx_bytes', 'wlan_bytes', 'num_sta', 'lan-num_sta', 'wlan-num_sta'],
+    attrs: [
+      'time',
+      'wan-tx_bytes',
+      'wan-rx_bytes',
+      'wan2-tx_bytes',
+      'wan2-rx_bytes',
+      'wlan_bytes',
+      'num_sta',
+      'lan-num_sta',
+      'wlan-num_sta',
+    ],
   },
   ap: { legacy: 'ap', attrs: ['time', 'bytes', 'num_sta', 'tx_bytes', 'rx_bytes'] },
   client: { legacy: 'user', attrs: ['time', 'rx_bytes', 'tx_bytes'] },
   gateway: {
     legacy: 'gw',
-    attrs: ['time', 'mem', 'cpu', 'lan-rx_bytes', 'lan-tx_bytes', 'wan-rx_bytes', 'wan-tx_bytes', 'latency_avg'],
+    attrs: [
+      'time',
+      'mem',
+      'cpu',
+      'lan-rx_bytes',
+      'lan-tx_bytes',
+      'wan-rx_bytes',
+      'wan-tx_bytes',
+      'latency_avg',
+    ],
   },
 } as const satisfies Record<string, { legacy: ReportScope; attrs: readonly string[] }>;
 
@@ -118,16 +138,27 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
     defineTool({
       name: 'unifi_traffic_report',
       description:
-        'Traffic and client counts over time from the console\'s own reports, for the whole site, one AP (device), one client, or the gateway (with WAN latency, CPU, memory). Interval 5minutes, hourly or daily (default by range). At most 200 points: longer series are averaged per bucket, first and last kept. Bytes are per bucket of the chosen interval.',
+        "Traffic and client counts over time from the console's own reports, for the whole site, one AP (device), one client, or the gateway (with WAN latency, CPU, memory). Interval 5minutes, hourly or daily (default by range). At most 200 points: longer series are averaged per bucket, first and last kept. Bytes are per bucket of the chosen interval.",
       inputSchema: {
-        scope: z.enum(['site', 'ap', 'client', 'gateway']).describe('What to report on; ap needs device, client needs client'),
+        scope: z
+          .enum(['site', 'ap', 'client', 'gateway'])
+          .describe('What to report on; ap needs device, client needs client'),
         device: z
           .string()
           .min(1)
           .optional()
-          .describe('AP name, MAC, IP or id (scope ap; must be an access point), or the gateway (scope gateway; needed when the site has several)'),
-        client: z.string().min(1).optional().describe('Client name, MAC, IP or id (scope client only)'),
-        interval: z.enum(['5minutes', 'hourly', 'daily']).optional().describe('Bucket size; default 5minutes up to 2 days, hourly up to 31 days, else daily'),
+          .describe(
+            'AP name, MAC, IP or id (scope ap; must be an access point), or the gateway (scope gateway; needed when the site has several)',
+          ),
+        client: z
+          .string()
+          .min(1)
+          .optional()
+          .describe('Client name, MAC, IP or id (scope client only)'),
+        interval: z
+          .enum(['5minutes', 'hourly', 'daily'])
+          .optional()
+          .describe('Bucket size; default 5minutes up to 2 days, hourly up to 31 days, else daily'),
         since: sinceInput,
         until: untilInput,
         site: siteInput,
@@ -161,7 +192,11 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
             const match = findDevice(devices, a.device);
             if ('none' in match) throw new Error(`No device matches "${a.device}"`);
             if ('ambiguous' in match) {
-              return ambiguous(a.device, match.ambiguous, (d) => ({ id: d.id, name: d.name, model: d.model }));
+              return ambiguous(a.device, match.ambiguous, (d) => ({
+                id: d.id,
+                name: d.name,
+                model: d.model,
+              }));
             }
             if (scope === 'gateway' && !gateways.includes(match.found)) {
               throw new Error(
@@ -183,26 +218,44 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
           const match = findClient(loaded.records, a.client);
           if ('none' in match) throw new Error(`No client matches "${a.client}"`);
           if ('ambiguous' in match) {
-            return ambiguous(a.client, match.ambiguous, (c) => ({ id: c.id, name: c.name, ip: c.ip }));
+            return ambiguous(a.client, match.ambiguous, (c) => ({
+              id: c.id,
+              name: c.name,
+              ip: c.ip,
+            }));
           }
           target = { name: match.found.name, mac: match.found.mac };
         }
 
         const chosen = interval ?? pickInterval(range.to - range.from);
         const cfg = SCOPES[scope];
-        const rows = await legacy.report(site.ref, chosen, cfg.legacy, { start: range.from, end: range.to }, [...cfg.attrs]);
+        const rows = await legacy.report(
+          site.ref,
+          chosen,
+          cfg.legacy,
+          { start: range.from, end: range.to },
+          [...cfg.attrs],
+        );
         const mine = rows
           .filter((r) => r.time >= range.from && r.time <= range.to)
-          .filter((r) => target === undefined || String(r.oid ?? '').toLowerCase() === target.mac.toLowerCase())
+          .filter(
+            (r) =>
+              target === undefined ||
+              String(r.oid ?? '').toLowerCase() === target.mac.toLowerCase(),
+          )
           .sort((x, y) => x.time - y.time);
-        const points = downsample(mine.map((r) => toPoint(scope, r)), MAX_REPORT_POINTS);
+        const points = downsample(
+          mine.map((r) => toPoint(scope, r)),
+          MAX_REPORT_POINTS,
+        );
         return compact({
           site: site.name,
           scope,
           target: target && { name: target.name },
           interval: chosen,
           range: { from: iso(range.from), to: iso(range.to) },
-          downsampled: points.length < mine.length ? { from: mine.length, to: points.length } : undefined,
+          downsampled:
+            points.length < mine.length ? { from: mine.length, to: points.length } : undefined,
           points: points.map(({ time, ...rest }) => ({ time: iso(time), ...rest })),
           note: clientNote,
         });
@@ -214,7 +267,11 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
       description:
         'Top 10 applications and categories by traffic (deep packet inspection), for the whole site or one client. Ids are named from the official DPI catalogue; an id it lacks shows as "app <id>". Empty when the console has no DPI data.',
       inputSchema: {
-        client: z.string().min(1).optional().describe('Client name, MAC, IP or id; omit for the whole site'),
+        client: z
+          .string()
+          .min(1)
+          .optional()
+          .describe('Client name, MAC, IP or id; omit for the whole site'),
         site: siteInput,
       },
       annotations: READ,
@@ -231,16 +288,28 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
           const match = findClient(loaded.records, a.client);
           if ('none' in match) throw new Error(`No client matches "${a.client}"`);
           if ('ambiguous' in match) {
-            return ambiguous(a.client, match.ambiguous, (c) => ({ id: c.id, name: c.name, ip: c.ip }));
+            return ambiguous(a.client, match.ambiguous, (c) => ({
+              id: c.id,
+              name: c.name,
+              ip: c.ip,
+            }));
           }
           const mac = match.found.mac.toLowerCase();
           target = match.found.name;
-          rows = (await legacy.stationDpi(site.ref, [match.found.mac])).filter((r) => r.mac?.toLowerCase() === mac);
+          rows = (await legacy.stationDpi(site.ref, [match.found.mac])).filter(
+            (r) => r.mac?.toLowerCase() === mac,
+          );
         }
         const { apps, cats } = tally(rows);
         const [appNames, catNames] = await Promise.all([
-          official.listDpiApps().then((n) => ({ names: n }), () => ({ names: undefined })),
-          official.listDpiCategories().then((n) => ({ names: n }), () => ({ names: undefined })),
+          official.listDpiApps().then(
+            (n) => ({ names: n }),
+            () => ({ names: undefined }),
+          ),
+          official.listDpiCategories().then(
+            (n) => ({ names: n }),
+            () => ({ names: undefined }),
+          ),
         ]);
         const appName = new Map((appNames.names ?? []).map((n) => [n.id, n.name]));
         const catName = new Map((catNames.names ?? []).map((n) => [n.id, n.name]));
@@ -248,7 +317,11 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
         // The id may be the catalogue id or carry the category in its high 16 bits; try it raw, then decoded.
         const resolved = new Map<string, Count & { name: string }>();
         for (const [raw, c] of apps) {
-          const catalogueId = appName.has(raw) ? raw : appName.has(raw & 0xffff) ? raw & 0xffff : undefined;
+          const catalogueId = appName.has(raw)
+            ? raw
+            : appName.has(raw & 0xffff)
+              ? raw & 0xffff
+              : undefined;
           const key = catalogueId === undefined ? `raw:${raw}` : `id:${catalogueId}`;
           const have = resolved.get(key);
           resolved.set(key, {
@@ -266,7 +339,8 @@ export function createMetricsTools(deps: ReadDeps): ToolDefinition[] {
           apps: topApps.map((c) =>
             compact({
               name: c.name,
-              category: c.cat === undefined ? undefined : (catName.get(c.cat) ?? `category ${c.cat}`),
+              category:
+                c.cat === undefined ? undefined : (catName.get(c.cat) ?? `category ${c.cat}`),
               bytes: bytes(c),
               rxBytes: c.rx,
               txBytes: c.tx,

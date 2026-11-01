@@ -19,11 +19,7 @@ export function limitInput(defaultN: number, maxN: number) {
 const TIME_HELP =
   'an ISO 8601 timestamp (2026-10-31T08:00:00Z) or a span back from now such as 90m, 24h, 7d or 2w';
 
-export const sinceInput = z
-  .string()
-  .min(1)
-  .optional()
-  .describe(`Start of the range: ${TIME_HELP}`);
+export const sinceInput = z.string().min(1).optional().describe(`Start of the range: ${TIME_HELP}`);
 
 export const untilInput = z
   .string()
@@ -59,6 +55,7 @@ export function parseRange(
 ): { from: number; to: number } {
   const to = until === undefined ? now : parseTime(until, now);
   const from = parseTime(since ?? defaultSpan, now);
-  if (from >= to) throw new Error('The range starts at or after its end; since must be before until');
+  if (from >= to)
+    throw new Error('The range starts at or after its end; since must be before until');
   return { from, to };
 }

@@ -179,8 +179,9 @@ const official = (name: string, path: string): Endpoint => ({
  * here (the scrub fakes it in the fixtures).
  */
 export function siteIdFor(sites: unknown, ref: string): string {
-  const rows = (sites as { data?: Array<{ id?: unknown; internalReference?: unknown }> } | undefined)
-    ?.data;
+  const rows = (
+    sites as { data?: Array<{ id?: unknown; internalReference?: unknown }> } | undefined
+  )?.data;
   const id = rows?.find((s) => s.internalReference === ref)?.id;
   if (typeof id !== 'string' || !id) throw new Error(`the console has no site "${ref}"`);
   return id;
@@ -333,7 +334,12 @@ async function collectFirewall(
         'official',
         'GET',
         `/v1${sitePath(siteId)('/firewall/policies/ordering')}`,
-        { query: { sourceFirewallZoneId: pair.sourceZoneId, destinationFirewallZoneId: pair.destinationZoneId } },
+        {
+          query: {
+            sourceFirewallZoneId: pair.sourceZoneId,
+            destinationFirewallZoneId: pair.destinationZoneId,
+          },
+        },
       );
       pairs.push({ ...pair, ordering });
     }

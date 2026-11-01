@@ -19,7 +19,11 @@ export function createServer(tools: ToolDefinition[]): McpServer {
   for (const tool of tools) {
     server.registerTool(
       tool.name,
-      { description: tool.description, inputSchema: tool.inputSchema, annotations: tool.annotations },
+      {
+        description: tool.description,
+        inputSchema: tool.inputSchema,
+        annotations: tool.annotations,
+      },
       async (args: Record<string, unknown>) => {
         try {
           return toolResult(await tool.handler(args));
