@@ -14,41 +14,34 @@ export type Change = { before: unknown; after: unknown } | 'changed' | 'removed'
 export const REDACTED = '<redacted>';
 
 /**
- * Secret keys, matched case-insensitively on the whole key or its suffix
- * (`passphrase`, `x_passphrase`, `adminPassword`, `radiusSecret`, `wpaPsk`,
- * `privateKey`, `authToken`). `key` itself is matched only whole, so `sortKey`
- * and `keyCount` are not secrets.
+ * Secret names (ruling R22: a superset of v0.2.0's redaction, minus booleans
+ * and numbers). A name is secret if, after any leading `bypass`, it contains
+ * pass, secret, psk, token, privatekey, apikey or sharedkey (`adminPass`,
+ * `radiusSecret`, `wpaPsk`, `pskMode`, `authToken`); or it is `key` or ends in
+ * `key` after a letter, digit or `_` (`wepKey`, `authKey`, `x_iapp_key`), bar
+ * the allow-list; or it starts with `x_`. Over-redaction is cosmetic, a secret
+ * shown is not.
  */
-const SECRET_SUFFIXES = [
-  'passphrase',
-  'password',
-  'secret',
-  'psk',
-  'wpakey',
-  'presharedkey',
-  'privatekey',
-  'apikey',
-  'sharedkey',
-  'token',
-];
+const SECRET_WORD = /pass|secret|psk|token|privatekey|apikey|sharedkey/i;
+const KEY_NAME = /(^|[a-z0-9_])key$/i;
+/** Names ending in `key` that hold no secret. */
+const NOT_SECRET = new Set(['sortkey', 'publickey']);
 
 const secretName = (key: string): boolean => {
   const k = key.toLowerCase();
-  return k === 'key' || SECRET_SUFFIXES.some((s) => k.endsWith(s));
+  if (NOT_SECRET.has(k)) return false;
+  return (
+    SECRET_WORD.test(k.replace(/^bypass/, '')) || KEY_NAME.test(k) || k.startsWith('x_')
+  );
 };
-
-const isStrings = (v: unknown): v is string[] =>
-  Array.isArray(v) && v.every((x) => typeof x === 'string');
 
 /**
- * A secret value: a string under a secret name or any `x_` key, or an array of
- * strings or an object under a secret name (redacted whole). A boolean or
- * number never is: a `pskEnabled` or a `passphraseLength` is shown.
+ * A secret value: anything but a boolean, number or null under a secret name.
+ * A string is shown as `<redacted>`; an array (of anything) or an object is
+ * redacted whole. A `pskEnabled` or a `passphraseLength` is shown.
  */
-const isSecret = (key: string, value: unknown): boolean => {
-  if (typeof value === 'string') return secretName(key) || key.toLowerCase().startsWith('x_');
-  return (isStrings(value) || isPlain(value)) && secretName(key);
-};
+const isSecret = (key: string, value: unknown): boolean =>
+  (typeof value === 'string' || (value !== null && typeof value === 'object')) && secretName(key);
 
 /** Every string inside a value, for a secret held as an array or object. */
 function stringsIn(value: unknown, found: string[]): void {

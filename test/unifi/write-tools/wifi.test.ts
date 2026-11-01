@@ -146,7 +146,7 @@ describe('unifi_update_wifi', () => {
     noSecrets(out);
   });
 
-  it('a passphrase is redacted from a non-secret field that carries one (pre-shared keys)', async () => {
+  it('a pre-shared key list never shows its passphrases (redacted whole)', async () => {
     const { call } = setup();
     const out = await call('unifi_update_wifi', {
       wifi: 'ssid-2',
@@ -155,7 +155,10 @@ describe('unifi_update_wifi', () => {
       },
     });
     noSecrets(out);
-    expect(JSON.stringify(out)).toContain('<redacted>');
+    // presharedKeys is itself a secret name (R22), so the whole list shows as changed.
+    expect(out).toMatchObject({
+      preview: { changes: { 'securityConfiguration.presharedKeys': 'changed' } },
+    });
   });
 
   it('a console error that echoes the passphrase is redacted', async () => {
