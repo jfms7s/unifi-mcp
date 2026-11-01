@@ -64,7 +64,32 @@ export interface OfficialApi {
     siteId: string,
     zones: { sourceZoneId: string; destinationZoneId: string },
   ): Promise<PolicyOrdering>;
+
+  // ---- writes: callers go through guard.ts ----
+  /** Guest authorize/unauthorize; resolves to the console's answer, unparsed. */
+  clientAction(siteId: string, clientId: string, body: ClientActionBody): Promise<unknown>;
+  deviceAction(siteId: string, deviceId: string, action: 'RESTART'): Promise<void>;
+  portAction(
+    siteId: string,
+    deviceId: string,
+    portIdx: number,
+    action: 'POWER_CYCLE',
+  ): Promise<void>;
+  adoptDevice(siteId: string, macAddress: string): Promise<void>;
+  /** The console resets an online device to factory defaults. */
+  unadoptDevice(siteId: string, deviceId: string): Promise<void>;
 }
+
+/** `Guest access (un)authorization request` in the Network API spec. */
+export type ClientActionBody =
+  | {
+      action: 'AUTHORIZE_GUEST_ACCESS';
+      timeLimitMinutes?: number;
+      dataUsageLimitMBytes?: number;
+      rxRateLimitKbps?: number;
+      txRateLimitKbps?: number;
+    }
+  | { action: 'UNAUTHORIZE_GUEST_ACCESS' };
 
 const PAGE_SIZE = 200;
 
@@ -93,6 +118,12 @@ export function createOfficialApi(client: UnifiHttpClient): OfficialApi {
   }
 
   const site = (siteId: string, rest: string) => `/v1/sites/${encodeURIComponent(siteId)}${rest}`;
+  const device = (siteId: string, deviceId: string, rest = '') =>
+    site(siteId, `/devices/${encodeURIComponent(deviceId)}${rest}`);
+
+  async function send(method: 'POST' | 'DELETE', path: string, body?: unknown): Promise<unknown> {
+    return client.request('official', method, path, body === undefined ? {} : { body });
+  }
 
   return {
     listDevices: (s) => list(site(s, '/devices'), officialDeviceSchema),
@@ -116,5 +147,20 @@ export function createOfficialApi(client: UnifiHttpClient): OfficialApi {
         sourceFirewallZoneId: zones.sourceZoneId,
         destinationFirewallZoneId: zones.destinationZoneId,
       }),
+
+    clientAction: (s, c, body) =>
+      send('POST', site(s, `/clients/${encodeURIComponent(c)}/actions`), body),
+    async deviceAction(s, d, action) {
+      await send('POST', device(s, d, '/actions'), { action });
+    },
+    async portAction(s, d, portIdx, action) {
+      await send('POST', device(s, d, `/interfaces/ports/${portIdx}/actions`), { action });
+    },
+    async adoptDevice(s, macAddress) {
+      await send('POST', site(s, '/devices'), { macAddress, ignoreDeviceLimit: false });
+    },
+    async unadoptDevice(s, d) {
+      await send('DELETE', device(s, d));
+    },
   };
 }

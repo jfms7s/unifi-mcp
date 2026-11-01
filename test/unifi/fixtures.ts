@@ -48,6 +48,21 @@ export function syntheticLog(count: number, template: Partial<RawEntry> = {}): R
   }));
 }
 
+/** The live fixture that answers `path` on `api`. */
+export function fixtureName(api: Api, path: string): string {
+  if (api === 'official') {
+    const rest = path
+      .replace(/^\/v1\/sites\/[^/]+\/devices\/[^/]+\//, '/v1/sites/x/devices/')
+      .replace(/^\/v1\/(sites\/[^/]+\/)?/, '');
+    return `official-${(rest || 'sites').replace(/\/$/, '').replace(/\//g, '-')}`;
+  }
+  if (api === 'legacy') return `legacy-${path.replace(/^\/s\/[^/]+\//, '').replace(/[/.]/g, '-')}`;
+  if (api === 'sitemanager') {
+    return path.startsWith('/v1/isp-metrics/') ? 'sitemanager-isp-metrics-1h' : 'sitemanager-hosts';
+  }
+  throw new Error(`no fixture for ${api} ${path}`);
+}
+
 export interface FakeConsole extends UnifiHttpClient {
   /** `METHOD path` for every request, in order. */
   calls: string[];
@@ -61,26 +76,17 @@ export function fakeConsole(opts: { log?: RawEntry[] } = {}): FakeConsole {
   const log = opts.log ?? liveLog();
   const calls: string[] = [];
 
-  function fixtureName(api: Api, path: string): string {
-    if (api === 'official') {
-      const rest = path
-        .replace(/^\/v1\/sites\/[^/]+\/devices\/[^/]+\//, '/v1/sites/x/devices/')
-        .replace(/^\/v1\/(sites\/[^/]+\/)?/, '');
-      return `official-${(rest || 'sites').replace(/\/$/, '').replace(/\//g, '-')}`;
-    }
-    if (api === 'legacy') return `legacy-${path.replace(/^\/s\/[^/]+\//, '').replace(/[/.]/g, '-')}`;
-    if (api === 'sitemanager') {
-      return path.startsWith('/v1/isp-metrics/') ? 'sitemanager-isp-metrics-1h' : 'sitemanager-hosts';
-    }
-    throw new Error(`no fixture for ${api} ${path}`);
-  }
-
   return {
     calls,
     async request<T>(api: Api, method: HttpMethod, path: string, o: RequestOptions = {}) {
       calls.push(`${method} ${path}`);
       if (api === 'v2') {
-        const body = o.body as { timestampFrom: number; timestampTo: number; pageNumber: number; pageSize: number };
+        const body = o.body as {
+          timestampFrom: number;
+          timestampTo: number;
+          pageNumber: number;
+          pageSize: number;
+        };
         const inRange = log.filter(
           (e) => e.timestamp >= body.timestampFrom && e.timestamp <= body.timestampTo,
         );
@@ -94,7 +100,13 @@ export function fakeConsole(opts: { log?: RawEntry[] } = {}): FakeConsole {
       const fixture = liveFixture(fixtureName(api, path)) as { status?: number; body?: unknown };
       // A captured error response ({ status, body }) fails the way the real client does.
       if (typeof fixture.status === 'number' && isZbfDisabled(fixture.status, fixture.body)) {
-        throw new UnifiApiError({ kind: 'zbf-disabled', method, path, status: fixture.status, detail: ZBF_DISABLED });
+        throw new UnifiApiError({
+          kind: 'zbf-disabled',
+          method,
+          path,
+          status: fixture.status,
+          detail: ZBF_DISABLED,
+        });
       }
       return fixture as T;
     },
