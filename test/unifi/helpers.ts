@@ -32,6 +32,7 @@ export function testConfig(overrides: Partial<UnifiMcpConfig> = {}): UnifiMcpCon
     siteManagerApiKey: 'sm-key',
     readOnly: false,
     protectedNetworks: [],
+    acceptedFindings: [],
     transport: 'stdio',
     port: 3000,
     ...overrides,

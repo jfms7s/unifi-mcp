@@ -33,6 +33,7 @@ function config(overrides: Partial<UnifiMcpConfig> = {}): UnifiMcpConfig {
     siteManagerApiKey: SM_KEY,
     readOnly: false,
     protectedNetworks: [],
+    acceptedFindings: [],
     transport: 'stdio',
     port: 3000,
     ...overrides,

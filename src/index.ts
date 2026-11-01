@@ -13,6 +13,10 @@ async function main(): Promise<void> {
     `unifi-mcp: ${tools.length} tools for ${config.console.baseUrl}${config.readOnly ? ' (read-only)' : ''}`,
   );
   console.error(protectedNetworksLog(config.protectedNetworks));
+  if (config.acceptedFindings.length > 0) {
+    const pairs = config.acceptedFindings.map((a) => `${a.rule}:${a.object}`);
+    console.error(`unifi-mcp: accepted posture findings: ${pairs.join(', ')}`);
+  }
   if ('insecure' in config.console.tls) {
     console.error('unifi-mcp: WARNING: TLS verification is off (UNIFI_TLS_INSECURE=true)');
   }

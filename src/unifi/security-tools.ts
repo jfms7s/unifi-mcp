@@ -12,7 +12,7 @@ import {
 import type { FirewallRule, NetworkConf, WlanConf } from './legacy.js';
 import { sameText } from './lookup.js';
 import type { AclRule, FirewallPolicy, FirewallZone, TrafficList } from './official.js';
-import { auditPosture, loadPostureInput, skippedRules } from './posture.js';
+import { applyAccepted, auditPosture, loadPostureInput, skippedRules } from './posture.js';
 import { EVENT_CEILING, READ, coverageNote, type ReadDeps } from './read-common.js';
 import { compact, cut, iso, renderMessage } from './shape.js';
 
@@ -104,7 +104,7 @@ export function createSecurityTools(deps: ReadDeps): ToolDefinition[] {
     defineTool({
       name: 'unifi_posture_audit',
       description:
-        'Audit the security posture and list findings (severity, object, why), HIGH first: port forwards open to any source with the inbound threats against their target; WiFi with no encryption, WPA2-only where an AP supports WPA3, or a guest SSID not isolated; zone policies that let a less trusted zone or network into a more trusted one; ALLOW policies matching any → any; networks of different trust sharing one zone (IoT in Internal); user-defined policies repeated as copies; IDS/IPS off or detect-only; clients first seen in the last newClientDays; devices with firmware updates. Rules that cannot run (e.g. zone rules while Zone-Based Firewall is off or a firewall endpoint changed) are listed under skipped with the reason. WPS is not checked: the console config does not expose it.',
+        'Audit the security posture and list findings (severity, object, why), HIGH first: port forwards open to any source with the inbound threats against their target; WiFi with no encryption, WPA2-only where an AP supports WPA3, or a guest SSID not isolated; zone policies that let a less trusted zone or network into a more trusted one; ALLOW policies matching any → any; networks of different trust sharing one zone (IoT in Internal); user-defined policies repeated as copies; IDS/IPS off or detect-only; clients first seen in the last newClientDays; devices with firmware updates. Rules that cannot run (e.g. zone rules while Zone-Based Firewall is off or a firewall endpoint changed) are listed under skipped with the reason. Findings the owner accepted as intended (UNIFI_MCP_ACCEPTED_FINDINGS) are listed under accepted, severity kept, and left out of counts; an acceptance that matches no finding is listed under staleAccepted. WPS is not checked: the console config does not expose it.',
       inputSchema: {
         site: siteInput,
         newClientDays: z
@@ -129,13 +129,24 @@ export function createSecurityTools(deps: ReadDeps): ToolDefinition[] {
           newClientDays: a.newClientDays,
           threatDays: a.threatDays,
         });
-        const findings = auditPosture(input);
         const skipped = skippedRules(input);
+        const { findings, accepted, stale } = applyAccepted(
+          auditPosture(input),
+          deps.acceptedFindings ?? [],
+          skipped,
+        );
         const count = (s: string) => findings.filter((f) => f.severity === s).length;
         return compact({
           site: site.name,
           counts: { HIGH: count('HIGH'), MEDIUM: count('MEDIUM'), LOW: count('LOW') },
           findings,
+          accepted: accepted.length ? accepted : undefined,
+          staleAccepted: stale.length
+            ? stale.map((a) => ({
+                ...a,
+                note: 'UNIFI_MCP_ACCEPTED_FINDINGS names this, but no finding matches it; remove it or fix the name',
+              }))
+            : undefined,
           skipped: skipped.length ? skipped : undefined,
           note: 'note' in input.firewall ? input.firewall.note : undefined,
           threatScan:
