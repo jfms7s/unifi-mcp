@@ -87,9 +87,7 @@
       "last_uplink_mac": "02:00:00:00:00:02",
       "last_uplink_remote_port": 7,
       "last_connection_network_name": "pi-cluster",
-      "last_ipv6": [
-        "fe80::ff:fe00:2"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:2"],
       "mac": "02:00:00:00:00:1b",
       "last_connection_network_id": "6ae51197aa840627805aa50a",
       "_id": "6ae64c51ea5564025704a582",
@@ -319,9 +317,7 @@
       "disconnect_timestamp": 1793532204,
       "dev_id_override": 2285,
       "is_wired": true,
-      "last_ipv6": [
-        "fe80::37:7a1:95e3:c395"
-      ],
+      "last_ipv6": ["fe80::37:7a1:95e3:c395"],
       "dev_family": 13,
       "mac": "02:00:00:00:00:23",
       "dev_cat": 265,
@@ -397,9 +393,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1793478332,
       "is_wired": true,
-      "last_ipv6": [
-        "fe80::ff:fe00:3"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:3"],
       "dev_family": 117,
       "mac": "02:00:00:00:00:1e",
       "dev_cat": 182,
@@ -706,9 +700,7 @@
       "disconnect_timestamp": 1793489057,
       "fingerprint_engine_version": "0.0.0",
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:4"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:4"],
       "dev_family": 7,
       "mac": "02:00:00:00:00:20",
       "hostname": "client-32",
@@ -770,9 +762,7 @@
       "is_mlo": false,
       "radio_proto": "ax",
       "channel_width": 20,
-      "ipv6_addresses": [
-        "fe80::ff:fe00:4"
-      ],
+      "ipv6_addresses": ["fe80::ff:fe00:4"],
       "satisfaction_avg": {
         "total": 1264000,
         "count": 12640
@@ -1080,9 +1070,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1793503521,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:5"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:5"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:21",
       "hostname": "client-27",
@@ -1135,9 +1123,7 @@
       "is_mlo": false,
       "radio_proto": "ax",
       "channel_width": 20,
-      "ipv6_addresses": [
-        "fe80::ff:fe00:5"
-      ],
+      "ipv6_addresses": ["fe80::ff:fe00:5"],
       "satisfaction_avg": {
         "total": 908052,
         "count": 9503
@@ -1550,9 +1536,7 @@
       "dev_cat": 225,
       "local_dns_record_enabled": true,
       "virtual_network_override_id": "",
-      "network_members_group_ids": [
-        "69d4204da355918f898320cd"
-      ],
+      "network_members_group_ids": ["69d4204da355918f898320cd"],
       "last_uplink_name": "device-2",
       "use_fixedip": true,
       "confidence": 58,
@@ -1692,9 +1676,7 @@
       "disconnect_timestamp": 1793478188,
       "dev_id_override": 2764,
       "is_wired": true,
-      "last_ipv6": [
-        "fe80::ff:fe00:6"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:6"],
       "dev_family": 7,
       "mac": "02:00:00:00:00:1a",
       "dev_cat": 18,
@@ -1768,9 +1750,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1793524854,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:7"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:7"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:22",
       "dev_cat": 44,
@@ -2011,9 +1991,7 @@
       "disconnect_timestamp": 1793396046,
       "dev_id_override": 34,
       "is_wired": true,
-      "last_ipv6": [
-        "fe80::fe76:9993:8446:ab05"
-      ],
+      "last_ipv6": ["fe80::fe76:9993:8446:ab05"],
       "dev_family": 14,
       "mac": "02:00:00:00:00:0c",
       "dev_cat": 47,
@@ -2067,9 +2045,7 @@
       "wired-tx_packets": 13764,
       "wired-rx_packets": 12932,
       "qos_policy_applied": true,
-      "ipv6_addresses": [
-        "fe80::fe76:9993:8446:ab05"
-      ],
+      "ipv6_addresses": ["fe80::fe76:9993:8446:ab05"],
       "tx_retries": 0,
       "wifi_tx_attempts": 0,
       "wifi_tx_dropped": 0,
@@ -2090,9 +2066,7 @@
       "disconnect_timestamp": 1793396046,
       "fingerprint_engine_version": "0.0.0",
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::1c8e:f05e:fa51:9878"
-      ],
+      "last_ipv6": ["fe80::1c8e:f05e:fa51:9878"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:0d",
       "hostname": "client-38",
@@ -2171,9 +2145,7 @@
       "is_mlo": false,
       "radio_proto": "ax",
       "channel_width": 80,
-      "ipv6_addresses": [
-        "fe80::1c8e:f05e:fa51:9878"
-      ],
+      "ipv6_addresses": ["fe80::1c8e:f05e:fa51:9878"],
       "tx_retries": 1241,
       "wifi_tx_attempts": 8464,
       "wifi_tx_dropped": 0,
@@ -2342,9 +2314,7 @@
       "disconnect_timestamp": 1793466771,
       "dev_id_override": 4975,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:8"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:8"],
       "dev_family": 7,
       "mac": "02:00:00:00:00:19",
       "hostname": "client-21",
@@ -2400,9 +2370,7 @@
       "is_mlo": false,
       "radio_proto": "ac",
       "channel_width": 80,
-      "ipv6_addresses": [
-        "fe80::ff:fe00:8"
-      ],
+      "ipv6_addresses": ["fe80::ff:fe00:8"],
       "satisfaction_avg": {
         "total": 2571410,
         "count": 25735

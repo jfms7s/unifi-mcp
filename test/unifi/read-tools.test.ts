@@ -23,7 +23,8 @@ interface Wan {
   wans: Array<{ name: string }>;
   gateway: Record<string, unknown>;
   internet: Record<string, unknown>;
-  ispMetrics: { interval: string; series: Array<Record<string, unknown>> } | Record<string, unknown>;
+  ispMetrics:
+    { interval: string; series: Array<Record<string, unknown>> } | Record<string, unknown>;
 }
 
 interface Row {
@@ -83,13 +84,7 @@ describe('unifi_overview', () => {
       model: 'UniFi Cloud Gateway Ultra',
     });
     expect(overview.network.version).toBe('10.6.109');
-    expect(overview.health.map((h) => h.subsystem)).toEqual([
-      'wlan',
-      'wan',
-      'www',
-      'lan',
-      'vpn',
-    ]);
+    expect(overview.health.map((h) => h.subsystem)).toEqual(['wlan', 'wan', 'www', 'lan', 'vpn']);
     expect(overview.health.find((h) => h.subsystem === 'wan')).toMatchObject({
       status: 'ok',
     });
@@ -146,7 +141,9 @@ describe('unifi_overview', () => {
     };
     await expect(call('unifi_overview')).rejects.toThrow(TypeError);
     await expect(call('unifi_list_clients')).rejects.toThrow(/cannot read properties of undefined/);
-    await expect(call('unifi_get_client', { client: '02:00:00:00:00:05' })).rejects.toThrow(TypeError);
+    await expect(call('unifi_get_client', { client: '02:00:00:00:00:05' })).rejects.toThrow(
+      TypeError,
+    );
   });
 
   it('has no client note while the official client list answers', async () => {
@@ -166,7 +163,9 @@ describe('unifi_overview with a log past the ceiling', () => {
     const { call } = setup({ log: syntheticLog(21_000) });
     const overview = (await call('unifi_overview')) as Shape;
     expect(overview.recentHighEvents).toBe(20_000);
-    expect(overview.recentHighEventsNote).toMatch(/stopped at 20000 events, range only covered back to 20.*floor/);
+    expect(overview.recentHighEventsNote).toMatch(
+      /stopped at 20000 events, range only covered back to 20.*floor/,
+    );
   });
 });
 
@@ -218,10 +217,18 @@ describe('unifi_list_devices / unifi_get_device', () => {
     const ap = links.find((d) => d.mac === '02:00:00:00:00:03')!;
     deps.legacy.devices = async () => [
       ...links.filter((d) => d !== ap),
-      { ...ap, uplinkMac: undefined, uplinkPort: undefined, lastUplinkMac: '02:00:00:00:00:04', lastUplinkPort: 8 },
+      {
+        ...ap,
+        uplinkMac: undefined,
+        uplinkPort: undefined,
+        lastUplinkMac: '02:00:00:00:00:04',
+        lastUplinkPort: 8,
+      },
     ];
     const offline = (await call('unifi_list_devices')) as { devices: Row[] };
-    expect(offline.devices.find((d) => d.name === 'device-3')?.uplink).toBe('device-4 port 8 (last seen)');
+    expect(offline.devices.find((d) => d.name === 'device-3')?.uplink).toBe(
+      'device-4 port 8 (last seen)',
+    );
 
     deps.legacy.devices = async () => {
       throw new Error('stat/device is gone');
@@ -268,7 +275,9 @@ describe('unifi_list_devices / unifi_get_device', () => {
 
   it('fails clearly when nothing matches', async () => {
     const { call } = setup();
-    await expect(call('unifi_get_device', { device: 'nope' })).rejects.toThrow(/No device matches "nope"/);
+    await expect(call('unifi_get_device', { device: 'nope' })).rejects.toThrow(
+      /No device matches "nope"/,
+    );
   });
 });
 
@@ -304,14 +313,22 @@ describe('unifi_list_clients', () => {
     const wired = (await call('unifi_list_clients', { wired: true })) as { clients: Row[] };
     expect(wireless.clients).toHaveLength(14);
     expect(wired.clients).toHaveLength(17);
-    expect(wireless.clients.every((c) => c.wired === false && c.signalDbm !== undefined)).toBe(true);
+    expect(wireless.clients.every((c) => c.wired === false && c.signalDbm !== undefined)).toBe(
+      true,
+    );
   });
 
   it('filters blocked clients, which are not connected', async () => {
     const { deps, call } = setup();
     const known = await deps.legacy.knownClients('default');
     deps.legacy.knownClients = async () => [
-      { ...known[0]!, id: 'blocked-1', mac: 'aa:bb:cc:00:00:01', name: 'blocked-one', blocked: true },
+      {
+        ...known[0]!,
+        id: 'blocked-1',
+        mac: 'aa:bb:cc:00:00:01',
+        name: 'blocked-one',
+        blocked: true,
+      },
       ...known,
     ];
     const result = (await call('unifi_list_clients', { blocked: true })) as {
@@ -319,7 +336,11 @@ describe('unifi_list_clients', () => {
       total: number;
     };
     expect(result.total).toBe(1);
-    expect(result.clients[0]).toMatchObject({ name: 'blocked-one', blocked: true, connected: false });
+    expect(result.clients[0]).toMatchObject({
+      name: 'blocked-one',
+      blocked: true,
+      connected: false,
+    });
   });
 
   it('keeps clients first seen since a span or date', async () => {
@@ -360,13 +381,22 @@ describe('unifi_get_client', () => {
   it('finds a client by MAC and shows its MAC', async () => {
     const { call } = setup();
     const found = (await call('unifi_get_client', { client: '02:00:00:00:00:1a' })) as Row;
-    expect(found).toMatchObject({ name: 'data-archive', mac: '02:00:00:00:00:1a', connected: true });
+    expect(found).toMatchObject({
+      name: 'data-archive',
+      mac: '02:00:00:00:00:1a',
+      connected: true,
+    });
   });
 
   it('finds the same client by MAC, IP, id and name', async () => {
     const { call } = setup();
     const byMac = (await call('unifi_get_client', { client: '02:00:00:00:00:1a' })) as Row;
-    for (const client of [byMac.ip, byMac.id, '02:00:00:00:00:1A', '020000000 01a'.replace(' ', '')]) {
+    for (const client of [
+      byMac.ip,
+      byMac.id,
+      '02:00:00:00:00:1A',
+      '020000000 01a'.replace(' ', ''),
+    ]) {
       const found = (await call('unifi_get_client', { client })) as Row;
       expect(found.mac).toBe('02:00:00:00:00:1a');
     }
@@ -415,7 +445,9 @@ describe('unifi_get_client', () => {
 
   it('fails clearly when nothing matches', async () => {
     const { call } = setup();
-    await expect(call('unifi_get_client', { client: 'ghost' })).rejects.toThrow(/No client matches "ghost"/);
+    await expect(call('unifi_get_client', { client: 'ghost' })).rejects.toThrow(
+      /No client matches "ghost"/,
+    );
   });
 });
 
@@ -488,16 +520,26 @@ describe('unifi_wan_status', () => {
     const { call } = setup();
     const wan = (await call('unifi_wan_status')) as Wan;
     expect(wan.wans.map((w) => w.name)).toEqual(['Internet 1', 'Internet 2']);
-    expect(wan.gateway).toMatchObject({ status: 'ok', wanIp: '192.168.1.162', isp: 'Nos Comunicacoes' });
+    expect(wan.gateway).toMatchObject({
+      status: 'ok',
+      wanIp: '192.168.1.162',
+      isp: 'Nos Comunicacoes',
+    });
     expect(wan.internet).toMatchObject({ status: 'ok', latencyMs: 7, drops: 2 });
-    expect((wan.ispMetrics as { series: unknown[] }).series[0]).toMatchObject({ periods: 714, uptimePct: expect.any(Number) });
+    expect((wan.ispMetrics as { series: unknown[] }).series[0]).toMatchObject({
+      periods: 714,
+      uptimePct: expect.any(Number),
+    });
     expect((wan.ispMetrics as { interval: string }).interval).toBe('5m');
   });
 
   it('says ISP metrics are unavailable without a Site Manager key', async () => {
     const { call } = setup({ sitemanager: false });
     const wan = (await call('unifi_wan_status')) as Wan;
-    expect(wan.ispMetrics).toEqual({ available: false, reason: expect.stringMatching(/SITE_MANAGER/) });
+    expect(wan.ispMetrics).toEqual({
+      available: false,
+      reason: expect.stringMatching(/SITE_MANAGER/),
+    });
   });
 
   it('reports a Site Manager failure without losing the local status', async () => {
@@ -533,7 +575,9 @@ describe('unifi_events', () => {
       limit: 1000,
     })) as { events: Array<{ category: string; severity: string }> };
     expect(result.events.length).toBeGreaterThan(0);
-    expect(result.events.every((e) => e.category === 'SECURITY' && e.severity === 'VERY_HIGH')).toBe(true);
+    expect(
+      result.events.every((e) => e.category === 'SECURITY' && e.severity === 'VERY_HIGH'),
+    ).toBe(true);
   });
 
   it('renders the message from its template and parameters', async () => {
@@ -562,12 +606,18 @@ describe('unifi_events', () => {
 
   it('filters by client and device through the log parameters', async () => {
     const { call } = setup();
-    const byClient = (await call('unifi_events', { client: '02:00:00:00:00:1a', since: '7d', limit: 5 })) as {
+    const byClient = (await call('unifi_events', {
+      client: '02:00:00:00:00:1a',
+      since: '7d',
+      limit: 5,
+    })) as {
       events: Array<{ message: string }>;
     };
     expect(byClient.events.length).toBeGreaterThan(0);
     expect(byClient.events.every((e) => /data-archive/.test(e.message))).toBe(true);
-    const byDevice = (await call('unifi_events', { device: 'no-such-device' })) as { events: unknown[] };
+    const byDevice = (await call('unifi_events', { device: 'no-such-device' })) as {
+      events: unknown[];
+    };
     expect(byDevice.events).toEqual([]);
   });
 
@@ -600,6 +650,10 @@ describe('unifi_list_hosts', () => {
     const { call } = setup();
     const hosts = (await call('unifi_list_hosts')) as { hosts: Row[] };
     expect(hosts.hosts).toHaveLength(1);
-    expect(hosts.hosts[0]).toMatchObject({ name: 'Gateway CGU', state: 'connected', type: 'console' });
+    expect(hosts.hosts[0]).toMatchObject({
+      name: 'Gateway CGU',
+      state: 'connected',
+      type: 'console',
+    });
   });
 });

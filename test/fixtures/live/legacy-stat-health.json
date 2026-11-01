@@ -25,10 +25,7 @@
       "num_pending": 0,
       "status": "ok",
       "wan_ip": "192.168.1.162",
-      "gateways": [
-        "fe80::ff:fe00:1",
-        "192.168.1.1"
-      ],
+      "gateways": ["fe80::ff:fe00:1", "192.168.1.1"],
       "netmask": "255.255.255.0",
       "nameservers": [],
       "num_sta": 31,

@@ -23,15 +23,21 @@ describe('loadConfig', () => {
   });
 
   it('requires UNIFI_URL', () => {
-    expect(() => loadConfig({ UNIFI_API_KEY: 'k' })).toThrow(new ConfigError('UNIFI_URL is required'));
+    expect(() => loadConfig({ UNIFI_API_KEY: 'k' })).toThrow(
+      new ConfigError('UNIFI_URL is required'),
+    );
   });
 
   it('requires UNIFI_API_KEY', () => {
-    expect(() => loadConfig({ UNIFI_URL: 'https://c.test' })).toThrow(new ConfigError('UNIFI_API_KEY is required'));
+    expect(() => loadConfig({ UNIFI_URL: 'https://c.test' })).toThrow(
+      new ConfigError('UNIFI_API_KEY is required'),
+    );
   });
 
   it('rejects an invalid URL', () => {
-    expect(() => loadConfig({ ...base, UNIFI_URL: 'not a url' })).toThrow(/UNIFI_URL is not a valid URL/);
+    expect(() => loadConfig({ ...base, UNIFI_URL: 'not a url' })).toThrow(
+      /UNIFI_URL is not a valid URL/,
+    );
   });
 
   it('does not echo an invalid URL, which could hold credentials', () => {
@@ -44,7 +50,11 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...base, UNIFI_URL: 'ftp://192.168.0.1' })).toThrow(
       new ConfigError('UNIFI_URL must use https:// (or http://)'),
     );
-    const insecure = { UNIFI_URL: 'http://192.168.0.1', UNIFI_API_KEY: 'k', UNIFI_TLS_INSECURE: 'true' };
+    const insecure = {
+      UNIFI_URL: 'http://192.168.0.1',
+      UNIFI_API_KEY: 'k',
+      UNIFI_TLS_INSECURE: 'true',
+    };
     expect(loadConfig(insecure).console.baseUrl).toBe('http://192.168.0.1');
   });
 
@@ -64,13 +74,17 @@ describe('loadConfig', () => {
   });
 
   it('strips trailing slashes', () => {
-    expect(loadConfig({ ...base, UNIFI_URL: 'https://192.168.0.1//' }).console.baseUrl).toBe('https://192.168.0.1');
+    expect(loadConfig({ ...base, UNIFI_URL: 'https://192.168.0.1//' }).console.baseUrl).toBe(
+      'https://192.168.0.1',
+    );
   });
 
   it('requires a fingerprint unless insecure', () => {
     const noFp = { UNIFI_URL: base.UNIFI_URL, UNIFI_API_KEY: base.UNIFI_API_KEY };
     expect(() => loadConfig(noFp)).toThrow(
-      new ConfigError('UNIFI_TLS_FINGERPRINT is required (or set UNIFI_TLS_INSECURE=true for local experiments)'),
+      new ConfigError(
+        'UNIFI_TLS_FINGERPRINT is required (or set UNIFI_TLS_INSECURE=true for local experiments)',
+      ),
     );
   });
 
@@ -80,7 +94,9 @@ describe('loadConfig', () => {
     expect(loadConfig({ ...base, UNIFI_TLS_FINGERPRINT: hex.toUpperCase() }).console.tls).toEqual({
       fingerprint: expected,
     });
-    expect(loadConfig({ ...base, UNIFI_TLS_FINGERPRINT: expected.toLowerCase() }).console.tls).toEqual({
+    expect(
+      loadConfig({ ...base, UNIFI_TLS_FINGERPRINT: expected.toLowerCase() }).console.tls,
+    ).toEqual({
       fingerprint: expected,
     });
   });
@@ -92,30 +108,38 @@ describe('loadConfig', () => {
   });
 
   it('insecure wins and drops the fingerprint', () => {
-    expect(loadConfig({ ...base, UNIFI_TLS_INSECURE: 'true' }).console.tls).toEqual({ insecure: true });
+    expect(loadConfig({ ...base, UNIFI_TLS_INSECURE: 'true' }).console.tls).toEqual({
+      insecure: true,
+    });
     const noFp = { UNIFI_URL: base.UNIFI_URL, UNIFI_API_KEY: base.UNIFI_API_KEY };
-    expect(loadConfig({ ...noFp, UNIFI_TLS_INSECURE: 'true' }).console.tls).toEqual({ insecure: true });
+    expect(loadConfig({ ...noFp, UNIFI_TLS_INSECURE: 'true' }).console.tls).toEqual({
+      insecure: true,
+    });
   });
 
   it('reads the optional Site Manager key', () => {
-    expect(loadConfig({ ...base, UNIFI_SITE_MANAGER_API_KEY: ' sm ' }).siteManagerApiKey).toBe('sm');
+    expect(loadConfig({ ...base, UNIFI_SITE_MANAGER_API_KEY: ' sm ' }).siteManagerApiKey).toBe(
+      'sm',
+    );
   });
 
   it('defaults protected networks to pi-cluster and parses a list', () => {
     expect(loadConfig({ ...base }).protectedNetworks).toEqual(['pi-cluster']);
-    expect(loadConfig({ ...base, UNIFI_MCP_PROTECTED_NETWORKS: 'pi-cluster, IoT' }).protectedNetworks).toEqual([
-      'pi-cluster',
-      'IoT',
-    ]);
+    expect(
+      loadConfig({ ...base, UNIFI_MCP_PROTECTED_NETWORKS: 'pi-cluster, IoT' }).protectedNetworks,
+    ).toEqual(['pi-cluster', 'IoT']);
   });
 
-  it.each(['', '   ', ' , ,'])('an empty protected-networks value (%j) is an error, not "gateway only"', (v) => {
-    expect(() => loadConfig({ ...base, UNIFI_MCP_PROTECTED_NETWORKS: v })).toThrow(
-      new ConfigError(
-        'UNIFI_MCP_PROTECTED_NETWORKS is empty; set network names, or "none" to protect only the gateway',
-      ),
-    );
-  });
+  it.each(['', '   ', ' , ,'])(
+    'an empty protected-networks value (%j) is an error, not "gateway only"',
+    (v) => {
+      expect(() => loadConfig({ ...base, UNIFI_MCP_PROTECTED_NETWORKS: v })).toThrow(
+        new ConfigError(
+          'UNIFI_MCP_PROTECTED_NETWORKS is empty; set network names, or "none" to protect only the gateway',
+        ),
+      );
+    },
+  );
 
   it.each(['none', 'NONE', ' None '])('"%s" protects only the gateway, explicitly', (v) => {
     expect(loadConfig({ ...base, UNIFI_MCP_PROTECTED_NETWORKS: v }).protectedNetworks).toEqual([]);
@@ -136,9 +160,14 @@ describe('loadConfig', () => {
     expect(loadConfig({ ...base, UNIFI_MCP_ACCEPTED_FINDINGS: v }).acceptedFindings).toEqual([]);
   });
 
-  it.each(['PLEX', 'port-forward-open:', 'port-forward-open: '])('an accepted finding without an object (%j) is an error', (v) => {
-    expect(() => loadConfig({ ...base, UNIFI_MCP_ACCEPTED_FINDINGS: v })).toThrow(/must be rule:object/);
-  });
+  it.each(['PLEX', 'port-forward-open:', 'port-forward-open: '])(
+    'an accepted finding without an object (%j) is an error',
+    (v) => {
+      expect(() => loadConfig({ ...base, UNIFI_MCP_ACCEPTED_FINDINGS: v })).toThrow(
+        /must be rule:object/,
+      );
+    },
+  );
 
   it('an accepted finding with an unknown rule is an error that lists the rules', () => {
     expect(() => loadConfig({ ...base, UNIFI_MCP_ACCEPTED_FINDINGS: 'port-forward:PLEX' })).toThrow(
@@ -147,8 +176,12 @@ describe('loadConfig', () => {
   });
 
   it('describes the protected networks for the startup log, warning when there are none', () => {
-    expect(protectedNetworksLog(['pi-cluster', 'IoT'])).toBe('unifi-mcp: protected networks: pi-cluster, IoT');
-    expect(protectedNetworksLog([])).toBe('unifi-mcp: WARNING: protected networks: none (gateway only)');
+    expect(protectedNetworksLog(['pi-cluster', 'IoT'])).toBe(
+      'unifi-mcp: protected networks: pi-cluster, IoT',
+    );
+    expect(protectedNetworksLog([])).toBe(
+      'unifi-mcp: WARNING: protected networks: none (gateway only)',
+    );
   });
 
   it.each(['true', '1', 'TRUE', 'True'])('read-only is on for %s', (v) => {
@@ -164,12 +197,18 @@ describe('loadConfig', () => {
   });
 
   it('rejects an unknown transport', () => {
-    expect(() => loadConfig({ ...base, UNIFI_MCP_TRANSPORT: 'grpc' })).toThrow(/must be one of stdio, http, both/);
+    expect(() => loadConfig({ ...base, UNIFI_MCP_TRANSPORT: 'grpc' })).toThrow(
+      /must be one of stdio, http, both/,
+    );
   });
 
   it('requires UNIFI_MCP_TOKEN for the http and both transports', () => {
-    expect(() => loadConfig({ ...base, UNIFI_MCP_TRANSPORT: 'http' })).toThrow(/UNIFI_MCP_TOKEN is required/);
-    expect(() => loadConfig({ ...base, UNIFI_MCP_TRANSPORT: 'both' })).toThrow(/UNIFI_MCP_TOKEN is required/);
+    expect(() => loadConfig({ ...base, UNIFI_MCP_TRANSPORT: 'http' })).toThrow(
+      /UNIFI_MCP_TOKEN is required/,
+    );
+    expect(() => loadConfig({ ...base, UNIFI_MCP_TRANSPORT: 'both' })).toThrow(
+      /UNIFI_MCP_TOKEN is required/,
+    );
   });
 
   it('accepts http with a token and a custom port', () => {

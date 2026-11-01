@@ -42,14 +42,10 @@
     },
     {
       "sso_enabled": false,
-      "available_controller_channels": [
-        "release"
-      ],
+      "available_controller_channels": ["release"],
       "firmware_channel": "release",
       "_id": "6a2406b31f58c685503cd78e",
-      "available_firmware_channels": [
-        "release"
-      ],
+      "available_firmware_channels": ["release"],
       "key": "super_fwupdate"
     },
     {
@@ -77,9 +73,7 @@
       "portal_enabled": true,
       "portal_customized_button_color": "#006FFF",
       "portal_customized": false,
-      "portal_customized_languages": [
-        "en"
-      ],
+      "portal_customized_languages": ["en"],
       "portal_customized_button_text": "Login",
       "portal_customized_button_text_color": "#FFFFFF",
       "portal_customized_welcome_text": "Welcome to UniFi Guest Hotspot",
@@ -312,24 +306,13 @@
         "136",
         "140"
       ],
-      "ht_modes_na": [
-        "20",
-        "40"
-      ],
-      "ht_modes_ng": [
-        "20"
-      ],
+      "ht_modes_na": ["20", "40"],
+      "ht_modes_ng": ["20"],
       "auto_channel_presets_type": "maximum_speed",
-      "channels_ng": [
-        "1",
-        "6",
-        "11"
-      ],
+      "channels_ng": ["1", "6", "11"],
       "enabled": false,
       "default": true,
-      "optimize": [
-        "channel"
-      ],
+      "optimize": ["channel"],
       "channels_blacklist": [
         {
           "channel": 2,
@@ -406,11 +389,7 @@
       ],
       "cron_expr": "0 3 * * *",
       "auto_enabled": false,
-      "radios": [
-        "ng",
-        "na",
-        "6e"
-      ],
+      "radios": ["ng", "na", "6e"],
       "site_id": "693862dc3ce34976d544de91",
       "channels_6e": [
         "1",
@@ -508,10 +487,7 @@
       "dns_filtering": true,
       "last_alert_id": "5-2026-11-01T11:08:14.105646 0000",
       "honeypot": [],
-      "enabled_networks": [
-        "693862e03ce34976d544deaa",
-        "6938a4331d4c99459c11328f"
-      ],
+      "enabled_networks": ["693862e03ce34976d544deaa", "6938a4331d4c99459c11328f"],
       "ips_mode": "ids",
       "ad_blocking_configurations": [],
       "site_id": "693862dc3ce34976d544de91",
@@ -522,10 +498,7 @@
       "honeypot_enabled": false
     },
     {
-      "server_names": [
-        "cloudflare",
-        "google"
-      ],
+      "server_names": ["cloudflare", "google"],
       "custom_servers": [],
       "site_id": "693862dc3ce34976d544de91",
       "_id": "693862e03ce34976d544dea8",
@@ -707,10 +680,7 @@
       "_id": "69cd5685d220be04b6407b81",
       "primary_querier": "",
       "key": "igmp_snooping",
-      "network_ids": [
-        "693862e03ce34976d544deaa",
-        "6938a4331d4c99459c11328f"
-      ]
+      "network_ids": ["693862e03ce34976d544deaa", "6938a4331d4c99459c11328f"]
     },
     {
       "alerts": [

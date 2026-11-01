@@ -233,9 +233,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "INVALID"
-      ],
+      "connectionStateFilter": ["INVALID"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -798,10 +796,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "ESTABLISHED",
-        "RELATED"
-      ],
+      "connectionStateFilter": ["ESTABLISHED", "RELATED"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -825,9 +820,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "INVALID"
-      ],
+      "connectionStateFilter": ["INVALID"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -1251,10 +1244,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "ESTABLISHED",
-        "RELATED"
-      ],
+      "connectionStateFilter": ["ESTABLISHED", "RELATED"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -1278,9 +1268,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "INVALID"
-      ],
+      "connectionStateFilter": ["INVALID"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -1328,10 +1316,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "ESTABLISHED",
-        "RELATED"
-      ],
+      "connectionStateFilter": ["ESTABLISHED", "RELATED"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -1355,9 +1340,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "INVALID"
-      ],
+      "connectionStateFilter": ["INVALID"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -1800,10 +1783,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "ESTABLISHED",
-        "RELATED"
-      ],
+      "connectionStateFilter": ["ESTABLISHED", "RELATED"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -1827,9 +1807,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "INVALID"
-      ],
+      "connectionStateFilter": ["INVALID"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -2065,10 +2043,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "ESTABLISHED",
-        "RELATED"
-      ],
+      "connectionStateFilter": ["ESTABLISHED", "RELATED"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -2092,9 +2067,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "INVALID"
-      ],
+      "connectionStateFilter": ["INVALID"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -2142,10 +2115,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "ESTABLISHED",
-        "RELATED"
-      ],
+      "connectionStateFilter": ["ESTABLISHED", "RELATED"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -2169,9 +2139,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "INVALID"
-      ],
+      "connectionStateFilter": ["INVALID"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -2550,9 +2518,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "INVALID"
-      ],
+      "connectionStateFilter": ["INVALID"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -2697,10 +2663,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "ESTABLISHED",
-        "RELATED"
-      ],
+      "connectionStateFilter": ["ESTABLISHED", "RELATED"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -2935,9 +2898,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "INVALID"
-      ],
+      "connectionStateFilter": ["INVALID"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -2986,10 +2947,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "ESTABLISHED",
-        "RELATED"
-      ],
+      "connectionStateFilter": ["ESTABLISHED", "RELATED"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -3037,10 +2995,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "ESTABLISHED",
-        "RELATED"
-      ],
+      "connectionStateFilter": ["ESTABLISHED", "RELATED"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -3134,10 +3089,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "ESTABLISHED",
-        "RELATED"
-      ],
+      "connectionStateFilter": ["ESTABLISHED", "RELATED"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -3184,9 +3136,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "INVALID"
-      ],
+      "connectionStateFilter": ["INVALID"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -3235,10 +3185,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "ESTABLISHED",
-        "RELATED"
-      ],
+      "connectionStateFilter": ["ESTABLISHED", "RELATED"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",
@@ -3286,10 +3233,7 @@
       "ipProtocolScope": {
         "ipVersion": "IPV4_AND_IPV6"
       },
-      "connectionStateFilter": [
-        "ESTABLISHED",
-        "RELATED"
-      ],
+      "connectionStateFilter": ["ESTABLISHED", "RELATED"],
       "loggingEnabled": false,
       "metadata": {
         "origin": "SYSTEM_DEFINED",

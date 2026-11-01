@@ -204,7 +204,12 @@ describe('summariseThreats on synthetic entries', () => {
     const known = clients.find((c) => c.ip === lanIp)!.name;
     const ip = (a: string) => ({ id: a, name: a });
     const block = (id: string, src: string, dst: string) =>
-      entry(id, 'TRAFFIC_BLOCKED', { TRIGGER: ip('Block C'), SRC_IP: ip(src), DST_IP: ip(dst) }, 'MEDIUM');
+      entry(
+        id,
+        'TRAFFIC_BLOCKED',
+        { TRIGGER: ip('Block C'), SRC_IP: ip(src), DST_IP: ip(dst) },
+        'MEDIUM',
+      );
     const log = [
       block('b1', '198.51.100.7', lanIp),
       block('b2', lanIp, '203.0.113.1'),
@@ -230,7 +235,12 @@ describe('summariseThreats on synthetic entries', () => {
   it('CGNAT, link-local and IPv6 ULA / link-local addresses count as the LAN side', () => {
     const ip = (a: string) => ({ id: a, name: a });
     const out = (id: string, src: string) =>
-      entry(id, 'TRAFFIC_BLOCKED', { TRIGGER: ip('Block D'), SRC_IP: ip(src), DST_IP: ip('203.0.113.9') }, 'MEDIUM');
+      entry(
+        id,
+        'TRAFFIC_BLOCKED',
+        { TRIGGER: ip('Block D'), SRC_IP: ip(src), DST_IP: ip('203.0.113.9') },
+        'MEDIUM',
+      );
     const s = summary({}, [
       out('c1', '100.64.0.1'),
       out('c2', '100.127.255.254'),
@@ -240,11 +250,13 @@ describe('summariseThreats on synthetic entries', () => {
       out('c6', '100.128.0.1'),
       out('c7', 'fc00::1'),
     ]);
-    const outbound = s.groups.filter((g) => g.lanSide.includes('outbound from')).map((g) => g.lanSide);
+    const outbound = s.groups
+      .filter((g) => g.lanSide.includes('outbound from'))
+      .map((g) => g.lanSide);
     expect(outbound.sort()).toEqual(
-      ['100.127.255.254', '100.64.0.1', '169.254.1.1', 'fd12:3456::1', 'fe80::1'].map(
-        (a) => `Block D, outbound from ${a}`,
-      ).sort(),
+      ['100.127.255.254', '100.64.0.1', '169.254.1.1', 'fd12:3456::1', 'fe80::1']
+        .map((a) => `Block D, outbound from ${a}`)
+        .sort(),
     );
     expect(s.groups.filter((g) => g.lanSide === 'Block D -> 203.0.113.9')).toHaveLength(1);
     expect(s.groups.find((g) => g.lanSide === 'Block D -> 203.0.113.9')!.count).toBe(2);
@@ -253,7 +265,12 @@ describe('summariseThreats on synthetic entries', () => {
   it('a short first IPv6 group (fd::, fd1::, fe8::, fe9::) is not ULA or link-local', () => {
     const ip = (a: string) => ({ id: a, name: a });
     const out = (id: string, src: string) =>
-      entry(id, 'TRAFFIC_BLOCKED', { TRIGGER: ip('Block E'), SRC_IP: ip(src), DST_IP: ip('203.0.113.9') }, 'MEDIUM');
+      entry(
+        id,
+        'TRAFFIC_BLOCKED',
+        { TRIGGER: ip('Block E'), SRC_IP: ip(src), DST_IP: ip('203.0.113.9') },
+        'MEDIUM',
+      );
     const s = summary({}, [
       out('d1', 'fd::1'),
       out('d2', 'fd1::1'),
@@ -262,7 +279,9 @@ describe('summariseThreats on synthetic entries', () => {
       out('d5', 'fdab:1::1'),
       out('d6', 'febf::1'),
     ]);
-    const outbound = s.groups.filter((g) => g.lanSide.includes('outbound from')).map((g) => g.lanSide);
+    const outbound = s.groups
+      .filter((g) => g.lanSide.includes('outbound from'))
+      .map((g) => g.lanSide);
     expect(outbound.sort()).toEqual(
       ['fdab:1::1', 'febf::1'].map((a) => `Block E, outbound from ${a}`).sort(),
     );

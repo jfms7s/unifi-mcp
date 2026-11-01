@@ -377,14 +377,20 @@ describe('a firewall endpoint that changed (M5)', () => {
       action: { type: 'ALLOW' },
       source: {
         zoneId: 'd2e63b8f-895d-4976-a0cd-d4173c1f1698',
-        trafficFilter: { type: 'NETWORK', networkFilter: { matchOpposite: false, networkIds: [wan1] } },
+        trafficFilter: {
+          type: 'NETWORK',
+          networkFilter: { matchOpposite: false, networkIds: [wan1] },
+        },
       },
       destination: { zoneId: '2f3e84b1-ee47-4bbe-861f-7e63ba80e1b0' },
       ipProtocolScope: { ipVersion: 'IPV4_AND_IPV6' },
       metadata: { origin: 'USER_DEFINED' },
     };
     const found = byRule(
-      auditPosture({ ...input, firewall: { ...fw, policies: [policy] } as PostureInput['firewall'] }),
+      auditPosture({
+        ...input,
+        firewall: { ...fw, policies: [policy] } as PostureInput['firewall'],
+      }),
       'zone-allow-to-trusted',
     );
     expect(found.map((f) => [f.object, f.severity])).toEqual([['wan-as-hotspot', 'HIGH']]);
@@ -421,9 +427,9 @@ describe('a firewall endpoint that changed (M5)', () => {
   });
 
   it('unifi_list_firewall without the zones labels each side with a short zone id', async () => {
-    const out = (await caller(
-      createReadTools(withBroken('listFirewallZones', '/firewall/zones')),
-    )('unifi_list_firewall')) as Record<string, unknown> & {
+    const out = (await caller(createReadTools(withBroken('listFirewallZones', '/firewall/zones')))(
+      'unifi_list_firewall',
+    )) as Record<string, unknown> & {
       unavailable: Record<string, string>;
       policies: string[];
     };

@@ -27,7 +27,11 @@ interface Apps {
 }
 
 describe('downsample', () => {
-  const series = Array.from({ length: 288 }, (_, i) => ({ time: i * 300_000, bytes: i, label: 'x' }));
+  const series = Array.from({ length: 288 }, (_, i) => ({
+    time: i * 300_000,
+    bytes: i,
+    label: 'x',
+  }));
 
   it('keeps 200 points out of 288 with the first and last unchanged', () => {
     const out = downsample(series, 200);
@@ -58,12 +62,10 @@ describe('downsample', () => {
 
   it('averages only the points that carry a field', () => {
     const out = downsample(
-      [
-        { time: 0, a: 1 },
-        { time: 10, a: 5 },
-        { time: 20 },
-        { time: 30, a: 7 },
-      ] as Array<{ time: number; a?: number }>,
+      [{ time: 0, a: 1 }, { time: 10, a: 5 }, { time: 20 }, { time: 30, a: 7 }] as Array<{
+        time: number;
+        a?: number;
+      }>,
       3,
     );
     expect(out[1]).toEqual({ time: 15, a: 5 });
@@ -107,9 +109,15 @@ describe('unifi_traffic_report', () => {
 
   it('picks an interval from the range when none is given', async () => {
     const { call } = setup();
-    expect(((await call('unifi_traffic_report', { scope: 'site' })) as Report).interval).toBe('5minutes');
-    expect(((await call('unifi_traffic_report', { scope: 'site', since: '7d' })) as Report).interval).toBe('hourly');
-    expect(((await call('unifi_traffic_report', { scope: 'site', since: '60d' })) as Report).interval).toBe('daily');
+    expect(((await call('unifi_traffic_report', { scope: 'site' })) as Report).interval).toBe(
+      '5minutes',
+    );
+    expect(
+      ((await call('unifi_traffic_report', { scope: 'site', since: '7d' })) as Report).interval,
+    ).toBe('hourly');
+    expect(
+      ((await call('unifi_traffic_report', { scope: 'site', since: '60d' })) as Report).interval,
+    ).toBe('daily');
   });
 
   it('reports site client counts and combined WAN bytes', async () => {
@@ -128,14 +136,19 @@ describe('unifi_traffic_report', () => {
   it('needs a device for an AP report and reports that AP', async () => {
     const { call } = setup();
     await expect(call('unifi_traffic_report', { scope: 'ap' })).rejects.toThrow(/needs a device/);
-    const r = (await call('unifi_traffic_report', { scope: 'ap', device: '02:00:00:00:00:03' })) as Report;
+    const r = (await call('unifi_traffic_report', {
+      scope: 'ap',
+      device: '02:00:00:00:00:03',
+    })) as Report;
     expect(r.target).toBeDefined();
     expect(r.points[0]).toMatchObject({ bytes: expect.any(Number), clients: expect.any(Number) });
   });
 
   it('needs a client for a client report and reports that client only', async () => {
     const { call } = setup();
-    await expect(call('unifi_traffic_report', { scope: 'client' })).rejects.toThrow(/needs a client/);
+    await expect(call('unifi_traffic_report', { scope: 'client' })).rejects.toThrow(
+      /needs a client/,
+    );
     const r = (await call('unifi_traffic_report', {
       scope: 'client',
       client: '02:00:00:00:00:8f',
@@ -147,27 +160,37 @@ describe('unifi_traffic_report', () => {
 
   it('says so when the device or client is unknown', async () => {
     const { call } = setup();
-    await expect(call('unifi_traffic_report', { scope: 'ap', device: 'no-such-ap' })).rejects.toThrow(/No device/);
-    await expect(call('unifi_traffic_report', { scope: 'client', client: 'no-such' })).rejects.toThrow(/No client/);
+    await expect(
+      call('unifi_traffic_report', { scope: 'ap', device: 'no-such-ap' }),
+    ).rejects.toThrow(/No device/);
+    await expect(
+      call('unifi_traffic_report', { scope: 'client', client: 'no-such' }),
+    ).rejects.toThrow(/No client/);
   });
 
-  it.each(['site', 'client'])('rejects a device for a %s report instead of ignoring it', async (scope) => {
-    const { call } = setup();
-    await expect(
-      call('unifi_traffic_report', { scope, device: 'Gateway CGU', client: '02:00:00:00:00:8f' }),
-    ).rejects.toThrow(`device is only for scope ap or gateway, not ${scope}`);
-  });
+  it.each(['site', 'client'])(
+    'rejects a device for a %s report instead of ignoring it',
+    async (scope) => {
+      const { call } = setup();
+      await expect(
+        call('unifi_traffic_report', { scope, device: 'Gateway CGU', client: '02:00:00:00:00:8f' }),
+      ).rejects.toThrow(`device is only for scope ap or gateway, not ${scope}`);
+    },
+  );
 
-  it.each(['site', 'ap', 'gateway'])('rejects a client for a %s report instead of ignoring it', async (scope) => {
-    const { call } = setup();
-    await expect(
-      call('unifi_traffic_report', {
-        scope,
-        client: '02:00:00:00:00:8f',
-        ...(scope === 'ap' ? { device: 'device-3' } : {}),
-      }),
-    ).rejects.toThrow(`client is only for scope client, not ${scope}`);
-  });
+  it.each(['site', 'ap', 'gateway'])(
+    'rejects a client for a %s report instead of ignoring it',
+    async (scope) => {
+      const { call } = setup();
+      await expect(
+        call('unifi_traffic_report', {
+          scope,
+          client: '02:00:00:00:00:8f',
+          ...(scope === 'ap' ? { device: 'device-3' } : {}),
+        }),
+      ).rejects.toThrow(`client is only for scope client, not ${scope}`);
+    },
+  );
 
   it('an AP report on a device that is not an AP is refused, naming the APs', async () => {
     const { call } = setup();
@@ -208,7 +231,13 @@ describe('unifi_traffic_report', () => {
         const gw = devices.find((d) => d.name === 'Gateway CGU')!;
         return [
           ...devices,
-          { ...gw, id: 'second-gateway', macAddress: '02:00:00:00:00:f0', name: 'Gateway Two', ipAddress: '192.168.1.163' },
+          {
+            ...gw,
+            id: 'second-gateway',
+            macAddress: '02:00:00:00:00:f0',
+            name: 'Gateway Two',
+            ipAddress: '192.168.1.163',
+          },
         ];
       };
       return ctx;
@@ -279,15 +308,31 @@ describe('unifi_top_apps', () => {
     ];
     const r = (await call('unifi_top_apps')) as Apps;
     expect(r.scope).toBe('site');
-    expect(r.apps[0]).toMatchObject({ name: 'QQ/TM', category: 'Media streaming services', bytes: 1515, rxBytes: 1010, txBytes: 505 });
+    expect(r.apps[0]).toMatchObject({
+      name: 'QQ/TM',
+      category: 'Media streaming services',
+      bytes: 1515,
+      rxBytes: 1010,
+      txBytes: 505,
+    });
     expect(r.apps[1]).toMatchObject({ name: 'ICQ', category: 'Instant messengers', bytes: 150 });
-    expect(r.categories.map((c) => c.name)).toEqual(['Media streaming services', 'Instant messengers']);
+    expect(r.categories.map((c) => c.name)).toEqual([
+      'Media streaming services',
+      'Instant messengers',
+    ]);
   });
 
   it('shows an id the catalogue lacks as "app <id>" and keeps the top 10', async () => {
     const { deps, call } = setup();
     deps.legacy.siteDpi = async () => [
-      { by_app: Array.from({ length: 15 }, (_, i) => ({ app: 900_000 + i, cat: 99, rx_bytes: i + 1, tx_bytes: 0 })) },
+      {
+        by_app: Array.from({ length: 15 }, (_, i) => ({
+          app: 900_000 + i,
+          cat: 99,
+          rx_bytes: i + 1,
+          tx_bytes: 0,
+        })),
+      },
     ];
     const r = (await call('unifi_top_apps')) as Apps;
     expect(r.apps).toHaveLength(10);
@@ -321,7 +366,10 @@ describe('unifi_top_apps', () => {
       throw new Error('catalogue down');
     };
     deps.legacy.siteDpi = async () => [
-      { by_app: [{ app: 3, cat: 0, rx_bytes: 1, tx_bytes: 1 }], by_cat: [{ cat: 0, rx_bytes: 1, tx_bytes: 1 }] },
+      {
+        by_app: [{ app: 3, cat: 0, rx_bytes: 1, tx_bytes: 1 }],
+        by_cat: [{ cat: 0, rx_bytes: 1, tx_bytes: 1 }],
+      },
     ];
     const r = (await call('unifi_top_apps')) as Apps;
     expect(r.apps[0]?.name).toBe('app 3');
@@ -381,13 +429,21 @@ describe('unifi_isp_metrics', () => {
     const without = setup({ sitemanager: false });
     expect(without.tools.map((t) => t.name)).not.toContain('unifi_isp_metrics');
     const { call } = setup();
-    const r = (await call('unifi_isp_metrics')) as { interval: string; series: Array<Record<string, unknown>> };
+    const r = (await call('unifi_isp_metrics')) as {
+      interval: string;
+      series: Array<Record<string, unknown>>;
+    };
     expect(r.interval).toBe('5m');
-    expect(r.series[0]).toMatchObject({ avgLatencyMs: expect.any(Number), uptimePct: expect.any(Number) });
+    expect(r.series[0]).toMatchObject({
+      avgLatencyMs: expect.any(Number),
+      uptimePct: expect.any(Number),
+    });
   });
 
   it('uses hourly data for a range over a day', async () => {
     const { call } = setup();
-    expect(((await call('unifi_isp_metrics', { since: '7d' })) as { interval: string }).interval).toBe('1h');
+    expect(
+      ((await call('unifi_isp_metrics', { since: '7d' })) as { interval: string }).interval,
+    ).toBe('1h');
   });
 });

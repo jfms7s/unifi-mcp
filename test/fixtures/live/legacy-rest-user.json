@@ -49,9 +49,7 @@
       "disconnect_timestamp": 1793478188,
       "dev_id_override": 2764,
       "is_wired": true,
-      "last_ipv6": [
-        "fe80::ff:fe00:6"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:6"],
       "dev_family": 7,
       "mac": "02:00:00:00:00:1a",
       "hostname": "data-archive",
@@ -88,9 +86,7 @@
       "disconnect_timestamp": 1793396046,
       "dev_id_override": 34,
       "is_wired": true,
-      "last_ipv6": [
-        "fe80::fe76:9993:8446:ab05"
-      ],
+      "last_ipv6": ["fe80::fe76:9993:8446:ab05"],
       "dev_family": 14,
       "mac": "02:00:00:00:00:0c",
       "dev_cat": 47,
@@ -128,9 +124,7 @@
       "disconnect_timestamp": 1793532204,
       "dev_id_override": 2285,
       "is_wired": true,
-      "last_ipv6": [
-        "fe80::37:7a1:95e3:c395"
-      ],
+      "last_ipv6": ["fe80::37:7a1:95e3:c395"],
       "dev_family": 13,
       "mac": "02:00:00:00:00:23",
       "hostname": "client-30",
@@ -420,9 +414,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1793412636,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:9"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:9"],
       "dev_family": 5,
       "mac": "02:00:00:00:00:29",
       "hostname": "client-40",
@@ -452,9 +444,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1793412636,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:a"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:a"],
       "dev_family": 5,
       "mac": "02:00:00:00:00:2a",
       "hostname": "client-41",
@@ -484,9 +474,7 @@
       "disconnect_timestamp": 1793489057,
       "fingerprint_engine_version": "0.0.0",
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:4"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:4"],
       "dev_family": 7,
       "mac": "02:00:00:00:00:20",
       "hostname": "client-32",
@@ -635,9 +623,7 @@
       "disconnect_timestamp": 1793398591,
       "dev_id_override": 5580,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:b"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:b"],
       "os_class": 32,
       "dev_family": 47,
       "mac": "02:00:00:00:00:2d",
@@ -762,9 +748,7 @@
       "disconnect_timestamp": 1793396046,
       "fingerprint_engine_version": "0.0.0",
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::1c8e:f05e:fa51:9878"
-      ],
+      "last_ipv6": ["fe80::1c8e:f05e:fa51:9878"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:0d",
       "hostname": "client-38",
@@ -798,9 +782,7 @@
       "disconnect_timestamp": 1793466771,
       "dev_id_override": 4975,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:8"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:8"],
       "dev_family": 7,
       "mac": "02:00:00:00:00:19",
       "hostname": "client-21",
@@ -832,9 +814,7 @@
       "is_guest": false,
       "disconnect_timestamp": 1793490754,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:c"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:c"],
       "mac": "02:00:00:00:00:30",
       "hostname": "client-46",
       "local_dns_record_enabled": false,
@@ -872,9 +852,7 @@
       "last_uplink_mac": "02:00:00:00:00:03",
       "last_connection_network_name": "IoT",
       "last_uplink_remote_port": 4,
-      "last_ipv6": [
-        "fe80::ff:fe00:d"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:d"],
       "mac": "02:00:00:00:00:31",
       "last_connection_network_id": "6938a4331d4c99459c11328f",
       "hostname": "client-47",
@@ -892,9 +870,7 @@
       "disconnect_timestamp": 1793437754,
       "fingerprint_engine_version": "0.0.0",
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:e"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:e"],
       "dev_family": 11,
       "mac": "02:00:00:00:00:32",
       "hostname": "client-48",
@@ -931,9 +907,7 @@
       "usergroup_id": "",
       "last_uplink_mac": "02:00:00:00:00:03",
       "last_connection_network_name": "IoT",
-      "last_ipv6": [
-        "fe80::ff:fe00:f"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:f"],
       "mac": "02:00:00:00:00:33",
       "last_connection_network_id": "6938a4331d4c99459c11328f",
       "hostname": "client-50",
@@ -976,9 +950,7 @@
       "dev_cat": 225,
       "local_dns_record_enabled": true,
       "virtual_network_override_id": "",
-      "network_members_group_ids": [
-        "69d4204da355918f898320cd"
-      ],
+      "network_members_group_ids": ["69d4204da355918f898320cd"],
       "last_uplink_name": "device-2",
       "use_fixedip": true,
       "confidence": 58,
@@ -1039,9 +1011,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1786335496,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:10"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:10"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:35",
       "hostname": "client-28",
@@ -1071,9 +1041,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1785815530,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:11"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:11"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:36",
       "hostname": "client-27",
@@ -1103,9 +1071,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1785819241,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:12"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:12"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:37",
       "hostname": "client-27",
@@ -1135,9 +1101,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1787387445,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:13"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:13"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:38",
       "hostname": "client-27",
@@ -1218,9 +1182,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1786504770,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:14"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:14"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:3c",
       "hostname": "client-28",
@@ -1318,9 +1280,7 @@
       "disconnect_timestamp": 1790858572,
       "fingerprint_engine_version": "0.0.0",
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:15"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:15"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:41",
       "hostname": "client-28",
@@ -1776,9 +1736,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1792430514,
       "is_wired": true,
-      "last_ipv6": [
-        "fe80::ff:fe00:16"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:16"],
       "dev_family": 2,
       "mac": "02:00:00:00:00:5b",
       "dev_cat": 17,
@@ -1945,9 +1903,7 @@
       "last_uplink_mac": "02:00:00:00:00:02",
       "last_uplink_remote_port": 1,
       "last_connection_network_name": "Default",
-      "last_ipv6": [
-        "fe80::ff:fe00:17"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:17"],
       "mac": "02:00:00:00:00:64",
       "last_connection_network_id": "693862e03ce34976d544deaa",
       "site_id": "693862dc3ce34976d544de91",
@@ -2002,9 +1958,7 @@
       "last_uplink_mac": "02:00:00:00:00:01",
       "last_uplink_remote_port": 2,
       "last_connection_network_name": "Default",
-      "last_ipv6": [
-        "fe80::ff:fe00:18"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:18"],
       "mac": "02:00:00:00:00:67",
       "last_connection_network_id": "693862e03ce34976d544deaa",
       "site_id": "693862dc3ce34976d544de91",
@@ -2023,9 +1977,7 @@
       "last_uplink_mac": "02:00:00:00:00:02",
       "last_uplink_remote_port": 1,
       "last_connection_network_name": "Default",
-      "last_ipv6": [
-        "fe80::ff:fe00:19"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:19"],
       "mac": "02:00:00:00:00:68",
       "last_connection_network_id": "693862e03ce34976d544deaa",
       "site_id": "693862dc3ce34976d544de91",
@@ -2044,9 +1996,7 @@
       "last_uplink_mac": "02:00:00:00:00:01",
       "last_uplink_remote_port": 2,
       "last_connection_network_name": "Default",
-      "last_ipv6": [
-        "fe80::ff:fe00:1a"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:1a"],
       "mac": "02:00:00:00:00:69",
       "last_connection_network_id": "693862e03ce34976d544deaa",
       "site_id": "693862dc3ce34976d544de91",
@@ -2147,9 +2097,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1788168433,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:1b"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:1b"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:6f",
       "hostname": "client-27",
@@ -2366,9 +2314,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1788338007,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:1c"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:1c"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:7b",
       "hostname": "client-27",
@@ -2398,9 +2344,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1788390552,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:1d"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:1d"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:7c",
       "hostname": "client-27",
@@ -2430,9 +2374,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1788429554,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:1e"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:1e"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:7d",
       "hostname": "client-27",
@@ -2462,9 +2404,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1788531141,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:1f"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:1f"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:7e",
       "hostname": "client-27",
@@ -2494,9 +2434,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1788695793,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:20"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:20"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:7f",
       "hostname": "client-27",
@@ -2526,9 +2464,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1788696633,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:21"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:21"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:80",
       "hostname": "client-27",
@@ -2561,9 +2497,7 @@
       "usergroup_id": "",
       "last_uplink_mac": "02:00:00:00:00:03",
       "last_connection_network_name": "Default",
-      "last_ipv6": [
-        "fe80::ff:fe00:22"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:22"],
       "mac": "02:00:00:00:00:81",
       "last_connection_network_id": "693862e03ce34976d544deaa",
       "hostname": "client-27",
@@ -2581,9 +2515,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1790344768,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:23"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:23"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:82",
       "hostname": "client-27",
@@ -2613,9 +2545,7 @@
       "disconnect_timestamp": 1790920675,
       "fingerprint_engine_version": "0.0.0",
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:24"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:24"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:83",
       "hostname": "client-27",
@@ -2645,9 +2575,7 @@
       "fingerprint_engine_version": "1.0.2",
       "disconnect_timestamp": 1793401094,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:25"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:25"],
       "dev_family": 14,
       "mac": "02:00:00:00:00:84",
       "dev_cat": 47,
@@ -2704,9 +2632,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1791152713,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:26"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:26"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:86",
       "hostname": "client-28",
@@ -2736,9 +2662,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1790954998,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:27"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:27"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:87",
       "hostname": "client-27",
@@ -2768,9 +2692,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1791126852,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:28"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:28"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:88",
       "hostname": "client-27",
@@ -2800,9 +2722,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1791721130,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:29"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:29"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:89",
       "hostname": "client-27",
@@ -2832,9 +2752,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1791637185,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:2a"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:2a"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:8a",
       "hostname": "client-28",
@@ -2864,9 +2782,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1793478332,
       "is_wired": true,
-      "last_ipv6": [
-        "fe80::ff:fe00:3"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:3"],
       "dev_family": 117,
       "mac": "02:00:00:00:00:1e",
       "hostname": "client-24",
@@ -2895,9 +2811,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1791665507,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:2b"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:2b"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:8b",
       "hostname": "client-28",
@@ -2962,9 +2876,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1791677988,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:2c"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:2c"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:8c",
       "hostname": "client-28",
@@ -2994,9 +2906,7 @@
       "disconnect_timestamp": 1791678468,
       "fingerprint_engine_version": "1.0.2",
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:2d"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:2d"],
       "dev_family": 22,
       "mac": "02:00:00:00:00:8d",
       "hostname": "client-28",
@@ -3024,9 +2934,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1792444889,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:2e"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:2e"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:8e",
       "hostname": "client-28",
@@ -3056,9 +2964,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1793503521,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:5"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:5"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:21",
       "hostname": "client-27",
@@ -3089,9 +2995,7 @@
       "fingerprint_engine_version": "0.0.0",
       "disconnect_timestamp": 1793524854,
       "is_wired": false,
-      "last_ipv6": [
-        "fe80::ff:fe00:7"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:7"],
       "dev_family": 9,
       "mac": "02:00:00:00:00:22",
       "hostname": "client-28",
@@ -3366,9 +3270,7 @@
       "disconnect_timestamp": 1793478210,
       "fingerprint_engine_version": "1.0.2",
       "is_wired": true,
-      "last_ipv6": [
-        "fe80::ff:fe00:2"
-      ],
+      "last_ipv6": ["fe80::ff:fe00:2"],
       "dev_family": 13,
       "mac": "02:00:00:00:00:1b",
       "hostname": "client-22",

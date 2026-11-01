@@ -35,7 +35,12 @@ describe('buildTools', () => {
 
   it('gives every tool all four annotations', () => {
     for (const tool of buildTools(testConfig({ siteManagerApiKey: 'sm-key' }))) {
-      for (const hint of ['readOnlyHint', 'destructiveHint', 'idempotentHint', 'openWorldHint'] as const) {
+      for (const hint of [
+        'readOnlyHint',
+        'destructiveHint',
+        'idempotentHint',
+        'openWorldHint',
+      ] as const) {
         expect(typeof tool.annotations[hint], `${tool.name} ${hint}`).toBe('boolean');
       }
     }

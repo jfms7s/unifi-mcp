@@ -48,7 +48,10 @@ describe('guard through the MCP SDK: stub confirm-level tool', () => {
   it('confirm: false is a schema error too (z.literal(true) refuses it)', async () => {
     const { tool, run } = stubTool();
     const client = await connect([tool]);
-    const r = await client.callTool({ name: 'unifi_stub', arguments: { target: 'x', confirm: false } });
+    const r = await client.callTool({
+      name: 'unifi_stub',
+      arguments: { target: 'x', confirm: false },
+    });
     expect(r.isError).toBe(true);
     expect(run).not.toHaveBeenCalled();
   });
@@ -90,7 +93,10 @@ describe('guard through the MCP SDK: stub confirm-level tool', () => {
   it('confirm: true runs exactly once', async () => {
     const { tool, run, preview } = stubTool();
     const client = await connect([tool]);
-    const r = await client.callTool({ name: 'unifi_stub', arguments: { target: 'x', confirm: true } });
+    const r = await client.callTool({
+      name: 'unifi_stub',
+      arguments: { target: 'x', confirm: true },
+    });
     expect(r.isError).toBeFalsy();
     expect(run).toHaveBeenCalledOnce();
     expect(preview).not.toHaveBeenCalled();

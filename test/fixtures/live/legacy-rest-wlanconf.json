@@ -39,15 +39,10 @@
       "minrate_na_enabled": false,
       "external_id": "27c0eae9-ecaf-467f-9a42-bd05f8984bcd",
       "enabled": true,
-      "wlan_bands": [
-        "2g",
-        "5g"
-      ],
+      "wlan_bands": ["2g", "5g"],
       "mac_filter_policy": "allow",
       "security": "wpapsk",
-      "ap_group_ids": [
-        "693862e13ce34976d544deb0"
-      ],
+      "ap_group_ids": ["693862e13ce34976d544deb0"],
       "l2_isolation": false,
       "minrate_ng_enabled": true,
       "bss_transition": true,
@@ -110,16 +105,11 @@
       "external_id": "761e53dc-ee9e-4fe5-91ab-5a6841885093",
       "enabled": true,
       "mdns_proxy_mode": "off",
-      "wlan_bands": [
-        "2g",
-        "5g"
-      ],
+      "wlan_bands": ["2g", "5g"],
       "mac_filter_policy": "allow",
       "p2p_cross_connect": false,
       "security": "wpapsk",
-      "ap_group_ids": [
-        "693862e13ce34976d544deb0"
-      ],
+      "ap_group_ids": ["693862e13ce34976d544deb0"],
       "l2_isolation": false,
       "minrate_ng_enabled": true,
       "bss_transition": true,
@@ -184,15 +174,10 @@
       "external_id": "e0077cb0-b9dd-4d24-a1f8-8b9a98c113ea",
       "enabled": true,
       "mdns_proxy_mode": "off",
-      "wlan_bands": [
-        "2g",
-        "5g"
-      ],
+      "wlan_bands": ["2g", "5g"],
       "mac_filter_policy": "allow",
       "security": "wpapsk",
-      "ap_group_ids": [
-        "693862e13ce34976d544deb0"
-      ],
+      "ap_group_ids": ["693862e13ce34976d544deb0"],
       "l2_isolation": false,
       "minrate_ng_enabled": true,
       "bss_transition": true,

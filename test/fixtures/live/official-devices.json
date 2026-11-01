@@ -14,12 +14,8 @@
       "supported": true,
       "firmwareVersion": "5.1.34",
       "firmwareUpdatable": false,
-      "features": [
-        "switching"
-      ],
-      "interfaces": [
-        "ports"
-      ]
+      "features": ["switching"],
+      "interfaces": ["ports"]
     },
     {
       "id": "3bd4c282-e99a-31b8-88bb-4a86e3f36403",
@@ -31,12 +27,8 @@
       "supported": true,
       "firmwareVersion": "2.1.8",
       "firmwareUpdatable": false,
-      "features": [
-        "switching"
-      ],
-      "interfaces": [
-        "ports"
-      ]
+      "features": ["switching"],
+      "interfaces": ["ports"]
     },
     {
       "id": "e33e2aae-6aed-34d1-91ee-782990063b83",
@@ -48,12 +40,8 @@
       "supported": true,
       "firmwareVersion": "8.7.11",
       "firmwareUpdatable": false,
-      "features": [
-        "accessPoint"
-      ],
-      "interfaces": [
-        "radios"
-      ]
+      "features": ["accessPoint"],
+      "interfaces": ["radios"]
     },
     {
       "id": "15e622d8-6668-3466-8e66-20734abe3e10",
@@ -65,12 +53,8 @@
       "supported": true,
       "firmwareVersion": "2.1.8",
       "firmwareUpdatable": false,
-      "features": [
-        "switching"
-      ],
-      "interfaces": [
-        "ports"
-      ]
+      "features": ["switching"],
+      "interfaces": ["ports"]
     }
   ]
 }

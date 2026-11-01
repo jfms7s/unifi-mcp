@@ -122,11 +122,9 @@ describe('loadProtectedScope on a console with two sites', () => {
     expect(scopeA.subnets).toEqual([{ cidr: '192.168.0.0/24', network: 'pi-cluster' }]);
   });
 
-  it('a name on no site at all is still a typo, and the error lists every site\'s networks', async () => {
+  it("a name on no site at all is still a typo, and the error lists every site's networks", async () => {
     const { deps } = await twoSites([{ id: 'cams-id', name: 'Cameras' }]);
-    await expect(loadProtectedScope(['k3s'], deps, BRANCH)).rejects.toThrow(
-      /"k3s".*pi-cluster/,
-    );
+    await expect(loadProtectedScope(['k3s'], deps, BRANCH)).rejects.toThrow(/"k3s".*pi-cluster/);
     // A name on the branch only is fine on the home site.
     const { deps: d2, home } = await twoSites([{ id: 'cams-id', name: 'Cameras' }]);
     await expect(loadProtectedScope(['Cameras'], d2, home)).resolves.toBeDefined();

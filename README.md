@@ -191,7 +191,8 @@ Then point Claude Code at the build, over stdio:
 npm ci
 npm run typecheck
 npm run lint
-npm test
+npm run format:check   # npm run format to fix
+npm test              # npm run test:coverage for an lcov report
 npm run build
 ```
 

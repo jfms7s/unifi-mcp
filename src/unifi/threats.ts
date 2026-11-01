@@ -136,7 +136,12 @@ function classify(e: SyslogEntry, clients: KnownClient[]): Classified {
       remote,
     };
   }
-  return { direction: 'other', lanSide: e.key, lanId: e.key, remote: label(p.SRC_IP) ?? label(p.DST_IP) };
+  return {
+    direction: 'other',
+    lanSide: e.key,
+    lanId: e.key,
+    remote: label(p.SRC_IP) ?? label(p.DST_IP),
+  };
 }
 
 interface Acc {
@@ -157,7 +162,10 @@ const byCountThenIp = <T extends { count: number; ip: string }>(a: T, b: T) =>
   b.count - a.count || byIp(a.ip, b.ip);
 
 function topOf(remotes: Map<string, number>, n: number) {
-  return [...remotes].map(([ip, count]) => ({ ip, count })).sort(byCountThenIp).slice(0, n);
+  return [...remotes]
+    .map(([ip, count]) => ({ ip, count }))
+    .sort(byCountThenIp)
+    .slice(0, n);
 }
 
 function describeForward(f: PortForward): ThreatPortForward {
@@ -200,7 +208,16 @@ export function summariseThreats(
     const id = `${c.direction}\u0000${c.lanId}`;
     let acc = groups.get(id);
     if (!acc) {
-      acc = { c, count: 0, bySeverity: {}, max: e.severity, first: e.timestamp, last: e.timestamp, remotes: new Map(), keys: new Set() };
+      acc = {
+        c,
+        count: 0,
+        bySeverity: {},
+        max: e.severity,
+        first: e.timestamp,
+        last: e.timestamp,
+        remotes: new Map(),
+        keys: new Set(),
+      };
       groups.set(id, acc);
     }
     acc.count++;
@@ -235,7 +252,10 @@ export function summariseThreats(
       complete: opts.truncatedAt === undefined,
       ...(opts.truncatedAt === undefined
         ? {}
-        : { truncatedAt: new Date(opts.truncatedAt).toISOString(), note: coverageNote(opts.truncatedAt) }),
+        : {
+            truncatedAt: new Date(opts.truncatedAt).toISOString(),
+            note: coverageNote(opts.truncatedAt),
+          }),
     },
     totalEvents: total,
     groups: shown.map((acc) => {

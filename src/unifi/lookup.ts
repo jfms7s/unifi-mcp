@@ -17,7 +17,10 @@ const squashMac = (value: string) => value.toLowerCase().replace(/[^0-9a-f]/g, '
 /** Case-insensitive equality; MACs compare without separators. */
 export function sameId(a: string | undefined, b: string): boolean {
   if (a === undefined) return false;
-  return a.toLowerCase() === b.toLowerCase() || (!b.includes('.') && squashMac(b).length === 12 && squashMac(a) === squashMac(b));
+  return (
+    a.toLowerCase() === b.toLowerCase() ||
+    (!b.includes('.') && squashMac(b).length === 12 && squashMac(a) === squashMac(b))
+  );
 }
 
 export const sameText = (a: string | undefined, b: string): boolean =>
@@ -31,7 +34,11 @@ export const hasText = (a: string | undefined, b: string): boolean =>
  * The first tier with any match decides: one match is the answer, several are
  * returned as candidates rather than guessed between.
  */
-export function lookup<T>(items: T[], query: string, tiers: Array<(item: T, query: string) => boolean>): Match<T> {
+export function lookup<T>(
+  items: T[],
+  query: string,
+  tiers: Array<(item: T, query: string) => boolean>,
+): Match<T> {
   for (const tier of tiers) {
     const hits = items.filter((item) => tier(item, query));
     if (hits.length === 1) return { found: hits[0] as T };
@@ -97,7 +104,12 @@ export const findClient = (
  * What a tool returns when a name matches several things, or (`partial`) only
  * part of one in a write tool: the candidates, never a guess.
  */
-export function ambiguous<T>(query: string, candidates: T[], row: (c: T) => unknown, partial = false) {
+export function ambiguous<T>(
+  query: string,
+  candidates: T[],
+  row: (c: T) => unknown,
+  partial = false,
+) {
   return {
     ambiguous: true as const,
     message: partial

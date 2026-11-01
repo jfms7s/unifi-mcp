@@ -52,9 +52,9 @@ describe('writeFixtures', () => {
     await writeFixtures(captured, [], outDir, { only: true });
     expect((await readdir(outDir)).sort()).toEqual(['official-firewall-zones.json', 'old.json']);
     expect(await readFile(join(outDir, 'old.json'), 'utf8')).toBe('{"old":true}\n');
-    expect(JSON.parse(await readFile(join(outDir, 'official-firewall-zones.json'), 'utf8'))).toEqual(
-      { data: [{ name: 'Internal' }] },
-    );
+    expect(
+      JSON.parse(await readFile(join(outDir, 'official-firewall-zones.json'), 'utf8')),
+    ).toEqual({ data: [{ name: 'Internal' }] });
     expect(await readdir(root)).toEqual(['live']);
   });
 
@@ -69,8 +69,15 @@ describe('writeFixtures', () => {
   it('context-only captures prime the scrub but are never written', async () => {
     const realSite = '11111111-2222-4333-8444-555555555555';
     const captured = [
-      { name: 'official-sites', data: { data: [{ id: realSite, internalReference: 'default', name: 'Default' }] }, contextOnly: true },
-      { name: 'official-firewall-zones', data: { requestPath: `/v1/sites/${realSite}/firewall/zones` } },
+      {
+        name: 'official-sites',
+        data: { data: [{ id: realSite, internalReference: 'default', name: 'Default' }] },
+        contextOnly: true,
+      },
+      {
+        name: 'official-firewall-zones',
+        data: { requestPath: `/v1/sites/${realSite}/firewall/zones` },
+      },
     ];
     await writeFixtures(captured, [], outDir, { only: true });
     expect((await readdir(outDir)).sort()).toEqual(['official-firewall-zones.json', 'old.json']);
@@ -84,19 +91,30 @@ describe('writeFixtures', () => {
       source: {
         trafficFilter: {
           type: 'IP_ADDRESS',
-          ipAddressFilter: { type: 'IP_ADDRESSES', items: [{ type: 'IP_ADDRESS', value: '45.6.7.8' }] },
+          ipAddressFilter: {
+            type: 'IP_ADDRESSES',
+            items: [{ type: 'IP_ADDRESS', value: '45.6.7.8' }],
+          },
         },
       },
       destination: {
         trafficFilter: {
           type: 'IP_ADDRESS',
-          ipAddressFilter: { type: 'IP_ADDRESSES', items: [{ type: 'IP_ADDRESS', value: '192.168.10.3' }] },
+          ipAddressFilter: {
+            type: 'IP_ADDRESSES',
+            items: [{ type: 'IP_ADDRESS', value: '192.168.10.3' }],
+          },
         },
       },
     };
-    await writeFixtures([{ name: 'official-firewall-policies', data: { data: [policy] } }], [], outDir, {
-      only: true,
-    });
+    await writeFixtures(
+      [{ name: 'official-firewall-policies', data: { data: [policy] } }],
+      [],
+      outDir,
+      {
+        only: true,
+      },
+    );
     const text = await readFile(join(outDir, 'official-firewall-policies.json'), 'utf8');
     expect(text).not.toContain('45.6.7.8');
     expect(text).toContain('192.168.10.3');
@@ -156,12 +174,37 @@ describe('--only devices', () => {
           state: 1,
           serial: '020000000005',
           config_network: { ip: '192.168.1.2' },
-          uplink: { uplink_mac: '02:00:00:00:00:01', uplink_device_name: 'Gw', uplink_remote_port: 3, type: 'wire', up: true, ip: '192.168.1.2' },
-          last_uplink: { uplink_mac: '02:00:00:00:00:01', uplink_device_name: 'Gw', uplink_remote_port: 3, type: 'wire' },
+          uplink: {
+            uplink_mac: '02:00:00:00:00:01',
+            uplink_device_name: 'Gw',
+            uplink_remote_port: 3,
+            type: 'wire',
+            up: true,
+            ip: '192.168.1.2',
+          },
+          last_uplink: {
+            uplink_mac: '02:00:00:00:00:01',
+            uplink_device_name: 'Gw',
+            uplink_remote_port: 3,
+            type: 'wire',
+          },
           port_table: [
-            { port_idx: 1, up: true, name: 'NAS', port_poe: true, poe_enable: true, poe_good: true, poe_power: '3.55', speed: 1000, is_uplink: false, mac_table: [] },
+            {
+              port_idx: 1,
+              up: true,
+              name: 'NAS',
+              port_poe: true,
+              poe_enable: true,
+              poe_good: true,
+              poe_power: '3.55',
+              speed: 1000,
+              is_uplink: false,
+              mac_table: [],
+            },
           ],
-          radio_table_stats: [{ name: 'wifi0', radio: 'ng', channel: 11, num_sta: 9, tx_power: 20 }],
+          radio_table_stats: [
+            { name: 'wifi0', radio: 'ng', channel: 11, num_sta: 9, tx_power: 20 },
+          ],
         },
       ],
     };
@@ -174,10 +217,24 @@ describe('--only devices', () => {
           type: 'usw',
           model: 'USM8P60',
           state: 1,
-          uplink: { uplink_mac: '02:00:00:00:00:01', uplink_remote_port: 3, type: 'wire', up: true },
+          uplink: {
+            uplink_mac: '02:00:00:00:00:01',
+            uplink_remote_port: 3,
+            type: 'wire',
+            up: true,
+          },
           last_uplink: { uplink_mac: '02:00:00:00:00:01', uplink_remote_port: 3, type: 'wire' },
           port_table: [
-            { port_idx: 1, up: true, port_poe: true, poe_enable: true, poe_good: true, poe_power: '3.55', speed: 1000, is_uplink: false },
+            {
+              port_idx: 1,
+              up: true,
+              port_poe: true,
+              poe_enable: true,
+              poe_good: true,
+              poe_power: '3.55',
+              speed: 1000,
+              is_uplink: false,
+            },
           ],
           radio_table_stats: [{ name: 'wifi0', radio: 'ng', channel: 11, num_sta: 9 }],
         },

@@ -34,13 +34,21 @@ export function createEventTools(deps: ReadDeps): ToolDefinition[] {
         'Search the console event log, newest first, messages rendered as the UI shows them. Filter by category (e.g. SECURITY), minSeverity, since/until (default last 24 h), device, client (name, IP or MAC, matched against the entry parameters) and text. Reads up to 20000 entries; if the range is longer it says how far back it got.',
       inputSchema: {
         site: siteInput,
-        category: z.string().min(1).optional().describe('Event category, e.g. SECURITY, AUDIT, VPN'),
+        category: z
+          .string()
+          .min(1)
+          .optional()
+          .describe('Event category, e.g. SECURITY, AUDIT, VPN'),
         minSeverity: z.enum(SEVERITIES).optional().describe('Lowest severity to return'),
         since: sinceInput,
         until: untilInput,
         device: z.string().min(1).optional().describe('Device name or MAC in the event'),
         client: z.string().min(1).optional().describe('Client name, IP or MAC in the event'),
-        text: z.string().min(1).optional().describe('Text to find in the rendered message or title'),
+        text: z
+          .string()
+          .min(1)
+          .optional()
+          .describe('Text to find in the rendered message or title'),
         limit: limitInput(100, 1000),
       },
       annotations: READ,
@@ -55,7 +63,8 @@ export function createEventTools(deps: ReadDeps): ToolDefinition[] {
           filter: (e) =>
             (category === undefined || e.category === category) &&
             severityRank(e.severity) >= min &&
-            (a.device === undefined || textMatches(e.parameters, /^(?!CONSOLE).*DEVICE/, a.device)) &&
+            (a.device === undefined ||
+              textMatches(e.parameters, /^(?!CONSOLE).*DEVICE/, a.device)) &&
             (a.client === undefined || textMatches(e.parameters, /CLIENT|_IP$/, a.client)) &&
             (a.text === undefined || hasText(renderMessage(e), a.text) || hasText(e.title, a.text)),
         });

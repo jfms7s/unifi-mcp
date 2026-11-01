@@ -18,10 +18,7 @@
       "securityConfiguration": {
         "type": "WPA2_PERSONAL"
       },
-      "broadcastingFrequenciesGHz": [
-        5,
-        2.4
-      ]
+      "broadcastingFrequenciesGHz": [5, 2.4]
     },
     {
       "type": "STANDARD",
@@ -38,10 +35,7 @@
       "securityConfiguration": {
         "type": "WPA2_PERSONAL"
       },
-      "broadcastingFrequenciesGHz": [
-        5,
-        2.4
-      ]
+      "broadcastingFrequenciesGHz": [5, 2.4]
     },
     {
       "type": "STANDARD",
@@ -57,10 +51,7 @@
       "securityConfiguration": {
         "type": "WPA2_PERSONAL"
       },
-      "broadcastingFrequenciesGHz": [
-        5,
-        2.4
-      ]
+      "broadcastingFrequenciesGHz": [5, 2.4]
     }
   ]
 }

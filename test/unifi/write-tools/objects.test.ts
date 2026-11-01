@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { UnifiApiError } from '../../../src/http/errors.js';
-import { diff, hidingSecrets, merge, redact, secretsIn } from '../../../src/unifi/write-tools/objects.js';
+import {
+  diff,
+  hidingSecrets,
+  merge,
+  redact,
+  secretsIn,
+} from '../../../src/unifi/write-tools/objects.js';
 
 describe('diff', () => {
   it('a secret that changes says "changed", one that goes away says "removed"', () => {
@@ -19,7 +25,14 @@ describe('diff', () => {
 
 describe('secret keys beyond passphrases', () => {
   it('redacts psk, key and *Key string values, and finds them as secrets', () => {
-    const value = { psk: 'p1', key: 'k1', wpaKey: 'k2', x_passphrase: 'k3', name: 'lan', keyCount: 2 };
+    const value = {
+      psk: 'p1',
+      key: 'k1',
+      wpaKey: 'k2',
+      x_passphrase: 'k3',
+      name: 'lan',
+      keyCount: 2,
+    };
     expect(redact(value)).toEqual({
       psk: '<redacted>',
       key: '<redacted>',
@@ -53,7 +66,9 @@ describe('secret keys: no false positives', () => {
     };
     expect(redact(value)).toEqual(value);
     expect(secretsIn(value)).toEqual([]);
-    expect(diff({ s: { sortKey: 'a', pskMode: true } }, { s: { sortKey: 'b', pskMode: false } })).toEqual({
+    expect(
+      diff({ s: { sortKey: 'a', pskMode: true } }, { s: { sortKey: 'b', pskMode: false } }),
+    ).toEqual({
       's.sortKey': { before: 'a', after: 'b' },
       's.pskMode': { before: true, after: false },
     });
@@ -117,7 +132,13 @@ describe('secret keys: no false positives', () => {
 
 describe('secret keys: wider coverage (r1)', () => {
   it('redacts privateKey, apiKey, *token and sharedKey strings, any case', () => {
-    const value = { privateKey: 'a1', APIKEY: 'a2', authToken: 'a3', token: 'a4', radiusSharedKey: 'a5' };
+    const value = {
+      privateKey: 'a1',
+      APIKEY: 'a2',
+      authToken: 'a3',
+      token: 'a4',
+      radiusSharedKey: 'a5',
+    };
     expect(Object.values(redact(value) as object).every((v) => v === '<redacted>')).toBe(true);
     expect(secretsIn(value).sort()).toEqual(['a1', 'a2', 'a3', 'a4', 'a5']);
   });
@@ -145,19 +166,34 @@ describe('secret keys: wider coverage (r1)', () => {
     const value = { secret: { value: 's1', nested: { k: 's2' } }, apiKey: { id: 7, v: 's3' } };
     expect(redact(value)).toEqual({ secret: '<redacted>', apiKey: '<redacted>' });
     expect(secretsIn(value).sort()).toEqual(['s1', 's2', 's3']);
-    expect(diff({ secret: { value: 'a' } }, { secret: { value: 'b' } })).toEqual({ secret: 'changed' });
+    expect(diff({ secret: { value: 'a' } }, { secret: { value: 'b' } })).toEqual({
+      secret: 'changed',
+    });
     expect(diff({ secret: { value: 'a' } }, {})).toEqual({ secret: 'removed' });
   });
 
   it('still leaves the old false positives alone', () => {
-    const value = { sortKey: 'name', pskMode: true, keyCount: 2, tokenCount: 3, pskEnabled: false, key: 7 };
+    const value = {
+      sortKey: 'name',
+      pskMode: true,
+      keyCount: 2,
+      tokenCount: 3,
+      pskEnabled: false,
+      key: 7,
+    };
     expect(redact(value)).toEqual(value);
   });
 });
 
 describe('secret keys: R22 superset of v0.2.0 (final review I1)', () => {
   it('redacts secretKey, authKey, wepKey, encryptionKey and adminPass strings', () => {
-    const value = { secretKey: 'r1', authKey: 'r2', wepKey: 'r3', encryptionKey: 'r4', adminPass: 'r5' };
+    const value = {
+      secretKey: 'r1',
+      authKey: 'r2',
+      wepKey: 'r3',
+      encryptionKey: 'r4',
+      adminPass: 'r5',
+    };
     expect(Object.values(redact(value) as object).every((v) => v === '<redacted>')).toBe(true);
     expect(secretsIn(value).sort()).toEqual(['r1', 'r2', 'r3', 'r4', 'r5']);
     expect(diff({ authKey: 'a' }, { authKey: 'b' })).toEqual({ authKey: 'changed' });
@@ -181,7 +217,8 @@ describe('secret keys: R22 superset of v0.2.0 (final review I1)', () => {
   // v0.2.0 (03a4f5a) redacted any key matching /pass|secret|psk/i whatever its
   // value, and any string whose key is `key` or ends in key after a letter or `_`.
   const v020 = (key: string, value: unknown): boolean =>
-    value != null && (/pass|secret|psk/i.test(key) || (/(^|[a-z_])key$/i.test(key) && typeof value === 'string'));
+    value != null &&
+    (/pass|secret|psk/i.test(key) || (/(^|[a-z_])key$/i.test(key) && typeof value === 'string'));
 
   const V020_REDACTED: Array<[string, unknown]> = [
     ['password', 'v1'],
