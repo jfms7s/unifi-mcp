@@ -149,15 +149,15 @@ describe('--only devices', () => {
       meta: { rc: 'ok' },
       data: [
         {
-          mac: 'a4:b1:c2:d3:e4:f5',
+          mac: '02:00:00:00:00:05',
           name: 'Switch',
           type: 'usw',
           model: 'USM8P60',
           state: 1,
-          serial: 'A4B1C2D3E4F5',
+          serial: '020000000005',
           config_network: { ip: '192.168.1.2' },
-          uplink: { uplink_mac: 'a4:b1:c2:d3:e4:01', uplink_device_name: 'Gw', uplink_remote_port: 3, type: 'wire', up: true, ip: '192.168.1.2' },
-          last_uplink: { uplink_mac: 'a4:b1:c2:d3:e4:01', uplink_device_name: 'Gw', uplink_remote_port: 3, type: 'wire' },
+          uplink: { uplink_mac: '02:00:00:00:00:01', uplink_device_name: 'Gw', uplink_remote_port: 3, type: 'wire', up: true, ip: '192.168.1.2' },
+          last_uplink: { uplink_mac: '02:00:00:00:00:01', uplink_device_name: 'Gw', uplink_remote_port: 3, type: 'wire' },
           port_table: [
             { port_idx: 1, up: true, name: 'NAS', port_poe: true, poe_enable: true, poe_good: true, poe_power: '3.55', speed: 1000, is_uplink: false, mac_table: [] },
           ],
@@ -169,13 +169,13 @@ describe('--only devices', () => {
       meta: { rc: 'ok' },
       data: [
         {
-          mac: 'a4:b1:c2:d3:e4:f5',
+          mac: '02:00:00:00:00:05',
           name: 'Switch',
           type: 'usw',
           model: 'USM8P60',
           state: 1,
-          uplink: { uplink_mac: 'a4:b1:c2:d3:e4:01', uplink_remote_port: 3, type: 'wire', up: true },
-          last_uplink: { uplink_mac: 'a4:b1:c2:d3:e4:01', uplink_remote_port: 3, type: 'wire' },
+          uplink: { uplink_mac: '02:00:00:00:00:01', uplink_remote_port: 3, type: 'wire', up: true },
+          last_uplink: { uplink_mac: '02:00:00:00:00:01', uplink_remote_port: 3, type: 'wire' },
           port_table: [
             { port_idx: 1, up: true, port_poe: true, poe_enable: true, poe_good: true, poe_power: '3.55', speed: 1000, is_uplink: false },
           ],
