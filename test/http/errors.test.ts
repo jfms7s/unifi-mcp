@@ -107,3 +107,18 @@ describe('hasStatus', () => {
     expect(hasStatus(new Error('x'), 500)).toBe(false);
   });
 });
+
+describe('UnifiApiError with a finished message', () => {
+  it('uses the message verbatim and keeps the fields', () => {
+    const error = new UnifiApiError({
+      kind: 'endpoint-changed',
+      method: 'GET',
+      path: '/s/default/stat/health',
+      detail: 'gone',
+      message: 'update unifi-mcp',
+    });
+    expect(error.message).toBe('update unifi-mcp');
+    expect(error.kind).toBe('endpoint-changed');
+    expect(error.path).toBe('/s/default/stat/health');
+  });
+});

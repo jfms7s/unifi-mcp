@@ -14,6 +14,8 @@ export interface UnifiApiErrorOptions {
   detail: string;
   /** Configured base URL, named only when the connection never landed. */
   baseUrl?: string;
+  /** A finished message, used verbatim instead of the kind's template. */
+  message?: string;
 }
 
 /** Drops any userinfo before a base URL goes into a message; an unparseable URL is dropped entirely. */
@@ -36,7 +38,9 @@ function formatMessage({
   status,
   detail,
   baseUrl,
+  message,
 }: UnifiApiErrorOptions): string {
+  if (message !== undefined) return message;
   switch (kind) {
     case 'unreachable': {
       // The URL only helps when the request never arrived.

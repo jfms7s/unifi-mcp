@@ -1,0 +1,381 @@
+import { z } from 'zod';
+
+/*
+ * Only the fields a tool reads. Unknown fields are dropped (zod's default), and a
+ * missing or mistyped used field fails the parse, which the callers report as
+ * "endpoint changed". Fields the console omits for some rows are optional.
+ */
+
+// ---- legacy envelope -------------------------------------------------------
+
+export function legacyEnvelope<T extends z.ZodType>(row: T) {
+  return z.object({
+    meta: z.object({ rc: z.literal('ok') }),
+    data: z.array(row),
+  });
+}
+
+export const sysInfoSchema = z.object({
+  version: z.string(),
+  name: z.string().optional(),
+  hostname: z.string().optional(),
+  build: z.string().optional(),
+  timezone: z.string().optional(),
+  update_available: z.boolean().optional(),
+  ip_addrs: z.array(z.string()).optional(),
+});
+export type SysInfo = z.infer<typeof sysInfoSchema>;
+
+export const healthSchema = z.object({
+  subsystem: z.string(),
+  status: z.string(),
+  num_user: z.number().optional(),
+  num_guest: z.number().optional(),
+  num_iot: z.number().optional(),
+  num_ap: z.number().optional(),
+  num_sw: z.number().optional(),
+  num_gw: z.number().optional(),
+  num_adopted: z.number().optional(),
+  num_disconnected: z.number().optional(),
+  num_pending: z.number().optional(),
+  'tx_bytes-r': z.number().optional(),
+  'rx_bytes-r': z.number().optional(),
+  wan_ip: z.string().optional(),
+  isp_name: z.string().optional(),
+  latency: z.number().optional(),
+  uptime: z.number().optional(),
+  drops: z.number().optional(),
+  xput_up: z.number().optional(),
+  xput_down: z.number().optional(),
+  gw_version: z.string().optional(),
+});
+export type Health = z.infer<typeof healthSchema>;
+
+export const stationSchema = z.object({
+  mac: z.string(),
+  is_wired: z.boolean(),
+  _id: z.string().optional(),
+  ip: z.string().optional(),
+  last_ip: z.string().optional(),
+  hostname: z.string().optional(),
+  name: z.string().optional(),
+  oui: z.string().optional(),
+  network: z.string().optional(),
+  network_id: z.string().optional(),
+  is_guest: z.boolean().optional(),
+  blocked: z.boolean().optional(),
+  first_seen: z.number().optional(),
+  last_seen: z.number().optional(),
+  uptime: z.number().optional(),
+  tx_bytes: z.number().optional(),
+  rx_bytes: z.number().optional(),
+  // wireless only
+  essid: z.string().optional(),
+  ap_mac: z.string().optional(),
+  signal: z.number().optional(),
+  rssi: z.number().optional(),
+  tx_rate: z.number().optional(),
+  rx_rate: z.number().optional(),
+  satisfaction: z.number().optional(),
+  radio: z.string().optional(),
+  channel: z.number().optional(),
+  // wired only
+  sw_mac: z.string().optional(),
+  sw_port: z.number().optional(),
+  last_uplink_name: z.string().optional(),
+});
+export type Station = z.infer<typeof stationSchema>;
+
+export const deviceBasicSchema = z.object({
+  mac: z.string(),
+  type: z.string(),
+  model: z.string(),
+  state: z.number(),
+  adopted: z.boolean(),
+  disabled: z.boolean(),
+  name: z.string().optional(),
+});
+export type DeviceBasic = z.infer<typeof deviceBasicSchema>;
+
+/** rest/user: every client the console has ever seen. */
+export const userSchema = z.object({
+  _id: z.string(),
+  mac: z.string(),
+  name: z.string().optional(),
+  hostname: z.string().optional(),
+  last_ip: z.string().optional(),
+  fixed_ip: z.string().optional(),
+  blocked: z.boolean().optional(),
+  first_seen: z.number().optional(),
+  last_seen: z.number().optional(),
+  last_connection_network_id: z.string().optional(),
+});
+export type User = z.infer<typeof userSchema>;
+
+export const portForwardSchema = z.object({
+  _id: z.string(),
+  name: z.string(),
+  enabled: z.boolean(),
+  fwd: z.string(),
+  dst_port: z.string(),
+  fwd_port: z.string().optional(),
+  proto: z.string(),
+  src: z.string().optional(),
+});
+
+export const wlanConfSchema = z.object({
+  _id: z.string(),
+  name: z.string(),
+  enabled: z.boolean(),
+  security: z.string(),
+  wpa_mode: z.string().optional(),
+  wpa3_support: z.boolean().optional(),
+  wpa3_transition: z.boolean().optional(),
+  pmf_mode: z.string().optional(),
+  hide_ssid: z.boolean().optional(),
+  is_guest: z.boolean().optional(),
+  l2_isolation: z.boolean().optional(),
+  networkconf_id: z.string().optional(),
+  wlan_bands: z.array(z.string()).optional(),
+});
+export type WlanConf = z.infer<typeof wlanConfSchema>;
+
+export const networkConfSchema = z.object({
+  _id: z.string(),
+  name: z.string(),
+  purpose: z.string(),
+  enabled: z.boolean().optional(),
+  vlan_enabled: z.boolean().optional(),
+  vlan: z.number().optional(),
+  ip_subnet: z.string().optional(),
+  networkgroup: z.string().optional(),
+  dhcpd_enabled: z.boolean().optional(),
+  is_nat: z.boolean().optional(),
+  network_isolation_enabled: z.boolean().optional(),
+  internet_access_enabled: z.boolean().optional(),
+  wan_ip: z.string().optional(),
+});
+export type NetworkConf = z.infer<typeof networkConfSchema>;
+
+/** rest/setting holds one row per section, told apart by `key`; each reads only its own fields. */
+export const settingSchema = z.object({
+  key: z.string(),
+  ips_mode: z.string().optional(),
+  enabled: z.boolean().optional(),
+  upnp_enabled: z.boolean().optional(),
+  name: z.string().optional(),
+});
+export type Setting = z.infer<typeof settingSchema>;
+
+const dpiCountSchema = z.object({
+  app: z.number().optional(),
+  cat: z.number(),
+  rx_bytes: z.number(),
+  tx_bytes: z.number(),
+});
+export const dpiSchema = z.object({
+  mac: z.string().optional(),
+  by_app: z.array(dpiCountSchema).optional(),
+  by_cat: z.array(dpiCountSchema).optional(),
+});
+export type DpiRow = z.infer<typeof dpiSchema>;
+
+export const rogueApSchema = z.object({
+  bssid: z.string(),
+  channel: z.number(),
+  essid: z.string().optional(),
+  ap_mac: z.string().optional(),
+  signal: z.number().optional(),
+  rssi: z.number().optional(),
+  security: z.string().optional(),
+  band: z.string().optional(),
+  oui: z.string().optional(),
+  is_rogue: z.boolean().optional(),
+  is_ubnt: z.boolean().optional(),
+  last_seen: z.number().optional(),
+});
+export type RogueAp = z.infer<typeof rogueApSchema>;
+
+/** The attributes of a report row are whatever was asked for, so only `time` is fixed. */
+export const reportRowSchema = z
+  .object({ time: z.number() })
+  .catchall(z.union([z.number(), z.string()]));
+export type ReportRow = z.infer<typeof reportRowSchema>;
+
+// ---- v2 system log ---------------------------------------------------------
+
+export const SEVERITIES = ['LOW', 'MEDIUM', 'HIGH', 'VERY_HIGH'] as const;
+
+const parameterSchema = z.object({ id: z.string().optional(), name: z.string().optional() });
+
+export const syslogEntrySchema = z.object({
+  id: z.string(),
+  timestamp: z.number(),
+  category: z.string(),
+  severity: z.enum(SEVERITIES),
+  key: z.string(),
+  title_raw: z.string(),
+  message_raw: z.string(),
+  parameters: z.record(z.string(), parameterSchema),
+});
+
+export const syslogPageSchema = z.object({
+  total_element_count: z.number(),
+  data: z.array(syslogEntrySchema),
+});
+
+// ---- official --------------------------------------------------------------
+
+export function officialPage<T extends z.ZodType>(item: T) {
+  return z.object({
+    offset: z.number(),
+    limit: z.number(),
+    count: z.number(),
+    totalCount: z.number(),
+    data: z.array(item),
+  });
+}
+
+export const siteSchema = z.object({
+  id: z.string(),
+  internalReference: z.string(),
+  name: z.string(),
+});
+
+export const officialDeviceSchema = z.object({
+  id: z.string(),
+  macAddress: z.string(),
+  name: z.string(),
+  model: z.string(),
+  state: z.string(),
+  ipAddress: z.string().optional(),
+  firmwareVersion: z.string().optional(),
+  firmwareUpdatable: z.boolean().optional(),
+  features: z.array(z.string()).optional(),
+  interfaces: z.array(z.string()).optional(),
+});
+export type OfficialDevice = z.infer<typeof officialDeviceSchema>;
+
+export const deviceStatsSchema = z.object({
+  uptimeSec: z.number().optional(),
+  lastHeartbeatAt: z.string().optional(),
+  cpuUtilizationPct: z.number().optional(),
+  memoryUtilizationPct: z.number().optional(),
+  uplink: z
+    .object({ txRateBps: z.number().optional(), rxRateBps: z.number().optional() })
+    .optional(),
+});
+export type DeviceStats = z.infer<typeof deviceStatsSchema>;
+
+export const officialClientSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  name: z.string(),
+  ipAddress: z.string().optional(),
+  macAddress: z.string().optional(),
+  connectedAt: z.string().optional(),
+  uplinkDeviceId: z.string().optional(),
+  access: z.object({ type: z.string() }).optional(),
+});
+export type OfficialClient = z.infer<typeof officialClientSchema>;
+
+export const officialNetworkSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  enabled: z.boolean(),
+  vlanId: z.number(),
+  management: z.string(),
+  default: z.boolean().optional(),
+});
+export type OfficialNetwork = z.infer<typeof officialNetworkSchema>;
+
+export const wifiBroadcastSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  enabled: z.boolean(),
+  type: z.string(),
+  securityConfiguration: z.object({ type: z.string() }),
+  network: z.object({ type: z.string(), networkId: z.string().optional() }).optional(),
+  broadcastingFrequenciesGHz: z.array(z.number()).optional(),
+});
+export type WifiBroadcast = z.infer<typeof wifiBroadcastSchema>;
+
+export const wanSchema = z.object({ id: z.string(), name: z.string() });
+export type Wan = z.infer<typeof wanSchema>;
+
+/** VPN servers, tunnels and the firewall objects were empty on the console this was written against. */
+export const namedObjectSchema = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  enabled: z.boolean().optional(),
+  type: z.string().optional(),
+});
+export type NamedObject = z.infer<typeof namedObjectSchema>;
+
+export const firewallPolicySchema = namedObjectSchema.extend({
+  action: z.object({ type: z.string() }).optional(),
+  source: z.unknown().optional(),
+  destination: z.unknown().optional(),
+});
+export type FirewallPolicy = z.infer<typeof firewallPolicySchema>;
+
+export const firewallZoneSchema = namedObjectSchema.extend({
+  networkIds: z.array(z.string()).optional(),
+});
+export type FirewallZone = z.infer<typeof firewallZoneSchema>;
+
+export const dpiNameSchema = z.object({ id: z.number(), name: z.string() });
+export type DpiName = z.infer<typeof dpiNameSchema>;
+
+export const policyOrderingSchema = z.object({
+  orderedFirewallPolicyIds: z.object({
+    beforeSystemDefined: z.array(z.string()),
+    afterSystemDefined: z.array(z.string()),
+  }),
+});
+export type PolicyOrdering = z.infer<typeof policyOrderingSchema>;
+
+// ---- Site Manager ----------------------------------------------------------
+
+export const hostSchema = z.object({
+  id: z.string(),
+  type: z.string(),
+  ipAddress: z.string().optional(),
+  isBlocked: z.boolean().optional(),
+  lastConnectionStateChange: z.string().optional(),
+  reportedState: z
+    .object({
+      name: z.string().optional(),
+      state: z.string().optional(),
+      version: z.string().optional(),
+      ip: z.string().optional(),
+    })
+    .optional(),
+});
+export type Host = z.infer<typeof hostSchema>;
+
+const ispPeriodSchema = z.object({
+  metricTime: z.string(),
+  data: z.object({
+    wan: z.object({
+      avgLatency: z.number().optional(),
+      maxLatency: z.number().optional(),
+      packetLoss: z.number().optional(),
+      uptime: z.number().optional(),
+      downtime: z.number().optional(),
+      download_kbps: z.number().optional(),
+      upload_kbps: z.number().optional(),
+      ispName: z.string().optional(),
+    }),
+  }),
+});
+export const ispMetricsSchema = z.object({
+  metricType: z.string(),
+  hostId: z.string(),
+  siteId: z.string(),
+  periods: z.array(ispPeriodSchema),
+});
+export type IspMetrics = z.infer<typeof ispMetricsSchema>;
+
+export const siteManagerEnvelope = <T extends z.ZodType>(item: T) =>
+  z.object({ data: z.array(item), nextToken: z.string().optional() });
