@@ -33,7 +33,7 @@
     "@types/node": "^20.19.43",
     "@vitest/coverage-v8": "^4.1.12",
     "eslint": "^9.39.5",
-    "msw": "^2.15.0",
+    "msw": "^3.0.3",
     "prettier": "^3.9.7",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
