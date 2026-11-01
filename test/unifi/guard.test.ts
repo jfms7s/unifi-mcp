@@ -84,6 +84,55 @@ describe('loadProtectedScope', () => {
   });
 });
 
+describe('loadProtectedScope on a console with two sites', () => {
+  const BRANCH = { id: '00000000-0000-4000-8000-0000000000b2', ref: 'branch', name: 'Branch' };
+
+  /** Site B (branch) has the same devices and clients but no pi-cluster network. */
+  async function twoSites(extraOnB: Array<{ id: string; name: string }> = []) {
+    const deps = readDeps();
+    const home = await deps.sites.resolve();
+    const listNetworks = deps.official.listNetworks.bind(deps.official);
+    const networkConf = deps.legacy.networkConf.bind(deps.legacy);
+    deps.sites.list = async () => [home, BRANCH];
+    deps.official.listNetworks = async (siteId) => {
+      const nets = await listNetworks(siteId);
+      return siteId === BRANCH.id
+        ? [...nets.filter((n) => n.name !== 'pi-cluster'), ...(extraOnB as typeof nets)]
+        : nets;
+    };
+    deps.legacy.networkConf = async (ref) => {
+      const nets = await networkConf(ref);
+      return ref === BRANCH.ref ? nets.filter((n) => n.name !== 'pi-cluster') : nets;
+    };
+    return { deps, home };
+  }
+
+  it('a site without the protected network protects only its gateway', async () => {
+    const { deps } = await twoSites();
+    const branch = await loadProtectedScope(['pi-cluster'], deps, BRANCH);
+    expect(branch.networkIds.size).toBe(0);
+    expect(branch.subnets).toEqual([]);
+    expect(branch.gatewayDeviceIds.has(GATEWAY)).toBe(true);
+    expect(touchesProtected({ kind: 'ip', ip: '192.168.0.17' }, branch, clients)).toBeUndefined();
+  });
+
+  it('the site that has it still protects it', async () => {
+    const { deps, home } = await twoSites();
+    const scopeA = await loadProtectedScope(['pi-cluster'], deps, home);
+    expect(scopeA.subnets).toEqual([{ cidr: '192.168.0.0/24', network: 'pi-cluster' }]);
+  });
+
+  it('a name on no site at all is still a typo, and the error lists every site\'s networks', async () => {
+    const { deps } = await twoSites([{ id: 'cams-id', name: 'Cameras' }]);
+    await expect(loadProtectedScope(['k3s'], deps, BRANCH)).rejects.toThrow(
+      /"k3s".*pi-cluster/,
+    );
+    // A name on the branch only is fine on the home site.
+    const { deps: d2, home } = await twoSites([{ id: 'cams-id', name: 'Cameras' }]);
+    await expect(loadProtectedScope(['Cameras'], d2, home)).resolves.toBeDefined();
+  });
+});
+
 describe('touchesProtected: the Review Focus 2 matrix', () => {
   it.each<[string, Target, RegExp | undefined]>([
     ['pi-cluster by official id', { kind: 'network', id: PI_CLUSTER }, /pi-cluster/],

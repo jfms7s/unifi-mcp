@@ -1,7 +1,7 @@
 import type { DeviceLink, KnownClient } from './legacy.js';
 import type { ReadDeps } from './read-common.js';
 import { isGatewayModel, normaliseMac as mac } from './shape.js';
-import type { Site } from './sites.js';
+import type { Site, SiteResolver } from './sites.js';
 
 /**
  * What unifi-mcp must not cut itself off from: the protected networks (by
@@ -104,14 +104,46 @@ const sameMac = (a: string | undefined, b: string | undefined) =>
 
 // ---- scope -----------------------------------------------------------------
 
+/** A site's networks, official and legacy: names for the error, names and ids to match. */
+async function networksOn(
+  deps: Pick<ReadDeps, 'official' | 'legacy'>,
+  site: Site,
+): Promise<Array<{ id: string; name: string }>> {
+  const [officialNets, legacyNets] = await Promise.all([
+    deps.official.listNetworks(site.id),
+    deps.legacy.networkConf(site.ref),
+  ]);
+  return [...officialNets, ...legacyNets.map((n) => ({ id: n._id, name: n.name }))];
+}
+
+/**
+ * The protected names not on `site` that are on none of the console's other
+ * sites either: typos. On a one-site console that is every missing name.
+ */
+async function unknownElsewhere(
+  missing: string[],
+  deps: Pick<ReadDeps, 'official' | 'legacy'> & { sites?: Pick<SiteResolver, 'list'> },
+  site: Site,
+): Promise<{ unknown: string[]; existing: string[] }> {
+  const others = deps.sites ? (await deps.sites.list()).filter((s) => s.id !== site.id) : [];
+  const nets = (await Promise.all(others.map((s) => networksOn(deps, s)))).flat();
+  const known = new Set(nets.flatMap((n) => [n.id, n.name.toLowerCase()]));
+  return {
+    unknown: missing.filter((m) => !known.has(m) && !known.has(m.toLowerCase())),
+    existing: nets.map((n) => n.name),
+  };
+}
+
 /**
  * Resolves the configured protected network names or ids (names ignore case)
- * against the console. An unknown name fails here, at first use, and lists
- * the networks that exist, so a typo never leaves the cluster unprotected.
+ * against one site. A name on another site of the console only is skipped
+ * there, so a site with none of the protected networks protects only its
+ * gateway. A name on no site at all fails here, at first use, and lists the
+ * networks that exist, so a typo never leaves the cluster unprotected.
  */
 export async function loadProtectedScope(
   names: string[],
-  deps: Pick<ReadDeps, 'official' | 'legacy'>,
+  deps: Pick<ReadDeps, 'official' | 'legacy'> & { sites?: Pick<SiteResolver, 'list'> },
   site: Site,
 ): Promise<ProtectedScope> {
   const [officialNets, legacyNets, devices, basics, stations] = await Promise.all([
@@ -132,7 +164,7 @@ export async function loadProtectedScope(
     networkNames: new Map(),
   };
 
-  for (const wanted of names) {
+  const found = names.map((wanted) => {
     const o = officialNets.find((n) => n.id === wanted || lower(n.name) === lower(wanted));
     const l = legacyNets.find(
       (n) =>
@@ -140,14 +172,28 @@ export async function loadProtectedScope(
         lower(n.name) === lower(wanted) ||
         (o && lower(n.name) === lower(o.name)),
     );
-    if (!o && !l) {
-      const existing = [
-        ...new Set([...officialNets.map((n) => n.name), ...legacyNets.map((n) => n.name)]),
+    return { wanted, o, l };
+  });
+  const missing = found.filter((f) => !f.o && !f.l).map((f) => f.wanted);
+  if (missing.length > 0) {
+    const { unknown, existing } = await unknownElsewhere(missing, deps, site);
+    if (unknown.length > 0) {
+      const all = [
+        ...new Set([
+          ...officialNets.map((n) => n.name),
+          ...legacyNets.map((n) => n.name),
+          ...existing,
+        ]),
       ];
       throw new Error(
-        `Protected network "${wanted}" (UNIFI_MCP_PROTECTED_NETWORKS) is not on this console; its networks are: ${existing.join(', ')}`,
+        `Protected network "${unknown[0]}" (UNIFI_MCP_PROTECTED_NETWORKS) is not on this console; its networks are: ${all.join(', ')}`,
       );
     }
+  }
+
+  for (const { o, l } of found) {
+    // On another site only: nothing of it to protect here.
+    if (!o && !l) continue;
     const name = o?.name ?? l!.name;
     for (const id of [o?.id, l?._id]) {
       if (id === undefined) continue;

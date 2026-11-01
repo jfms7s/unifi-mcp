@@ -94,7 +94,7 @@ export function createNetworkWriteTools(deps: WriteDeps): ToolDefinition[] {
               };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -134,7 +134,7 @@ export function createNetworkWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'updated', network: n.name, fields };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -165,7 +165,7 @@ export function createNetworkWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'deleted', network: n.name };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },

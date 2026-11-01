@@ -32,6 +32,14 @@ describe('SiteResolver', () => {
     }
   });
 
+  it('lists every site, read once', async () => {
+    const calls = serveSites();
+    const sites = createSiteResolver(testClient());
+    expect(await sites.list()).toEqual([DEFAULT]);
+    await sites.resolve();
+    expect(calls()).toBe(1);
+  });
+
   it('lists the sites when the name is unknown', async () => {
     serveSites();
     const error = await createSiteResolver(testClient())

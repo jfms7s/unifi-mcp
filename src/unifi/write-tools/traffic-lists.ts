@@ -109,7 +109,7 @@ export function createTrafficListWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'created', trafficList: { id, name, items: items.length } };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -153,7 +153,7 @@ export function createTrafficListWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'updated', trafficList: list.name, fields };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -186,7 +186,7 @@ export function createTrafficListWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'deleted', trafficList: list.name };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },

@@ -87,7 +87,7 @@ async function change(
         }),
       run: () => opts.run(site, record),
     },
-    await deps.scope(),
+    await deps.scope(site),
     records.map(asKnown),
   );
 }

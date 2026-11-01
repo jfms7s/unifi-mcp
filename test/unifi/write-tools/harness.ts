@@ -37,6 +37,32 @@ export interface ConsoleOptions {
   officialReply?: unknown;
   /** Firewall zone and policy reads answer the ZBF-not-configured 400, as before ZBF was on. */
   zbfOff?: boolean;
+  /**
+   * More sites besides the captured one. Each answers from the same fixtures,
+   * except its own `fixtures` overrides, matched by its id (official paths)
+   * or ref (legacy paths).
+   */
+  extraSites?: Array<{ id: string; ref: string; name: string; fixtures?: Record<string, unknown> }>;
+}
+
+/** The extra site a path is for, by official site id or legacy ref. */
+function siteOf(path: string, opts: ConsoleOptions) {
+  return opts.extraSites?.find(
+    (s) => path.includes(`/sites/${s.id}/`) || path.includes(`/api/s/${s.ref}/`),
+  );
+}
+
+/** The captured sites list with the extra sites appended. */
+function sitesWith(extra: NonNullable<ConsoleOptions['extraSites']>): unknown {
+  const page = structuredClone(liveFixture('official-sites')) as {
+    data: unknown[];
+    count: number;
+    totalCount: number;
+  };
+  page.data.push(...extra.map((s) => ({ id: s.id, internalReference: s.ref, name: s.name })));
+  page.count = page.data.length;
+  page.totalCount = page.data.length;
+  return page;
 }
 
 /** `official-networks-<id>`, `official-firewall-policies-<id>`...: one object of a list. */
@@ -66,6 +92,11 @@ export function fakeWriteConsole(server: SetupServer, opts: ConsoleOptions = {})
         return HttpResponse.json(zbf.body as never, { status: zbf.status });
       }
       const name = fixtureName(api, path.slice(prefix.length));
+      const site = siteOf(path, opts);
+      if (site?.fixtures?.[name] !== undefined) return HttpResponse.json(site.fixtures[name] as never);
+      if (name === 'official-sites' && opts.extraSites) {
+        return HttpResponse.json(sitesWith(opts.extraSites) as never);
+      }
       if (name === 'official-firewall-policies-ordering' && opts.fixtures?.[name] === undefined) {
         const query = Object.fromEntries(new URL(request.url).searchParams);
         return HttpResponse.json(orderingFor(query) as never);
@@ -123,7 +154,7 @@ export function fakeWriteConsole(server: SetupServer, opts: ConsoleOptions = {})
   };
   const deps: WriteDeps = {
     ...base,
-    scope: async () => loadProtectedScope(['pi-cluster'], base, await base.sites.resolve()),
+    scope: (site) => loadProtectedScope(['pi-cluster'], base, site),
     consoleHost: new URL(BASE).hostname,
   };
   const tools = createWriteTools(deps);

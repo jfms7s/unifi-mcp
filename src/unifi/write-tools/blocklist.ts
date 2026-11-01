@@ -216,7 +216,7 @@ export function createBlocklistWriteTools(deps: WriteDeps): ToolDefinition[] {
             note: `${ip} is already in the ${BLOCKLIST}${off ? `; ${off}` : ''}`,
           };
         }
-        const scope = await deps.scope();
+        const scope = await deps.scope(site);
         const why = confirmReason(ip, 'blocks', scope);
 
         if (complete) {
@@ -332,7 +332,7 @@ export function createBlocklistWriteTools(deps: WriteDeps): ToolDefinition[] {
           return { unchanged: true, ip, note: `${ip} is not in the ${BLOCKLIST}` };
         }
         const remaining = list.items.filter((i) => !sameMember(i, ip));
-        const scope = await deps.scope();
+        const scope = await deps.scope(site);
         const why = confirmReason(ip, 'unblocks', scope);
         if (remaining.length > 0) {
           return guarded(

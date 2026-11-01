@@ -130,7 +130,7 @@ export function createAclWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'created', aclRule: { id, name: a.name } };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -168,7 +168,7 @@ export function createAclWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'updated', aclRule: rule.name, fields };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -195,7 +195,7 @@ export function createAclWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'deleted', aclRule: rule.name };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },

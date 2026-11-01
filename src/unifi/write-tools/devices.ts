@@ -37,7 +37,7 @@ async function change(
   if ('ambiguous' in match) return ambiguous(args.device, match.ambiguous, deviceRow, match.partial);
   const d = match.found;
   const [scope, clients, links] = await Promise.all([
-    deps.scope(),
+    deps.scope(site),
     opts.target ? deps.legacy.knownClients(site.ref) : [],
     opts.target ? deps.legacy.deviceLinks(site.ref) : [],
   ]);
@@ -149,7 +149,7 @@ export function createDeviceWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'adoption requested', mac: macAddress };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },

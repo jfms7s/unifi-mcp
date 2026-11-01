@@ -158,7 +158,7 @@ export function createWifiWriteTools(deps: WriteDeps): ToolDefinition[] {
     const [current, networks, scope] = await Promise.all([
       deps.official.getWifi(site.id, w.id),
       deps.official.listNetworks(site.id),
-      deps.scope(),
+      deps.scope(site),
     ]);
     refuseTypeChange(current, patch);
     const { body, changes } = wholeUpdate(current, patch, WIFI_READ_ONLY);
@@ -223,7 +223,7 @@ export function createWifiWriteTools(deps: WriteDeps): ToolDefinition[] {
                 return { changed: 'created', wifi: compact({ id: created?.id, name: body.name }) };
               }),
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -268,7 +268,7 @@ export function createWifiWriteTools(deps: WriteDeps): ToolDefinition[] {
         const [current, networks, scope] = await Promise.all([
           deps.official.getWifi(site.id, w.id),
           deps.official.listNetworks(site.id),
-          deps.scope(),
+          deps.scope(site),
         ]);
         const defaultId = networks.find((n) => n.default)?.id;
         return guarded(

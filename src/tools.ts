@@ -24,9 +24,8 @@ export function buildTools(config: UnifiMcpConfig): ToolDefinition[] {
 
   const tools = createReadTools(deps);
   if (config.readOnly) return tools;
-  const scope = lazyScope(async () =>
-    loadProtectedScope(config.protectedNetworks, deps, await deps.sites.resolve()),
-  );
+  // Per site: a change on one site is checked against that site's networks and devices.
+  const scope = lazyScope((site) => loadProtectedScope(config.protectedNetworks, deps, site));
   return [
     ...tools,
     ...createWriteTools({ ...deps, scope, consoleHost: consoleHost(config.console.baseUrl) }),

@@ -12,6 +12,8 @@ export interface Site {
 export interface SiteResolver {
   /** By name, id or ref (name and ref ignore case); no argument means the only site. */
   resolve(site?: string): Promise<Site>;
+  /** Every site on the console. */
+  list(): Promise<Site[]>;
 }
 
 const SITE_PAGE_SIZE = 200;
@@ -55,6 +57,7 @@ export function createSiteResolver(client: UnifiHttpClient): SiteResolver {
   const list = (all: Site[]) => all.map((s) => `${s.name} (${s.ref})`).join(', ');
 
   return {
+    list: () => sites(),
     async resolve(wanted) {
       const all = await sites();
       if (wanted === undefined || wanted === '') {

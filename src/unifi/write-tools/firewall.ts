@@ -6,6 +6,7 @@ import { confirmInput, siteInput } from '../inputs.js';
 import { lookup, sameText } from '../lookup.js';
 import type { FirewallPolicy } from '../official.js';
 import { policyTarget } from '../policy-scope.js';
+import type { Site } from '../sites.js';
 import { compact } from '../shape.js';
 import { partial, write, type WriteDeps } from './common.js';
 import {
@@ -152,7 +153,7 @@ export function createFirewallWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'created', policy: { id, name: a.name, rule } };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -227,7 +228,7 @@ export function createFirewallWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'updated', policy: p.name, fields };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -263,7 +264,7 @@ export function createFirewallWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: `${verb}d`, policy: p.name, rule };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -291,7 +292,7 @@ export function createFirewallWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'deleted', policy: p.name, rule };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -403,7 +404,7 @@ export function createFirewallWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'reordered', zones: pairLabel, order: named(next) };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -420,7 +421,7 @@ const networksInput = z
 
 function createZoneTools(
   deps: WriteDeps,
-  resolve: (wanted: string | undefined) => Promise<{ site: { id: string }; state: FirewallState }>,
+  resolve: (wanted: string | undefined) => Promise<{ site: Site; state: FirewallState }>,
 ): ToolDefinition[] {
   const PROTECTED_NOTE =
     'Moving a protected network (UNIFI_MCP_PROTECTED_NETWORKS, pi-cluster by default) into or out of a zone changes which policies reach it, so it needs confirm: true.';
@@ -450,7 +451,7 @@ function createZoneTools(
         return guarded(
           {
             level: 'easy',
-            target: protectedNetworkTarget(ids, await deps.scope()),
+            target: protectedNetworkTarget(ids, await deps.scope(site)),
             confirm,
             preview: async () => ({ would: 'create firewall zone', zone }),
             run: async () => {
@@ -461,7 +462,7 @@ function createZoneTools(
               return { changed: 'created', zone: { id, ...zone } };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -499,7 +500,7 @@ function createZoneTools(
         return guarded(
           {
             level: 'confirm',
-            target: protectedNetworkTarget(moved, await deps.scope()),
+            target: protectedNetworkTarget(moved, await deps.scope(site)),
             confirm,
             preview: async () => ({ would: 'update firewall zone', zone: zone.name, changes }),
             run: async () => {
@@ -507,7 +508,7 @@ function createZoneTools(
               return { changed: 'updated', zone: after.name, fields: Object.keys(changes) };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -524,7 +525,7 @@ function createZoneTools(
         return guarded(
           {
             level: 'confirm',
-            target: protectedNetworkTarget(zone.networkIds, await deps.scope()),
+            target: protectedNetworkTarget(zone.networkIds, await deps.scope(site)),
             confirm,
             preview: async () => ({
               would: 'delete firewall zone',
@@ -536,7 +537,7 @@ function createZoneTools(
               return { changed: 'deleted', zone: zone.name };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },

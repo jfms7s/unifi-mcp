@@ -90,7 +90,7 @@ export function createVoucherWriteTools(deps: WriteDeps): ToolDefinition[] {
               vouchers: (await deps.official.createVouchers(site.id, body)).map(createdRow),
             }),
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -111,7 +111,7 @@ export function createVoucherWriteTools(deps: WriteDeps): ToolDefinition[] {
               vouchersDeleted: await deps.official.deleteVoucher(site.id, voucherId),
             }),
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -153,7 +153,7 @@ export function createVoucherWriteTools(deps: WriteDeps): ToolDefinition[] {
               vouchersDeleted: await deps.official.deleteVouchers(site.id, filter),
             }),
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },

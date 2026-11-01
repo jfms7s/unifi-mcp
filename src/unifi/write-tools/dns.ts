@@ -110,7 +110,7 @@ export function createDnsWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'created', dnsPolicy: { id, record: dnsRecord(body) } };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -147,7 +147,7 @@ export function createDnsWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'updated', dnsPolicy: dnsRecord(body), fields };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },
@@ -174,7 +174,7 @@ export function createDnsWriteTools(deps: WriteDeps): ToolDefinition[] {
               return { changed: 'deleted', dnsPolicy: record };
             },
           },
-          await deps.scope(),
+          await deps.scope(site),
           [],
         );
       },

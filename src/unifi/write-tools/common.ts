@@ -2,10 +2,14 @@ import type { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import type { z } from 'zod';
 import type { ProtectedScope } from '../guard.js';
 import type { ReadDeps } from '../read-common.js';
+import type { Site } from '../sites.js';
 
 export interface WriteDeps extends ReadDeps {
-  /** The protected scope; lazy and cached for a few minutes (see `lazyScope`). */
-  scope: () => Promise<ProtectedScope>;
+  /**
+   * The protected scope of a site; lazy and cached per site for a few minutes
+   * (see `lazyScope`). Every write passes the site it resolved.
+   */
+  scope: (site: Site) => Promise<ProtectedScope>;
   /** The console's hostname from UNIFI_URL (see `consoleHost`); absent when it is an IP. */
   consoleHost?: string;
 }
@@ -34,26 +38,29 @@ export function write(opts: { destructive: boolean; idempotent: boolean }): Tool
 export const SCOPE_TTL_MS = 5 * 60_000;
 
 /**
- * Loads the scope on first use and keeps it for `SCOPE_TTL_MS`, then loads it
- * again so a device adopted later or a subnet change is seen without a
- * restart. A failed load (an unknown protected network name, the console
- * unreachable) is not kept, so the next change tries again rather than
- * running unguarded.
+ * Loads a site's scope on first use and keeps it for `SCOPE_TTL_MS`, then
+ * loads it again so a device adopted later or a subnet change is seen without
+ * a restart. Each site has its own entry, so a change on one site is never
+ * checked against another site's networks. A failed load (an unknown
+ * protected network name, the console unreachable) is not kept, so the next
+ * change tries again rather than running unguarded.
  */
-export function lazyScope(load: () => Promise<ProtectedScope>): () => Promise<ProtectedScope> {
-  let cached: { scope: Promise<ProtectedScope>; loadedAt: number } | undefined;
-  return () => {
-    if (!cached || Date.now() - cached.loadedAt >= SCOPE_TTL_MS) {
-      const entry = {
-        loadedAt: Date.now(),
-        scope: load().catch((error: unknown) => {
-          if (cached === entry) cached = undefined;
-          throw error;
-        }),
-      };
-      cached = entry;
-    }
-    return cached.scope;
+export function lazyScope(
+  load: (site: Site) => Promise<ProtectedScope>,
+): (site: Site) => Promise<ProtectedScope> {
+  const cache = new Map<string, { scope: Promise<ProtectedScope>; loadedAt: number }>();
+  return (site) => {
+    const cached = cache.get(site.id);
+    if (cached && Date.now() - cached.loadedAt < SCOPE_TTL_MS) return cached.scope;
+    const entry = {
+      loadedAt: Date.now(),
+      scope: load(site).catch((error: unknown) => {
+        if (cache.get(site.id) === entry) cache.delete(site.id);
+        throw error;
+      }),
+    };
+    cache.set(site.id, entry);
+    return entry.scope;
   };
 }
 
