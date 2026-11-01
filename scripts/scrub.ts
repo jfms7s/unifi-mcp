@@ -57,6 +57,11 @@ export interface ScrubMap {
   readonly nameCounts: Record<NameKind, number>;
   /** Every fake id handed out, so scrubbing a fixture again leaves it alone. */
   readonly fakeIds: Set<string>;
+  /**
+   * Real official-API site ids: they sit inside request paths too, so every
+   * string has them replaced (by their fake in `ids`), not only id fields.
+   */
+  readonly siteIds: Set<string>;
   /** Derived lookups, rebuilt only when a table grows. */
   readonly cache: { namesSize: number; names: string[]; macsSize: number; compact?: RegExp };
 }
@@ -73,6 +78,7 @@ export function createScrubMap(): ScrubMap {
     names: new Map(),
     nameCounts: { console: 0, client: 0, device: 0, ssid: 0, user: 0 },
     fakeIds: new Set(),
+    siteIds: new Set(),
     cache: { namesSize: -1, names: [], macsSize: -1 },
   };
 }
@@ -196,9 +202,12 @@ function isPrivateOrSpecialIpv4(ip: string): boolean {
   );
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const FAKE_UUID_PREFIX = '00000000-0000-4000-8000-';
+
 function fakeId(original: string, n: number): string {
-  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(original)) {
-    return `00000000-0000-4000-8000-${hex(n, 12)}`;
+  if (UUID_RE.test(original)) {
+    return `${FAKE_UUID_PREFIX}${hex(n, 12)}`;
   }
   const cloud = /^([0-9a-f]{40,}):(\d+)$/i.exec(original);
   if (cloud) return `${hex(n, cloud[1]!.length).toUpperCase()}:${n}`;
@@ -226,7 +235,7 @@ function mapMac(map: ScrubMap, mac: string): string {
 }
 
 function mapId(map: ScrubMap, id: string): string {
-  if (map.fakeIds.has(id)) return id;
+  if (map.fakeIds.has(id) || id.startsWith(FAKE_UUID_PREFIX)) return id;
   const fake = intern(map.ids, id, (n) => fakeId(id, n));
   map.fakeIds.add(fake);
   return fake;
@@ -314,6 +323,12 @@ function learnValue(value: unknown, map: ScrubMap, parentKey: string | undefined
     return;
   }
   const record = value as Record<string, unknown>;
+  // An official-API site ({id, internalReference, name}): its id names the owner's console.
+  const siteId = record.id;
+  if (typeof record.internalReference === 'string' && typeof siteId === 'string' && UUID_RE.test(siteId)) {
+    if (!siteId.startsWith(FAKE_UUID_PREFIX)) map.siteIds.add(siteId);
+    mapId(map, siteId);
+  }
   const kind = objectKind(record, parentKey);
   const realMac = realMacOf(record);
   for (const [key, child] of Object.entries(record)) {
@@ -415,7 +430,9 @@ function compactMacPattern(map: ScrubMap): RegExp | undefined {
   return map.cache.compact;
 }
 
-function scrubString(text: string, key: string | undefined, map: ScrubMap): string {
+function scrubString(raw: string, key: string | undefined, map: ScrubMap): string {
+  let text = raw;
+  for (const id of map.siteIds) if (text.includes(id)) text = text.replaceAll(id, mapId(map, id));
   if (key !== undefined && key !== 'key' && SECRET_KEY_RE.test(key)) return text ? REDACTED : text;
   if (key !== undefined && FREE_TEXT_KEY_RE.test(key)) return text ? REDACTED : text;
   if (key !== undefined && ID_KEY_RE.test(key) && text) {

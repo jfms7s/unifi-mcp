@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { UnifiApiError } from '../../../src/http/errors.js';
-import { diff, hidingSecrets, merge } from '../../../src/unifi/write-tools/objects.js';
+import { diff, hidingSecrets, merge, redact, secretsIn } from '../../../src/unifi/write-tools/objects.js';
 
 describe('diff', () => {
   it('a secret that changes says "changed", one that goes away says "removed"', () => {
@@ -14,6 +14,26 @@ describe('diff', () => {
     expect(diff({ s: { passphrase: 'a' } }, { s: { passphrase: null } })).toEqual({
       's.passphrase': 'removed',
     });
+  });
+});
+
+describe('secret keys beyond passphrases', () => {
+  it('redacts psk, key and *Key string values, and finds them as secrets', () => {
+    const value = { psk: 'p1', key: 'k1', wpaKey: 'k2', x_passphrase: 'k3', name: 'lan', keyCount: 2 };
+    expect(redact(value)).toEqual({
+      psk: '<redacted>',
+      key: '<redacted>',
+      wpaKey: '<redacted>',
+      x_passphrase: '<redacted>',
+      name: 'lan',
+      keyCount: 2,
+    });
+    expect(secretsIn(value).sort()).toEqual(['k1', 'k2', 'k3', 'p1']);
+  });
+
+  it('a PSK entry that changes shows as "changed" in the diff, never its value', () => {
+    expect(diff({ s: { key: 'old' } }, { s: { key: 'new' } })).toEqual({ 's.key': 'changed' });
+    expect(diff({ psks: [{ psk: 'a' }] }, { psks: [{ psk: 'b' }] })).toEqual({ psks: 'changed' });
   });
 });
 

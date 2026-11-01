@@ -6,7 +6,7 @@
     "code": "api.firewall.zone-based-firewall-not-configured",
     "message": "Zone Based Firewall is not configured",
     "timestamp": "2026-11-01T11:29:40.435676Z",
-    "requestPath": "/integration/v1/sites/88f7af54-98f8-306a-a1c7-c9349722b1f6/firewall/policies",
+    "requestPath": "/integration/v1/sites/00000000-0000-4000-8000-000000000001/firewall/policies",
     "requestId": "7452b254-a439-4cff-8fcb-e985d662c4f5"
   }
 }

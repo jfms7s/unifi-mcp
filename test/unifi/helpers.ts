@@ -7,7 +7,7 @@ import { UnifiApiError } from '../../src/http/errors.js';
 import { liveFixture } from '../fixtures/live.js';
 
 export const BASE = 'https://console.test';
-export const SITE_ID = '88f7af54-98f8-306a-a1c7-c9349722b1f6';
+export const SITE_ID = '00000000-0000-4000-8000-000000000001';
 export const LEGACY = `${BASE}/proxy/network/api/s/default`;
 export const V2 = `${BASE}/proxy/network/v2/api/site/default`;
 export const OFFICIAL = `${BASE}/proxy/network/integration/v1`;

@@ -32,9 +32,9 @@ async function change(
 ): Promise<unknown> {
   const site = await deps.sites.resolve(args.site);
   const devices = await deps.official.listDevices(site.id);
-  const match = findDevice(devices, args.device);
+  const match = findDevice(devices, args.device, { exactOnly: true });
   if ('none' in match) throw new Error(`No device matches "${args.device}"`);
-  if ('ambiguous' in match) return ambiguous(args.device, match.ambiguous, deviceRow);
+  if ('ambiguous' in match) return ambiguous(args.device, match.ambiguous, deviceRow, match.partial);
   const d = match.found;
   const [scope, clients, links] = await Promise.all([
     deps.scope(),

@@ -5,7 +5,7 @@ export interface ToolDefinition<Shape extends ZodRawShape = ZodRawShape> {
   name: string;
   description: string;
   inputSchema: Shape;
-  /** Required so no tool ships without saying whether it reads or changes CI. */
+  /** Required so no tool ships without saying whether it reads or changes the network. */
   annotations: ToolAnnotations;
   handler: (args: z.infer<z.ZodObject<Shape>>) => Promise<unknown>;
 }

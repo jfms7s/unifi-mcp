@@ -353,6 +353,20 @@ describe('scrub: secrets', () => {
 });
 
 describe('scrub: owner, account and console identity', () => {
+  it('fakes the official site id, in the sites list and inside request paths', () => {
+    const real = '3c9a1f6e-52d4-3b8a-9e71-0f4d2c6b8a15';
+    const map = createScrubMap();
+    const sites = { data: [{ id: real, internalReference: 'default', name: 'Default' }] };
+    const zbf = { body: { requestPath: `/integration/v1/sites/${real}/firewall/zones` } };
+    // Primed in capture order, as writeFixtures does, so the later file is covered too.
+    prime(sites, map);
+    prime(zbf, map);
+    const fake = '00000000-0000-4000-8000-000000000001';
+    expect(scrub(sites, map)).toEqual({ data: [{ id: fake, internalReference: 'default', name: 'Default' }] });
+    expect(scrub(zbf, map)).toEqual({ body: { requestPath: `/integration/v1/sites/${fake}/firewall/zones` } });
+    expect(scrub(scrub(sites, map), createScrubMap())).toEqual(scrub(sites, map));
+  });
+
   it('maps emails to user-N@example.com and account names to user-N', () => {
     const map = createScrubMap();
     const out = scrub(
@@ -444,7 +458,7 @@ describe('scrub: owner, account and console identity', () => {
     const value = {
       _id: '6ae63ecdea5564025704a2ff',
       site_id: '693862dc3ce34976d544de91',
-      id: '88f7af54-98f8-306a-a1c7-c9349722b1f6',
+      id: '5d1c3f2a-7b4e-4c19-9a0d-2e6f8b7c1a34',
       n: 3,
       ok: false,
       none: null,

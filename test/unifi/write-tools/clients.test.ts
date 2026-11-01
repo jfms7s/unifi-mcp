@@ -100,6 +100,15 @@ describe('unifi_block_client / unifi_unblock_client / unifi_reconnect_client', (
     expect(writes).toEqual([]);
   });
 
+  it('a partial name is never acted on: it comes back as a candidate', async () => {
+    const { call, writes } = setup();
+    const out = (await call('unifi_block_client', { client: 'Hub' })) as Record<string, unknown>;
+    expect(out).toMatchObject({ ambiguous: true });
+    expect(out.message).toMatch(/^"Hub" is only part of a name/);
+    expect(out.candidates).toEqual([expect.objectContaining({ name: 'MAC Hub' })]);
+    expect(writes).toEqual([]);
+  });
+
   it('no match is an error and sends nothing', async () => {
     const { call, writes } = setup();
     await expect(call('unifi_block_client', { client: 'nobody-here' })).rejects.toThrow(

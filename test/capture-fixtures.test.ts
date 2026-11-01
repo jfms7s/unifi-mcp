@@ -2,7 +2,7 @@ import { mkdtemp, readFile, readdir, rm, writeFile, mkdir } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { writeFixtures } from '../scripts/capture-fixtures.js';
+import { siteIdFor, writeFixtures } from '../scripts/capture-fixtures.js';
 
 describe('writeFixtures', () => {
   let root: string;
@@ -33,5 +33,23 @@ describe('writeFixtures', () => {
       data: [{ mac: '02:00:00:00:00:01' }],
     });
     expect(await readdir(root)).toEqual(['live']);
+  });
+});
+
+describe('siteIdFor', () => {
+  const sites = {
+    data: [
+      { id: '00000000-0000-4000-8000-0000000000aa', internalReference: 'other', name: 'Other' },
+      { id: '00000000-0000-4000-8000-0000000000bb', internalReference: 'default', name: 'Default' },
+    ],
+  };
+
+  it('reads the site id from the console instead of hardcoding it', () => {
+    expect(siteIdFor(sites, 'default')).toBe('00000000-0000-4000-8000-0000000000bb');
+  });
+
+  it('a console without that site is an error', () => {
+    expect(() => siteIdFor(sites, 'missing')).toThrow('the console has no site "missing"');
+    expect(() => siteIdFor({}, 'default')).toThrow('the console has no site "default"');
   });
 });

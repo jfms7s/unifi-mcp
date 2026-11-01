@@ -18,7 +18,6 @@ import { describeError } from '../src/http/errors.js';
 import { createConsoleDispatcher } from '../src/http/tls.js';
 import { createScrubMap, prime, scrub } from './scrub.js';
 
-export const SITE_ID = '88f7af54-98f8-306a-a1c7-c9349722b1f6';
 export const SITE_REF = 'default';
 const OUT_DIR = resolve(import.meta.dirname, '../test/fixtures/live');
 
@@ -94,7 +93,20 @@ const official = (name: string, path: string): Endpoint => ({
   api: 'official',
   path: `/v1${path}`,
 });
-const site = (path: string) => `/sites/${SITE_ID}${path}`;
+/**
+ * The official-API id of the site whose legacy name is `ref`, read from the
+ * console's `/v1/sites` answer: it is the owner's, so it is never hardcoded
+ * here (the scrub fakes it in the fixtures).
+ */
+export function siteIdFor(sites: unknown, ref: string): string {
+  const rows = (sites as { data?: Array<{ id?: unknown; internalReference?: unknown }> } | undefined)
+    ?.data;
+  const id = rows?.find((s) => s.internalReference === ref)?.id;
+  if (typeof id !== 'string' || !id) throw new Error(`the console has no site "${ref}"`);
+  return id;
+}
+
+const sitePath = (siteId: string) => (path: string) => `/sites/${siteId}${path}`;
 const legacy = (path: string, method: 'GET' | 'POST' = 'GET', body?: unknown): Endpoint => ({
   name: `legacy-${path.replace(/[/.]/g, '-')}`,
   api: 'legacy',
@@ -103,7 +115,8 @@ const legacy = (path: string, method: 'GET' | 'POST' = 'GET', body?: unknown): E
   body,
 });
 
-function staticEndpoints(now: number): Endpoint[] {
+function staticEndpoints(now: number, siteId: string): Endpoint[] {
+  const site = sitePath(siteId);
   const list: Endpoint[] = [
     official('info', '/info'),
     official('sites', '/sites'),
@@ -223,7 +236,15 @@ export async function collect(config: UnifiMcpConfig): Promise<{
     }
   };
 
-  for (const e of staticEndpoints(now)) {
+  let siteId: string;
+  try {
+    siteId = siteIdFor(await client.request('official', 'GET', '/v1/sites'), SITE_REF);
+  } catch (error) {
+    return { captured, failures: [`official-sites: ${describeError(error)}`] };
+  }
+  const site = sitePath(siteId);
+
+  for (const e of staticEndpoints(now, siteId)) {
     await attempt(e.name, async () => {
       captured.push({ name: e.name, data: await fetchOne(client, e) });
     });

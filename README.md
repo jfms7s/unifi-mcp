@@ -66,6 +66,12 @@ Firewall changes need Zone-Based Firewall, which has to be switched on in the Un
 
 The names are looked up when the first change runs and again every five minutes, so a newly adopted device or a changed subnet is picked up without a restart. An unknown name is an error that lists the networks that exist, so a typo never leaves a network unprotected. An empty value is a startup error too; to protect only the gateway, say so with `none`. The protected list is logged at startup, as a warning when it is `none`. **Renaming a protected network makes the guard refuse changes until `UNIFI_MCP_PROTECTED_NETWORKS` is updated to the new name** (or use the network's id).
 
+The guard works out the protected scope from the console's one (default) site, and every write tool is checked against that scope. Consoles with more than one site are not supported for changes yet: there the guard cannot pick a site, so changes fail with the list of sites. Use the read tools there, or `UNIFI_MCP_READ_ONLY=true`.
+
+The machine running unifi-mcp is protected only if it sits on a protected network. A stdio run on a desktop on another network can block or disconnect that desktop without a confirm. Run read-only there, or add the desktop's network to `UNIFI_MCP_PROTECTED_NETWORKS`.
+
+Write tools act only on an exact client or device: an id, MAC, IP or full name. A partial name comes back as candidates to ask again with, and nothing changes.
+
 ## Configuration
 
 | Variable | Required | Purpose |

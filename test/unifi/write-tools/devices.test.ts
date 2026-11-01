@@ -151,6 +151,15 @@ describe('unifi_restart_device', () => {
     expect(writes).toEqual([]);
   });
 
+  it('a partial name is never acted on: it comes back as a candidate', async () => {
+    const { call, writes } = setup();
+    const out = (await call('unifi_restart_device', { device: 'Gateway' })) as Out;
+    expect(out).toMatchObject({ ambiguous: true });
+    expect(out.message).toMatch(/^"Gateway" is only part of a name/);
+    expect(out.candidates).toEqual([expect.objectContaining({ name: 'Gateway CGU' })]);
+    expect(writes).toEqual([]);
+  });
+
   it('no match is an error and sends nothing', async () => {
     const { call, writes } = setup();
     await expect(call('unifi_restart_device', { device: 'toaster' })).rejects.toThrow(

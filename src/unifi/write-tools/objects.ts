@@ -1,7 +1,7 @@
 // GET-merge-PUT for the official API's whole-object updates (networks, WiFi
 // broadcasts): the PUT replaces the object, so an update merges the caller's
 // partial into what GET returned and sends all of it back. The preview shows
-// only what changed, with secrets (WiFi passphrases) never shown.
+// only what changed, with secrets (WiFi passphrases, PSKs, keys) never shown.
 
 import { UnifiApiError } from '../../http/errors.js';
 import { touchesProtected, type ProtectedScope, type Target } from '../guard.js';
@@ -13,8 +13,13 @@ export type Change = { before: unknown; after: unknown } | 'changed' | 'removed'
 
 export const REDACTED = '<redacted>';
 
-/** Keys whose values are never shown: WiFi passphrases and their kin. */
-const SECRET_KEY = /pass(phrase|word)|secret/i;
+/** Keys whose values are never shown: WiFi passphrases, PSKs and their kin. */
+const SECRET_KEY = /pass|secret|psk/i;
+/** `key`, `wpaKey`, `x_key`...: secret when it holds a string (a `keyCount` does not end in key). */
+const KEY_NAME = /(^|[a-z_])key$/i;
+
+const isSecret = (key: string, value: unknown): boolean =>
+  SECRET_KEY.test(key) || (KEY_NAME.test(key) && typeof value === 'string');
 
 /** Nested objects whose variant these fields pick are replaced, not merged. */
 const DISCRIMINATORS = ['type', 'mode', 'management'];
@@ -56,7 +61,7 @@ export function redact(value: unknown): unknown {
   return Object.fromEntries(
     Object.entries(value).map(([k, v]) => [
       k,
-      SECRET_KEY.test(k) && v != null ? REDACTED : redact(v),
+      isSecret(k, v) && v != null ? REDACTED : redact(v),
     ]),
   );
 }
@@ -66,7 +71,7 @@ export function secretsIn(value: unknown, found: string[] = []): string[] {
   if (Array.isArray(value)) value.forEach((v) => secretsIn(v, found));
   else if (isPlain(value)) {
     for (const [k, v] of Object.entries(value)) {
-      if (SECRET_KEY.test(k) && typeof v === 'string' && v) found.push(v);
+      if (isSecret(k, v) && typeof v === 'string' && v) found.push(v);
       else secretsIn(v, found);
     }
   }
@@ -90,7 +95,7 @@ export function diff(before: Plain, after: Plain, prefix = ''): Record<string, C
     }
     if (same(a, b)) continue;
     const [rb, ra] = [redact(b), redact(a)];
-    if (SECRET_KEY.test(key)) out[path] = a == null ? 'removed' : 'changed';
+    if (isSecret(key, a) || isSecret(key, b)) out[path] = a == null ? 'removed' : 'changed';
     else out[path] = same(rb, ra) ? 'changed' : { before: rb ?? null, after: ra ?? null };
   }
   return out;

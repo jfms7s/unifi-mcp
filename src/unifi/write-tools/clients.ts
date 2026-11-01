@@ -37,9 +37,11 @@ async function resolveClient(
 ): Promise<Resolved> {
   const site = await deps.sites.resolve(wanted);
   const records = await loadClients(deps, site);
-  const match = findClient(records, query);
+  const match = findClient(records, query, { exactOnly: true });
   if ('none' in match) throw new Error(`No client matches "${query}"`);
-  if ('ambiguous' in match) return { candidates: ambiguous(query, match.ambiguous, clientRow) };
+  if ('ambiguous' in match) {
+    return { candidates: ambiguous(query, match.ambiguous, clientRow, match.partial) };
+  }
   return { site, record: match.found, records };
 }
 
