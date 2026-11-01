@@ -2,7 +2,7 @@
 // Run with the console's env set (see README); never part of CI.
 // Prints the tool name, OK/ERR and the output size, never the output itself.
 import { loadConfig } from '../src/config.js';
-import { describeError } from '../src/http/errors.js';
+import { UnifiApiError, describeError } from '../src/http/errors.js';
 import { buildTools } from '../src/tools.js';
 
 type Args = Record<string, unknown>;
@@ -37,8 +37,14 @@ async function main(): Promise<void> {
       console.log(`${tool.name.padEnd(28)} OK   ${bytes} bytes`);
     } catch (error) {
       failures++;
-      // describeError redacts secrets; the message is the tool's own, not a payload.
-      console.log(`${tool.name.padEnd(28)} ERR  ${describeError(error).slice(0, 200)}`);
+      // Kind and status only: a message can quote console content.
+      const why =
+        error instanceof UnifiApiError
+          ? `${error.kind}${error.status ? ` ${error.status}` : ''}`
+          : error instanceof Error
+            ? error.name
+            : 'unknown';
+      console.log(`${tool.name.padEnd(28)} ERR  ${why}`);
     }
   }
 

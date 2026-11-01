@@ -62,7 +62,7 @@ Firewall changes need Zone-Based Firewall, which has to be switched on in the Un
 
 ## Protected networks
 
-`UNIFI_MCP_PROTECTED_NETWORKS` (default `pi-cluster`) names the networks unifi-mcp must not cut itself, or what runs on them, off from. A comma-separated list of names or ids; names ignore case. The guard works out the clients on those networks, the subnets, the devices and ports that carry them (including through daisy-chained switches and APs) and the gateway. A change that touches any of them previews first and runs only with `confirm=true`. A client or device the guard cannot place leans to confirm.
+`UNIFI_MCP_PROTECTED_NETWORKS` (default value `pi-cluster`; for example `servers,management` to set your own) names the networks unifi-mcp must not cut itself, or what runs on them, off from. A comma-separated list of names or ids; names ignore case. The guard works out the clients on those networks, the subnets, the devices and ports that carry them (including through daisy-chained switches and APs) and the gateway. A change that touches any of them previews first and runs only with `confirm=true`. A client or device the guard cannot place leans to confirm.
 
 The names are looked up when the first change runs and again every five minutes, so a newly adopted device or a changed subnet is picked up without a restart. An unknown name is an error that lists the networks that exist, so a typo never leaves a network unprotected. **Renaming a protected network makes the guard refuse changes until `UNIFI_MCP_PROTECTED_NETWORKS` is updated to the new name** (or use the network's id).
 
@@ -76,7 +76,7 @@ The names are looked up when the first change runs and again every five minutes,
 | `UNIFI_TLS_INSECURE` | no | `true` turns certificate checks off. Local experiments only. |
 | `UNIFI_SITE_MANAGER_API_KEY` | no | Site Manager (unifi.ui.com) key; adds `unifi_list_hosts` and `unifi_isp_metrics`. |
 | `UNIFI_MCP_READ_ONLY` | no | `true` registers the read tools only. |
-| `UNIFI_MCP_PROTECTED_NETWORKS` | no | Comma-separated network names or ids, default `pi-cluster`. |
+| `UNIFI_MCP_PROTECTED_NETWORKS` | no | Comma-separated network names or ids. The default value is `pi-cluster`; set your own, e.g. `servers,management`. |
 | `UNIFI_MCP_TRANSPORT` | no | `stdio` (default), `http` or `both`. The image sets `http`. |
 | `UNIFI_MCP_PORT` | no | HTTP port, default `3000`. |
 | `UNIFI_MCP_TOKEN` | for `http`/`both` | Bearer token MCP clients must send. |
@@ -103,8 +103,10 @@ docker run --rm -p 3000:3000 \
   -e UNIFI_API_KEY=your-api-key \
   -e UNIFI_TLS_FINGERPRINT=AA:BB:...:FF \
   -e UNIFI_MCP_TOKEN=a-long-random-secret \
-  ghcr.io/jfms7s/unifi-mcp:latest
+  ghcr.io/jfms7s/unifi-mcp:v0.1.0
 ```
+
+Pin a `vX.Y.Z` tag, not `latest`, so an upgrade is a decision you make.
 
 Claude Code (`~/.claude.json`, `mcpServers`), over HTTP:
 
@@ -116,13 +118,22 @@ Claude Code (`~/.claude.json`, `mcpServers`), over HTTP:
 }
 ```
 
-Or over stdio, started by the client:
+### From source
+
+```bash
+git clone https://github.com/jfms7s/unifi-mcp.git
+cd unifi-mcp
+npm ci
+npm run build
+```
+
+Then point Claude Code at the build, over stdio:
 
 ```json
 "unifi": {
   "type": "stdio",
-  "command": "npx",
-  "args": ["-y", "github:jfms7s/unifi-mcp"],
+  "command": "node",
+  "args": ["/path/to/unifi-mcp/dist/index.js"],
   "env": {
     "UNIFI_URL": "https://192.168.1.1",
     "UNIFI_API_KEY": "your-api-key",
