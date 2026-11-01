@@ -121,6 +121,21 @@ describe('unifi_restart_device', () => {
     expect(out.warning).toMatch(/device-4 carries k3s-node-9 \(192\.168\.0\.209\) on pi-cluster/);
   });
 
+  it('a k3s node rest/user places on no device keeps the Flex restart guarded', async () => {
+    const floating = withOfflineUser({
+      _id: 'floating-k3s',
+      mac: '02:00:00:00:99:11',
+      hostname: 'k3s-node-10',
+      is_wired: true,
+      last_ip: '192.168.0.210',
+      last_connection_network_id: '6ae51197aa840627805aa50a',
+    });
+    const { call, writes } = setup({ fixtures: { 'legacy-rest-user': floating } });
+    const out = (await call('unifi_restart_device', { device: 'device-4' })) as Out;
+    expect(writes).toEqual([]);
+    expect(out.warning).toMatch(/device-4 could carry k3s-node-10 .* can't place on any device/);
+  });
+
   it('an ambiguous name returns the candidates and sends nothing', async () => {
     const { call, writes } = setup();
     const out = (await call('unifi_restart_device', { device: 'device' })) as Out;

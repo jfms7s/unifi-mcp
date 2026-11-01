@@ -108,6 +108,17 @@ describe('unifi_block_client / unifi_unblock_client / unifi_reconnect_client', (
     expect(writes).toEqual([]);
   });
 
+  it('through the SDK, a loose confirm on a k3s node never kicks it', async () => {
+    const { tools, onWrite } = setup();
+    const client = await connect(tools);
+    await expectRejectsLooseConfirm(
+      client,
+      'unifi_reconnect_client',
+      { client: 'client-22' },
+      onWrite,
+    );
+  });
+
   it('through the SDK, a loose confirm on a k3s node never blocks it', async () => {
     const { tools, onWrite } = setup();
     const client = await connect(tools);
@@ -231,6 +242,34 @@ describe('unifi_authorize_guest / unifi_unauthorize_guest', () => {
     expect(writes).toEqual([]);
     expect(out.warning).toMatch(WARNING);
   });
+
+  it('authorizing a guest on pi-cluster previews and sends nothing', async () => {
+    const { call, writes } = setup({
+      fixtures: { 'official-clients': withAccess('client-22 00:1b', 'GUEST') },
+    });
+    const out = (await call('unifi_authorize_guest', {
+      client: 'client-22',
+      minutes: 30,
+    })) as Record<string, unknown>;
+    expect(writes).toEqual([]);
+    expect(out.warning).toMatch(WARNING);
+    expect(out.preview).toMatchObject({
+      would: 'authorize guest',
+      client: 'client-22',
+      minutes: 30,
+    });
+  });
+
+  it.each(['unifi_authorize_guest', 'unifi_unauthorize_guest'])(
+    'through the SDK, %s on a pi-cluster guest refuses every loose confirm',
+    async (tool) => {
+      const { tools, onWrite } = setup({
+        fixtures: { 'official-clients': withAccess('client-22 00:1b', 'GUEST') },
+      });
+      const client = await connect(tools);
+      await expectRejectsLooseConfirm(client, tool, { client: 'client-22' }, onWrite);
+    },
+  );
 
   it('an ambiguous name returns the candidates and sends nothing', async () => {
     const { call, writes } = setup(guest);

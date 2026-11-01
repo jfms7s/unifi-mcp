@@ -4,7 +4,7 @@ import { guarded, type Target } from '../guard.js';
 import { confirmInput, siteInput } from '../inputs.js';
 import { ambiguous, findDevice } from '../lookup.js';
 import type { OfficialDevice } from '../official.js';
-import { compact, modelName } from '../shape.js';
+import { compact, modelName, normaliseMac } from '../shape.js';
 import type { Site } from '../sites.js';
 import { write, type WriteDeps } from './common.js';
 
@@ -12,13 +12,6 @@ const deviceInput = z.string().min(1).describe('Device name, MAC, IP or id');
 
 const deviceRow = (d: OfficialDevice) =>
   compact({ id: d.id, name: d.name, model: modelName(d.model), ip: d.ipAddress, state: d.state });
-
-/** Lower-case colon form of a MAC in any common spelling, else undefined. */
-function normaliseMac(value: string): string | undefined {
-  const hex = value.toLowerCase().replace(/[^0-9a-f]/g, '');
-  if (hex.length !== 12 || !/^[0-9a-f:.-]+$/i.test(value.trim())) return undefined;
-  return hex.match(/../g)!.join(':');
-}
 
 /**
  * One guarded device change. The guard reads fresh facts for each call: the

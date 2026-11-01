@@ -1,6 +1,6 @@
 import type { DeviceLink, KnownClient } from './legacy.js';
 import type { ReadDeps } from './read-common.js';
-import { isGatewayModel } from './shape.js';
+import { isGatewayModel, normaliseMac as mac } from './shape.js';
 import type { Site } from './sites.js';
 
 /**
@@ -70,13 +70,6 @@ function inCidr(ip: number, cidr: string): boolean {
   if (base === undefined) return false;
   const size = 2 ** (32 - Number(bits));
   return ip >= base && ip < base + size;
-}
-
-/** Lower-case colon form when the value is a MAC in any common spelling, else undefined. */
-function mac(value: string): string | undefined {
-  const hex = value.toLowerCase().replace(/[^0-9a-f]/g, '');
-  if (hex.length !== 12 || !/^[0-9a-f:.-]+$/i.test(value)) return undefined;
-  return hex.match(/../g)!.join(':');
 }
 
 const sameMac = (a: string | undefined, b: string | undefined) =>
@@ -248,9 +241,10 @@ function carriedBy(
 }
 
 /**
- * A device stat/device listed without a parent (no uplink_mac, now or last)
- * that carries a protected client. Every adopted device but the gateway has
- * one, so a missing parent means the data is incomplete or the field moved:
+ * A device stat/device listed without a parent it can place (no uplink_mac,
+ * now or last, or one naming a device stat/device does not list) that
+ * carries a protected client. Every adopted device but the gateway has a
+ * parent, so a missing one means the data is incomplete or the field moved:
  * then any port or device could be its way up, and the guard says so.
  */
 function unplacedCarrier(
@@ -259,8 +253,10 @@ function unplacedCarrier(
   clients: KnownClient[],
   links: DeviceLink[],
 ): string | undefined {
+  const listed = (m: string) =>
+    links.some((p) => sameMac(p.mac, m)) || scope.gatewayDeviceIds.has(mac(m) ?? m.toLowerCase());
   for (const l of links) {
-    if (l.uplinkMac !== undefined || sameMac(l.mac, exceptMac)) continue;
+    if ((l.uplinkMac !== undefined && listed(l.uplinkMac)) || sameMac(l.mac, exceptMac)) continue;
     if (scope.gatewayDeviceIds.has(mac(l.mac) ?? l.mac.toLowerCase())) continue;
     const { behind } = carriedBy(l.mac, undefined, scope, clients, links);
     if (behind.length) {
@@ -268,6 +264,19 @@ function unplacedCarrier(
     }
   }
   return undefined;
+}
+
+/**
+ * A protected client that hangs off no device unifi-mcp knows of (no switch
+ * or AP MAC, live or remembered). It could be behind any device or port.
+ */
+function unplacedClient(scope: ProtectedScope, clients: KnownClient[]): string | undefined {
+  const lost = clients.filter(
+    (c) => c.uplinkMac === undefined && clientNetwork(c, scope) !== undefined,
+  );
+  return lost.length
+    ? `${describeBehind(lost, scope)}, which unifi-mcp can't place on any device`
+    : undefined;
 }
 
 function linkName(link: DeviceLink, scope: ProtectedScope): string {
@@ -372,7 +381,9 @@ export function touchesProtected(
       }
       if (isIn(scope.uplinkDeviceIds, d)) return `${d.name} carries clients of a protected network`;
       const lost = unplacedCarrier(d.mac, scope, clients, links);
-      return lost && `${d.name} could be upstream of ${lost}`;
+      if (lost) return `${d.name} could be upstream of ${lost}`;
+      const floating = unplacedClient(scope, clients);
+      return floating && `${d.name} could carry ${floating}`;
     }
 
     case 'port': {
@@ -404,7 +415,8 @@ export function touchesProtected(
       if (carries && !anyoneOnPort) {
         return `${where} has no known client and ${d.name} carries a protected network: it could be its uplink`;
       }
-      const lost = anyoneOnPort ? undefined : unplacedCarrier(d.mac, scope, clients, links);
+      if (anyoneOnPort) return undefined;
+      const lost = unplacedCarrier(d.mac, scope, clients, links) ?? unplacedClient(scope, clients);
       return lost && `${where} has nothing known on it and could feed ${lost}`;
     }
   }

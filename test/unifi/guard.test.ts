@@ -562,6 +562,49 @@ describe('touchesProtected with device uplinks (R15)', () => {
     expect(touchesProtected(port(SWITCH_DEFAULT, 5), scope, clients, live)).toBeUndefined();
   });
 
+  it('a protected client placed on no device leaves other devices and empty ports guarded', () => {
+    const floating: KnownClient = {
+      id: 'f',
+      mac: '02:00:00:00:99:05',
+      name: 'k3s-float',
+      ip: '192.168.0.180',
+      blocked: false,
+      connected: true,
+    };
+    const all = [...clients, floating];
+    expect(touchesProtected({ kind: 'device', id: SWITCH_DEFAULT }, scope, all, live)).toMatch(
+      /^device-4 could carry k3s-float \(192\.168\.0\.180\) on pi-cluster, which unifi-mcp can't place on any device/,
+    );
+    expect(touchesProtected(port(SWITCH_DEFAULT, 5), scope, all, live)).toMatch(
+      /^port 5 on device-4 has nothing known on it and could feed k3s-float/,
+    );
+    // Without uplink data at all, the client alone still leans to confirm.
+    expect(touchesProtected({ kind: 'device', id: SWITCH_DEFAULT }, scope, all)).toMatch(
+      /could carry k3s-float/,
+    );
+    // A port with a client on it now is not where it hangs.
+    expect(touchesProtected(port(SWITCH_DEFAULT, 2), scope, all, live)).toBeUndefined();
+    // An unplaced client on Default changes nothing.
+    const other = { ...floating, ip: '192.168.10.180', name: 'laptop' };
+    expect(
+      touchesProtected({ kind: 'device', id: SWITCH_DEFAULT }, scope, [...clients, other], live),
+    ).toBeUndefined();
+  });
+
+  it('a device whose parent is not in stat/device counts as unplaced', () => {
+    const dangling = links(
+      LIVE_LINKS.map((l) =>
+        l.mac === PI_SWITCH_MAC ? { ...l, uplinkMac: '02:00:00:00:00:ee' } : l,
+      ),
+    );
+    expect(touchesProtected(port(SWITCH_DEFAULT, 5), scope, clients, dangling)).toMatch(
+      /^port 5 on device-4 has nothing known on it and could feed device-2, which carries .* on pi-cluster and has no uplink/,
+    );
+    expect(
+      touchesProtected({ kind: 'device', id: SWITCH_DEFAULT }, scope, clients, dangling),
+    ).toMatch(/^device-4 could be upstream of device-2/);
+  });
+
   it('guarded passes the uplinks through', async () => {
     const run = vi.fn(async () => ({ done: true }));
     const out = await guarded(

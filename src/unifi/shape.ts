@@ -25,8 +25,8 @@ const MODEL_NAMES: Record<string, string> = {
   'UDM Pro Max': 'UniFi Dream Machine Pro Max',
   'UDM SE': 'UniFi Dream Machine SE',
   UDM: 'UniFi Dream Machine',
-  'UDR': 'UniFi Dream Router',
-  'UDR7': 'UniFi Dream Router 7',
+  UDR: 'UniFi Dream Router',
+  UDR7: 'UniFi Dream Router 7',
 };
 
 const GATEWAY_MODEL = /^(UCG|UDM|UDR|UDW|UXG|EFG|UGW)/i;
@@ -51,4 +51,11 @@ export function cut<T>(
   return rows.length <= limit
     ? { rows }
     : { rows: rows.slice(0, limit), truncated: { shown: limit, total: rows.length } };
+}
+
+/** Lower-case colon form of a MAC in any common spelling (`:`, `-`, `.`, none), else undefined. */
+export function normaliseMac(value: string): string | undefined {
+  const hex = value.toLowerCase().replace(/[^0-9a-f]/g, '');
+  if (hex.length !== 12 || !/^[0-9a-f:.-]+$/i.test(value.trim())) return undefined;
+  return hex.match(/../g)!.join(':');
 }
