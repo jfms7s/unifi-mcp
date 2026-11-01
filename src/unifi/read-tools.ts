@@ -17,7 +17,7 @@ const OFFLINE_STATES = new Set(['OFFLINE', 'CONNECTION_INTERRUPTED', 'ISOLATED']
 function ambiguous<T>(query: string, candidates: T[], row: (c: T) => unknown) {
   return {
     ambiguous: true as const,
-    message: `"${query}" matches ${candidates.length}; ask again with a MAC, IP, id or the full name`,
+    message: `"${query}" matches ${candidates.length}; ask again with its id or IP`,
     candidates: candidates.map(row),
   };
 }
@@ -207,7 +207,7 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
       handler: async (a) => {
         const site = await sites.resolve(a.site);
         const since = a.firstSeenSince === undefined ? undefined : parseTime(a.firstSeenSince, now());
-        const all = await loadClients(legacy, site.ref);
+        const all = await loadClients(deps, site);
         const showOffline = a.includeOffline || a.blocked === true;
         const keep = (c: ClientRecord) =>
           (showOffline || c.connected) &&
@@ -241,9 +241,9 @@ export function createReadTools(deps: ReadDeps): ToolDefinition[] {
       annotations: READ,
       handler: async ({ client, site: wanted }) => {
         const site = await sites.resolve(wanted);
-        const all = await loadClients(legacy, site.ref);
+        const all = await loadClients(deps, site);
         const match = lookup(all, client, [
-          (c, q) => sameText(c.id, q),
+          (c, q) => sameText(c.id, q) || sameText(c.officialId, q),
           (c, q) => sameId(c.mac, q),
           (c, q) => c.ip === q,
           (c, q) => sameText(c.name, q),

@@ -48,6 +48,16 @@ export const healthSchema = z.object({
   xput_up: z.number().optional(),
   xput_down: z.number().optional(),
   gw_version: z.string().optional(),
+  /** Per WAN (`WAN`, `WAN2`): link availability and latency over the last period. */
+  uptime_stats: z
+    .record(
+      z.string(),
+      z.object({
+        availability: z.number().optional(),
+        latency_average: z.number().optional(),
+      }),
+    )
+    .optional(),
 });
 export type Health = z.infer<typeof healthSchema>;
 
@@ -106,6 +116,7 @@ export const userSchema = z.object({
   last_ip: z.string().optional(),
   fixed_ip: z.string().optional(),
   blocked: z.boolean().optional(),
+  is_wired: z.boolean().optional(),
   first_seen: z.number().optional(),
   last_seen: z.number().optional(),
   last_connection_network_id: z.string().optional(),

@@ -44,6 +44,10 @@ export function createWanTools(deps: ReadDeps): ToolDefinition[] {
         return compact({
           site: site.name,
           wans: wans.map((w) => ({ id: w.id, name: w.name })),
+          // The health data names its links WAN, WAN2; it does not say which is active.
+          perWan: Object.entries(wan?.uptime_stats ?? {}).map(([name, u]) =>
+            compact({ name, availabilityPct: u.availability, latencyMs: u.latency_average }),
+          ),
           gateway: wan && compact({ status: wan.status, wanIp: wan.wan_ip, isp: wan.isp_name }),
           internet:
             www &&

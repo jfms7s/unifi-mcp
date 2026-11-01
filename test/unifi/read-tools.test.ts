@@ -291,6 +291,7 @@ describe('unifi_get_client', () => {
       candidates: Row[];
     };
     expect(found.ambiguous).toBe(true);
+    expect(found).toMatchObject({ message: expect.stringMatching(/id or IP/) });
     expect(found.candidates.map((c) => [c.connected, c.network])).toEqual(
       expect.arrayContaining([
         [true, 'Default'],
@@ -328,7 +329,52 @@ describe('unifi_get_client', () => {
   });
 });
 
+describe('official client join', () => {
+  const OFFICIAL_ID = '41b34643-7821-3af9-961a-4fc95ab9f818'; // MAC 02:00:00:00:00:05
+
+  it('shows officialId and access in get_client', async () => {
+    const { call } = setup();
+    const found = (await call('unifi_get_client', { client: '02:00:00:00:00:05' })) as Row;
+    expect(found).toMatchObject({ officialId: OFFICIAL_ID, access: 'DEFAULT', name: 'client-1' });
+  });
+
+  it('finds a client by its official UUID', async () => {
+    const { call } = setup();
+    const found = (await call('unifi_get_client', { client: OFFICIAL_ID })) as Row;
+    expect(found.mac).toBe('02:00:00:00:00:05');
+  });
+
+  it('still finds a client with no official match', async () => {
+    const { deps, call } = setup();
+    deps.official.listClients = async () => [];
+    const found = (await call('unifi_get_client', { client: '02:00:00:00:00:05' })) as Row;
+    expect(found.name).toBe('client-1');
+    expect(found).not.toHaveProperty('officialId');
+  });
+
+  it('reads stat/sta once per call', async () => {
+    const { deps, call } = setup();
+    await call('unifi_list_clients');
+    expect(deps.console.calls.filter((c) => c.endsWith('/stat/sta'))).toHaveLength(1);
+  });
+
+  it('keeps offline wired clients under the wired filter', async () => {
+    const { call } = setup();
+    const wired = (await call('unifi_list_clients', { wired: true, includeOffline: true })) as {
+      clients: Row[];
+    };
+    expect(wired.clients.some((c) => c.connected === false)).toBe(true);
+    expect(wired.clients.every((c) => c.wired === true)).toBe(true);
+  });
+});
+
 describe('unifi_wan_status', () => {
+  it('shows availability and latency per WAN from the health data', async () => {
+    const { call } = setup();
+    const wan = (await call('unifi_wan_status')) as { perWan: unknown };
+    expect(wan.perWan).toEqual([{ name: 'WAN', availabilityPct: 100, latencyMs: 7 }]);
+  });
+
   it('combines the WANs, gateway health and Site Manager ISP metrics', async () => {
     const { call } = setup();
     const wan = (await call('unifi_wan_status')) as Wan;

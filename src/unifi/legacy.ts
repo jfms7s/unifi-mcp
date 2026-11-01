@@ -52,6 +52,8 @@ export interface KnownClient {
   name: string;
   networkId?: string;
   blocked: boolean;
+  /** From the live station when connected, else what rest/user remembers. */
+  wired?: boolean;
   firstSeen?: number;
   lastSeen?: number;
 }
@@ -84,7 +86,8 @@ export interface LegacyApi {
   health(ref: string): Promise<Health[]>;
   stations(ref: string): Promise<Station[]>;
   devicesBasic(ref: string): Promise<DeviceBasic[]>;
-  knownClients(ref: string): Promise<KnownClient[]>;
+  /** `stations` spares a second stat/sta read when the caller already has it. */
+  knownClients(ref: string, stations?: Station[]): Promise<KnownClient[]>;
   portForwards(ref: string): Promise<PortForward[]>;
   wlanConf(ref: string): Promise<WlanConf[]>;
   networkConf(ref: string): Promise<NetworkConf[]>;
@@ -123,6 +126,7 @@ function toKnownClient(user: User, station: Station | undefined): KnownClient {
       user.mac,
     networkId: nonEmpty(station?.network_id) ?? nonEmpty(user.last_connection_network_id),
     blocked: user.blocked ?? false,
+    wired: station?.is_wired ?? user.is_wired,
     firstSeen: user.first_seen,
     lastSeen: station?.last_seen ?? user.last_seen,
   };
@@ -167,10 +171,10 @@ export function createLegacyApi(client: UnifiHttpClient, guard?: EndpointGuard):
     health: (ref) => rows(ref, 'stat/health', healthSchema),
     stations: (ref) => rows(ref, 'stat/sta', stationSchema),
     devicesBasic: (ref) => rows(ref, 'stat/device-basic', deviceBasicSchema),
-    async knownClients(ref) {
+    async knownClients(ref, known) {
       const [users, stations] = await Promise.all([
         rows(ref, 'rest/user', userSchema),
-        rows(ref, 'stat/sta', stationSchema),
+        known ?? rows(ref, 'stat/sta', stationSchema),
       ]);
       const byMac = new Map(stations.map((s) => [s.mac, s]));
       return users.map((u) => toKnownClient(u, byMac.get(u.mac)));

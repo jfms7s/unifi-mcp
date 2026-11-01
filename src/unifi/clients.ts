@@ -1,4 +1,6 @@
 import type { KnownClient, LegacyApi } from './legacy.js';
+import type { OfficialApi } from './official.js';
+import { sameId } from './lookup.js';
 import { compact, iso } from './shape.js';
 import type { Station } from './schemas.js';
 
@@ -13,22 +15,31 @@ export interface ClientRecord {
   connected: boolean;
   wired?: boolean;
   blocked: boolean;
+  /** The official API's client id, which guest authorization needs. */
+  officialId?: string;
+  /** Official `access.type`, e.g. DEFAULT or GUEST. */
+  access?: string;
   firstSeen?: number;
   lastSeen?: number;
   station?: Station;
 }
 
-/** rest/user (everyone ever seen) + stat/sta (who is connected) + network names. */
-export async function loadClients(legacy: LegacyApi, ref: string): Promise<ClientRecord[]> {
-  const [known, stations, networks] = await Promise.all([
-    legacy.knownClients(ref),
-    legacy.stations(ref),
-    legacy.networkConf(ref),
+/** rest/user (everyone ever seen) + stat/sta (who is connected) + network names + official ids. */
+export async function loadClients(
+  { legacy, official }: { legacy: LegacyApi; official: OfficialApi },
+  site: { id: string; ref: string },
+): Promise<ClientRecord[]> {
+  const [stations, networks, officialClients] = await Promise.all([
+    legacy.stations(site.ref),
+    legacy.networkConf(site.ref),
+    official.listClients(site.id),
   ]);
+  const known = await legacy.knownClients(site.ref, stations);
   const byMac = new Map(stations.map((s) => [s.mac.toLowerCase(), s]));
   const networkName = new Map(networks.map((n) => [n._id, n.name]));
   return known.map((k: KnownClient) => {
     const station = byMac.get(k.mac.toLowerCase());
+    const match = officialClients.find((o) => sameId(o.macAddress, k.mac));
     return {
       id: k.id,
       mac: k.mac,
@@ -37,8 +48,10 @@ export async function loadClients(legacy: LegacyApi, ref: string): Promise<Clien
       networkId: k.networkId,
       network: station?.network ?? (k.networkId ? networkName.get(k.networkId) : undefined),
       connected: station !== undefined,
-      wired: station?.is_wired,
+      wired: k.wired,
       blocked: k.blocked,
+      officialId: match?.id,
+      access: match?.access?.type,
       firstSeen: k.firstSeen === undefined ? undefined : k.firstSeen * 1000,
       lastSeen: k.lastSeen === undefined ? undefined : k.lastSeen * 1000,
       station,
@@ -72,6 +85,8 @@ export function clientDetail(c: ClientRecord) {
   return compact({
     ...clientRow(c),
     mac: c.mac,
+    officialId: c.officialId,
+    access: c.access,
     vendor: s?.oui,
     hostname: s?.hostname,
     guest: s?.is_guest,
